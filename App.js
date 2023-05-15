@@ -38,16 +38,12 @@ const Tab = createBottomTabNavigator();
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Sora lee is so hot</Text>
-      <StatusBar style="auto" />
-      <NavigationContainer>
-        <Tab.Navigator initialRouteName="Home">
-          <Tab.Screen name="Home" component={HomeScreen} />
-          <Tab.Screen name="Profile" component={ProfileScreen} />
-        </Tab.Navigator>
-      </NavigationContainer>
-    </View>
+    <NavigationContainer>
+      <Tab.Navigator>
+        <Tab.Screen name="Home" component={HomeScreen} />
+        <Tab.Screen name="Profile" component={ProfileScreen} />
+      </Tab.Navigator>
+    </NavigationContainer>
   );
 }
 

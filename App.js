@@ -5,6 +5,9 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
+import LoginScreen from './pages/LoginScreen.js';
+import SettingScreen from './pages/SettingScreen.js';
+
 const HomeScreen = () => (
   <View style={styles.screen}>
     <Text>Home Screen</Text>
@@ -41,6 +44,8 @@ export default function App() {
       <Tab.Navigator>
         <Tab.Screen name="Home" component={HomeScreen} />
         <Tab.Screen name="Profile" component={ProfileScreen} />
+        <Tab.Screen name="Login" component={LoginScreen} />
+        <Tab.Screen name="Settings" component={SettingScreen} />
       </Tab.Navigator>
     </NavigationContainer>
   );

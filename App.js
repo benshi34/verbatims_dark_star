@@ -7,6 +7,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 
 import LoginScreen from './pages/LoginScreen.js';
 import SettingScreen from './pages/SettingScreen.js';
+import ProfileScreen from './pages/ProfileScreen'
 
 const HomeScreen = () => (
   <View style={styles.screen}>
@@ -20,20 +21,6 @@ HomeScreen.navigationOptions = {
     <Icon name="home" size={24} color={tintColor} />
   ),
   tabBarAccessibilityLabel: 'Home Tab',
-};
-
-const ProfileScreen = () => (
-  <View style={styles.screen}>
-    <Text>Profile Screen</Text>
-  </View>
-);
-
-ProfileScreen.navigationOptions = {
-  tabBarLabel: 'Profile',
-  tabBarIcon: ({ tintColor }) => (
-    <Icon name="gear" size={24} color={tintColor} />
-  ),
-  tabBarAccessibilityLabel: 'Profile Tab',
 };
 
 const Tab = createBottomTabNavigator();

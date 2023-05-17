@@ -9,6 +9,7 @@ import LoginScreen from './pages/LoginScreen.js';
 import SettingScreen from './pages/SettingScreen.js';
 import ProfileScreen from './pages/ProfileScreen';
 import HomeScreen from './pages/HomeScreen';
+import FirebaseTest from "./pages/FirebaseTest.js";
 
 const Tab = createBottomTabNavigator();
 
@@ -20,6 +21,7 @@ export default function App() {
         <Tab.Screen name="Profile" component={ProfileScreen} />
         <Tab.Screen name="Login" component={LoginScreen} />
         <Tab.Screen name="Settings" component={SettingScreen} />
+        <Tab.Screen name="Firebase Test" component={FirebaseTest} />
       </Tab.Navigator>
     </NavigationContainer>
   );

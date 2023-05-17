@@ -1,16 +1,28 @@
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native"
+import { View, Text, TouchableOpacity, StyleSheet, Button, SafeAreaView } from "react-native"
 
 const SettingScreen = ({ navigation }) => {
     return (
       <View style ={styles.container}>
-        <View style = {styles.header}>
-        <Text style = {styles.boldText}> Setting Screen </Text>
+        <View style={styles.header}>
+        <Text style={styles.headerText}>Settings</Text>
         </View>
-        <View style = {styles.body}> 
-        <TouchableOpacity><Text>Profile </Text></TouchableOpacity>
-        <TouchableOpacity><Text>Friends</Text></TouchableOpacity>
-        <TouchableOpacity><Text>Premium Verbatims</Text></TouchableOpacity>
-        </View>
+
+        <View
+      style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+    >
+      <TouchableOpacity style={{ backgroundColor: '#147EFB', padding: 10, borderRadius:4 }}>
+        <Text style={{ color: '#fff' }}>Profile</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={{ backgroundColor: '#147EFB', padding: 10, borderRadius:4 }}>
+        <Text style={{ color: '#fff' }}>Friends</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={{ backgroundColor: '#147EFB', padding: 10, borderRadius:4 }}>
+        <Text style={{ color: '#fff' }}>Verbatims Premium</Text>
+      </TouchableOpacity>
+
+    </View>
       </View>
     );
     };
@@ -46,6 +58,10 @@ const SettingScreen = ({ navigation }) => {
       buttonContainer: {
         marginTop: 20,
         marginBottom: 20,
+        backgroundColor: 'orange',
+        alignItems: 'center',
+        justifyContent: 'center', 
+        borderRadius: 4
       },
       IDFK: {
         alignItems: 'center',

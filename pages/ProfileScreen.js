@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Image, TouchableOpacity, Text, StyleSheet, ImageBackground, FlatList } from 'react-native';
+import { View, Image, TouchableOpacity, Text, StyleSheet, ImageBackground, FlatList, Button } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 
 const dummyData = [
   {
@@ -21,11 +22,35 @@ const dummyData = [
 
 
 const ProfileScreen = () => {
-  const handleImagePress = () => {
-    // Handle the button press event here
-    console.log('Image button pressed!');
-  };
   const [discussionPosts, setDiscussionPosts] = useState([]);
+  const [lessDiscussionPosts, setLessDiscussionPosts] = useState([]);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [showImage, setShowImage] = useState(false);
+  const [submittedShowImage, setSubmittedShowImage] = useState(false);
+  const [buttonText, setButtonText] = useState('Show More');
+  const [submittedButtonText, setSubmittedButtonText] = useState('Show More');
+
+  const toggleImageVisibility = () => {
+    setShowImage(!showImage);
+    setButtonText(showImage ? 'Show More' : 'Show Less');
+  };
+
+  const toggleSubmittedImageVisibility = () => {
+    setSubmittedShowImage(!submittedShowImage);
+    setSubmittedButtonText(submittedShowImage ? 'Show More' : 'Show Less');
+  };
+
+  const handleButtonPress = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync();
+      if (!result.cancelled) {
+        setSelectedImage(result.uri);
+      }
+    } catch (error) {
+      console.log('Error selecting image:', error);
+    }
+  };
+
   useEffect(() => {
     // Simulated data for discussion posts
     const dummyData = [
@@ -50,6 +75,17 @@ const ProfileScreen = () => {
     ];
 
     setDiscussionPosts(dummyData);
+
+    const lessDummyData = [
+      {
+        id: 1,
+        user: 'John',
+        post: 'Hello, everyone! How is your day going?',
+        profilePic: require('../assets/kharn.jpg'),
+      },
+    ];
+
+    setLessDiscussionPosts(lessDummyData);
   }, []);
 
   const renderDiscussionPost = ({ item }) => {
@@ -66,17 +102,55 @@ const ProfileScreen = () => {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={handleImagePress} style={styles.imageButton}>
-        <Image source={require('../assets/kharn.jpg')} style={styles.image} />
+      <TouchableOpacity onPress={handleButtonPress} style={styles.imageButton}>
+        {selectedImage ? (
+          <Image source={{ uri: selectedImage }} style={styles.image} />
+        ) : (
+          <Image source={require('../assets/kharn.jpg')} style={styles.image} />
+        )}
       </TouchableOpacity>
+
+
+
+
+
+
       <Text style={styles.text}>Verbatims You Said</Text>
+      {!showImage && (
+                <FlatList
+                data={lessDiscussionPosts}
+                renderItem={renderDiscussionPost}
+                keyExtractor={(item) => item.id.toString()}
+                contentContainerStyle={styles.listContainer}
+                />
+      )}
+      {showImage && (
                 <FlatList
                 data={discussionPosts}
                 renderItem={renderDiscussionPost}
                 keyExtractor={(item) => item.id.toString()}
                 contentContainerStyle={styles.listContainer}
                 />
+      )}
+      <Button title={buttonText} onPress={toggleImageVisibility} />
       <Text style={styles.text}>Verbatims You Submitted</Text>
+      {!submittedShowImage && (
+                <FlatList
+                data={lessDiscussionPosts}
+                renderItem={renderDiscussionPost}
+                keyExtractor={(item) => item.id.toString()}
+                contentContainerStyle={styles.listContainer}
+                />
+      )}
+      {submittedShowImage && (
+                <FlatList
+                data={discussionPosts}
+                renderItem={renderDiscussionPost}
+                keyExtractor={(item) => item.id.toString()}
+                contentContainerStyle={styles.listContainer}
+                />
+      )}
+      <Button title={submittedButtonText} onPress={toggleSubmittedImageVisibility} />
     </View>
   );
 };

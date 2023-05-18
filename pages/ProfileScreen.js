@@ -1,10 +1,67 @@
-import React from 'react';
-import { View, Image, TouchableOpacity, Text, StyleSheet, ImageBackground } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Image, TouchableOpacity, Text, StyleSheet, ImageBackground, FlatList } from 'react-native';
+
+const dummyData = [
+  {
+    id: 1,
+    user: 'John',
+    post: 'Hello, everyone! How is your day going?',
+  },
+  {
+    id: 2,
+    user: 'Sarah',
+    post: 'Hey, John! My day is great. How about you?',
+  },
+  {
+    id: 3,
+    user: 'Michael',
+    post: 'Hi, John and Sarah! I\'m having a good day too.',
+  },
+];
+
 
 const ProfileScreen = () => {
   const handleImagePress = () => {
     // Handle the button press event here
     console.log('Image button pressed!');
+  };
+  const [discussionPosts, setDiscussionPosts] = useState([]);
+  useEffect(() => {
+    // Simulated data for discussion posts
+    const dummyData = [
+      {
+        id: 1,
+        user: 'John',
+        post: 'Hello, everyone! How is your day going?',
+        profilePic: require('../assets/kharn.jpg'),
+      },
+      {
+        id: 2,
+        user: 'Sarah',
+        post: 'Hey, John! My day is great. How about you?',
+        profilePic: require('../assets/kharn.jpg'),
+      },
+      {
+        id: 3,
+        user: 'Michael',
+        post: 'Hi, John and Sarah! I\'m having a good day too.',
+        profilePic: require('../assets/kharn.jpg'),
+      },
+    ];
+
+    setDiscussionPosts(dummyData);
+  }, []);
+
+  const renderDiscussionPost = ({ item }) => {
+      return (
+          <View style={styles.postContainer}>
+              <View style={styles.userContainer}>
+                  <Image source={item.profilePic} style={styles.profilePic} />
+                  <Text style={styles.username}>{item.user}</Text>
+              </View>
+              <Text style={styles.postText}>{item.post}</Text>
+          </View>
+      );
   };
 
   return (
@@ -13,17 +70,13 @@ const ProfileScreen = () => {
         <Image source={require('../assets/favicon.png')} style={styles.image} />
       </TouchableOpacity>
       <Text style={styles.text}>Verbatims You Said</Text>
-      <ImageBackground source={require('../assets/icon.png')} style={styles.backgroundImage}>
-        <View style={{position: 'absolute', top: 0, left: 0, right: 100, bottom: 75, justifyContent: 'center', alignItems: 'center'}}>
-          <Text>Mark Said</Text>
-        </View>
-        <View style={{position: 'absolute', top: 0, left: 0, right: 0, bottom: 25, justifyContent: 'center', alignItems: 'center'}}>
-          <Text>"Ben Sucks Sooooo Much"</Text>
-        </View>
-        <View style={{position: 'absolute', top: 0, left: 0, right: 0, bottom: -25, justifyContent: 'center', alignItems: 'center'}}>
-          <Text>"Submitted by Adam Kelch"</Text>
-        </View>
-      </ImageBackground>
+      <Text style={styles.header}>Verbatims</Text>
+                <FlatList
+                data={discussionPosts}
+                renderItem={renderDiscussionPost}
+                keyExtractor={(item) => item.id.toString()}
+                contentContainerStyle={styles.listContainer}
+                />
       <Text style={styles.text}>Verbatims You Submitted</Text>
     </View>
   );
@@ -52,6 +105,39 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  listContainer: {
+    paddingBottom: 16,
+  },
+  postContainer: {
+    backgroundColor: '#f5f5f5',
+    padding: 16,
+    marginBottom: 16,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  userContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  profilePic: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    marginRight: 8,
+  },
+  username: {
+    fontWeight: 'bold',
+  },
+  postText: {
+    fontSize: 16,
   },
 });
 

@@ -1,13 +1,45 @@
 import React, { useState } from "react";
 import { StyleSheet, View, Text, Button, TextInput } from "react-native";
-import { writeUserData } from "../Firebase.js";
+import { createUserAuth, loginUserAuth } from "../Firebase.js";
 
 const FirebaseTest = ({ navigation }) => {
-  const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
+  const [pass, setPass] = useState("");
+  const [username, setUsername] = useState("");
+  const [showing, setShowing] = useState(false); // New state for showing
+  const [message, setMessage] = useState(""); // New state for showing
 
   const createUser = () => {
-    writeUserData(userName, email);
+    createUserAuth(email, pass, username)
+      .then((userId) => {
+        var created = `User created with ID: ${userId}`;
+        console.log(created);
+        setShowing(true);
+        setMessage(created);
+      })
+      .catch((errorMessage) => {
+        console.log(`Error creating user: ${errorMessage}`);
+        setShowing(true);
+        setMessage(errorMessage);
+        // Handle the error case
+      });
+  };
+
+  const loginUser = () => {
+    loginUserAuth(email, pass)
+      .then((userId) => {
+        var loggedIn = `User logged in  with ID: ${userId}`;
+        console.log(loggedIn);
+        setShowing(true);
+        setMessage(loggedIn);
+        // Handle the successful creation of the user
+      })
+      .catch((errorMessage) => {
+        console.log(`Error logging in user: ${errorMessage}`);
+        setShowing(true);
+        setMessage(errorMessage);
+        // Handle the error case
+      });
   };
 
   return (
@@ -15,19 +47,31 @@ const FirebaseTest = ({ navigation }) => {
       <View style={styles.label}>
         <TextInput
           style={styles.input}
-          placeholder="Enter Username"
-          onChangeText={(val) => setUserName(val)}
+          placeholder="Enter Email"
+          onChangeText={(val) => setEmail(val)}
+          autoCapitalize="none"
         />
       </View>
-
       <View style={styles.label}>
         <TextInput
           style={styles.input}
-          placeholder="Enter Email"
-          onChangeText={(val) => setEmail(val)}
+          placeholder="Enter Password"
+          onChangeText={(val) => setPass(val)}
+          autoCapitalize="none"
         />
       </View>
+      <View style={styles.label}>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter Display Name"
+          onChangeText={(val) => setUsername(val)}
+        />
+      </View>
+
       <Button title="Create Account!" onPress={createUser} />
+      <Button title="Login!" onPress={loginUser} />
+
+      <Text style={styles.text}>{showing ? message : null}</Text>
     </View>
   );
 };

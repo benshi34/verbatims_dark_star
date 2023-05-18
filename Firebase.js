@@ -1,5 +1,11 @@
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, set } from "firebase/database";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile,
+} from "firebase/auth";
 // const { getDatabase } = require("firebase-admin/database");
 
 // TODO: Add SDKs for Firebase products that you want to use
@@ -19,11 +25,47 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-
-// function writeUserData(name, email) {
-// }
-
+const auth = getAuth(app);
 const db = getDatabase();
+
+// Call this to create the user
+export function createUserAuth(email, password, username) {
+  return new Promise((resolve, reject) => {
+    createUserWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        const user = userCredential.user;
+        updateProfile(user, {
+          displayName: username,
+        })
+          .then(() => {
+            resolve(user.uid);
+          })
+          .catch((error) => {
+            reject(error.message);
+          });
+      })
+      .catch((error) => {
+        const errorMessage = error.message;
+        reject(errorMessage);
+      });
+  });
+}
+
+// Call this to create the user
+export function loginUserAuth(email, password) {
+  return new Promise((resolve, reject) => {
+    signInWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        const user = userCredential.user;
+        resolve(user.uid);
+      })
+      .catch((error) => {
+        const errorMessage = error.message;
+        reject(error.message);
+      });
+  });
+}
+
 
 export function writeUserData(username, email) {
   set(ref(db, "users/" + username), {

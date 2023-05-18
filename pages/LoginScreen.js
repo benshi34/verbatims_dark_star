@@ -1,19 +1,30 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, Button, TextInput } from "react-native";
+import { StyleSheet, View, Text, Button, TextInput, TouchableOpacity, Keyboard, TouchableWithoutFeedback } from "react-native";
+import { Ionicons } from '@expo/vector-icons'; 
 
 const LoginScreen = ({ navigation }) => {
-  const [userName, setUserName] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false); 
+  //const [isPasswordValid, setIsPasswordValid] = useState(true);
+  
+  const handleLogin = () => {
+    // Perform login logic here
+    console.log('Logging in with: username ', username, ' and password ', password);
+    
+    /*if (password.length < 8) {
+      setIsPasswordValid(false); // Invalid password, set isPasswordValid to false
+    } else {
+      setIsPasswordValid(true); // Valid password, set isPasswordValid to true
+    }
+    */
+  };
   
   const clickForgotUser = () => {
     // Log username/pw
   }
 
-  const clickForgotPass = () => {
-    // Log username/pw
-  }
-
-  const clickLoginHandler = () => {
+  const clickForgotPassword = () => {
     // Log username/pw
   }
 
@@ -21,44 +32,69 @@ const LoginScreen = ({ navigation }) => {
     // Log username/pw
   }
 
+  const dismissKeyboard = () => {
+    Keyboard.dismiss(); // Dismiss the keyboard
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
 
 
   return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-        <Text style={styles.headerText}>Login here, noob</Text>
-        </View>
+      <TouchableWithoutFeedback onPress={dismissKeyboard}>
+        <View style={styles.container}>
+          <View style={styles.header}>
+            <Text style={styles.headerText}>Login here, noob</Text>
+          </View>
 
-        <View style={styles.label}>
-        <TextInput 
-          style={styles.input} 
-          placeholder='Username' 
-          onChangeText={(val) => setUserName(val)}/>
-        </View>
-        <Button title='forgot username?' onPress={clickForgotUser}/>
+          <View style={styles.label}>
+            <TextInput 
+              style={styles.input} 
+              placeholder='Username' 
+              onChangeText={(val) => setUsername(val)}
+              AutoCapitalize='none'
+            />
+          </View>
+          
+          <Button title='forgot username?' onPress={clickForgotUser}/>
 
-        <View style={styles.label}>
-        <TextInput 
-          style={styles.input}
-          placeholder='Password' 
-          onChangeText={(val) => setPassword(val)}/>
-        </View>
-        <Button title='forgot password?' onPress={clickForgotPass}/>
+          <View style={styles.label}>
+            <TextInput 
+              style={styles.input}
+              placeholder='Password' 
+              onChangeText={(val) => setPassword(val)}
+              secureTextEntry={!showPassword}
+            />   
+            <TouchableOpacity style={styles.visibilityButton} onPress={togglePasswordVisibility}>
+              <Ionicons
+                name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                size={24}
+                color="gray"
+              />
+            </TouchableOpacity>
+          </View>
+          
+          <View>
+            <Button title='forgot password?' onPress={clickForgotPassword}/>
+          </View>
 
-        <View style={styles.buttonContainer}>
-          <Button title='Signup nerd' onPress={clickSignupHandler} />
+          <View style={styles.buttonContainer}>
+            <Button title='Login!!' onPress={handleLogin} />
+          </View>
+          
+          <View style={styles.IDFK}>
+            <Text>--------or--------</Text>
+          </View>
+          
+          <View style={styles.buttonContainer}>
+            <Button title='Signup nerd' onPress={clickSignupHandler} />
+          </View>
+          
         </View>
-        
-        <View style={styles.IDFK}>
-        <Text>--------or--------</Text>
-        </View>
-
-        <View style={styles.buttonContainer}>
-          <Button title='Login!!' onPress={clickLoginHandler} />
-        </View>
-      </View>
+      </TouchableWithoutFeedback>
     );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -78,7 +114,7 @@ const styles = StyleSheet.create({
   },
   label: {
     marginTop: 50,
-    marginLeft: 100,
+    alignItems: 'center',
   },
   input: {
     borderWidth: 1, 
@@ -88,6 +124,21 @@ const styles = StyleSheet.create({
     width: 200, 
     borderRadius: 10,
   },
+  visibilityButton: {
+    position: 'absolute',
+    right: 120,
+    height: 55,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  /*errorText: {
+    color: 'red',
+    marginTop: 50,
+    position: 'absolute',
+    alignSelf: 'flex-start', // Adjusts the alignment to the start of the container
+    alignSelf: 'center',
+    fontSize: 10
+  },*/
   buttonContainer: {
     marginTop: 20,
     marginBottom: 20,

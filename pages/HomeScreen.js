@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Image } from 'react-native';
 
 const dummyData = [
     {
@@ -29,19 +29,19 @@ const HomeScreen = ({ navigation }) => {
           id: 1,
           user: 'John',
           post: 'Hello, everyone! How is your day going?',
-          profilePic: require('./assets/kharn.jpg'),
+          profilePic: require('../assets/kharn.jpg'),
         },
         {
           id: 2,
           user: 'Sarah',
           post: 'Hey, John! My day is great. How about you?',
-          profilePic: require('./assets/kharn.jpg'),
+          profilePic: require('../assets/kharn.jpg'),
         },
         {
           id: 3,
           user: 'Michael',
           post: 'Hi, John and Sarah! I\'m having a good day too.',
-          profilePic: require('./assets/kharn.jpg'),
+          profilePic: require('../assets/kharn.jpg'),
         },
       ];
   

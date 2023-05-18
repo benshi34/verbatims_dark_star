@@ -55,7 +55,9 @@ const HomeScreen = ({ navigation }) => {
                     <Image source={item.profilePic} style={styles.profilePic} />
                     <Text style={styles.username}>{item.user}</Text>
                 </View>
-                <Text style={styles.postText}>{item.post}</Text>
+                <View style={styles.postTextContainer}>
+                  <Text style={styles.postText}>{item.post}</Text>
+                </View>
             </View>
         );
     };
@@ -100,7 +102,7 @@ const styles = StyleSheet.create({
       padding: 16,
       marginBottom: 16,
       borderRadius: 8,
-      flexDirection: 'row',
+      flexDirection: 'column',
       alignItems: 'flex-start',
     },
     userContainer: {
@@ -113,6 +115,9 @@ const styles = StyleSheet.create({
       height: 24,
       borderRadius: 12,
       marginRight: 8,
+    },
+    postTextContainer: {
+      flex: 1,
     },
     username: {
       fontWeight: 'bold',

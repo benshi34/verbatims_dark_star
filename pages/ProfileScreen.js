@@ -67,10 +67,9 @@ const ProfileScreen = () => {
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={handleImagePress} style={styles.imageButton}>
-        <Image source={require('../assets/favicon.png')} style={styles.image} />
+        <Image source={require('../assets/kharn.jpg')} style={styles.image} />
       </TouchableOpacity>
       <Text style={styles.text}>Verbatims You Said</Text>
-      <Text style={styles.header}>Verbatims</Text>
                 <FlatList
                 data={discussionPosts}
                 renderItem={renderDiscussionPost}

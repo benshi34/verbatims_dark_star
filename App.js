@@ -22,6 +22,7 @@ export default function App() {
         <Tab.Screen name="Login" component={LoginScreen} />
         <Tab.Screen name="Settings" component={SettingScreen} />
         <Tab.Screen name="Firebase Test" component={FirebaseTest} />
+        <Tab.Screen name="Firebase Test" component={FirebaseTest} />
       </Tab.Navigator>
     </NavigationContainer>
   );

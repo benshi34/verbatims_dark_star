@@ -1,23 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, Image } from 'react-native';
-
-const dummyData = [
-    {
-      id: 1,
-      user: 'John',
-      post: 'Hello, everyone! How is your day going?',
-    },
-    {
-      id: 2,
-      user: 'Sarah',
-      post: 'Hey, John! My day is great. How about you?',
-    },
-    {
-      id: 3,
-      user: 'Michael',
-      post: 'Hi, John and Sarah! I\'m having a good day too.',
-    },
-];
+import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
 
 const HomeScreen = ({ navigation }) => {
     const [discussionPosts, setDiscussionPosts] = useState([]);
@@ -28,49 +10,84 @@ const HomeScreen = ({ navigation }) => {
         {
           id: 1,
           user: 'John',
-          post: 'Hello, everyone! How is your day going?',
+          post: 'Wanna Fuck?',
           profilePic: require('../assets/kharn.jpg'),
+          isFavorite: false,
+          likes: 0,
         },
         {
           id: 2,
           user: 'Sarah',
-          post: 'Hey, John! My day is great. How about you?',
+          post: 'Ew wtf why would you say something like that? ',
           profilePic: require('../assets/kharn.jpg'),
+          isFavorite: false,
+          likes: 0,
         },
         {
           id: 3,
           user: 'Michael',
-          post: 'Hi, John and Sarah! I\'m having a good day too.',
+          post: 'I would like to fuck.',
           profilePic: require('../assets/kharn.jpg'),
+          isFavorite: false,
+          likes: 0,
         },
       ];
   
       setDiscussionPosts(dummyData);
     }, []);
+    
+    const toggleFavorite = (postId) => {
+      setDiscussionPosts((prevPosts) =>
+        prevPosts.map((post) =>
+          post.id === postId ? { ...post, isFavorite: !post.isFavorite } : post
+        )
+      );
+    };
+    
+    const toggleLike = (postId) => {
+      setDiscussionPosts((prevPosts) =>
+        prevPosts.map((post) =>
+          post.id === postId ? { ...post, likes: post.likes + 1 } : post
+        )
+      );
+    };
 
     const renderDiscussionPost = ({ item }) => {
-        return (
-            <View style={styles.postContainer}>
-                <View style={styles.userContainer}>
-                    <Image source={item.profilePic} style={styles.profilePic} />
-                    <Text style={styles.username}>{item.user}</Text>
-                </View>
-                <View style={styles.postTextContainer}>
-                  <Text style={styles.postText}>{item.post}</Text>
-                </View>
-            </View>
-        );
+      return (
+        <View style={styles.postContainer}>
+          <View style={styles.userContainer}>
+            <Image source={item.profilePic} style={styles.profilePic} />
+            <Text style={styles.username}>{item.user}</Text>
+          </View>
+          <View style={styles.postTextContainer}>
+            <Text style={styles.postText}>{item.post}</Text>
+          </View>
+          <TouchableOpacity
+            style={[styles.favoriteButton, item.isFavorite && styles.favoriteButtonActive]}
+            onPress={() => toggleFavorite(item.id)}
+          >
+            <Text style={[styles.favoriteButtonText, item.isFavorite && styles.favoriteButtonTextActive]}>
+              {item.isFavorite ? 'Unfavorite' : 'Favorite'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.likeButton} onPress={() => toggleLike(item.id)}>
+            <Text style={styles.likeButtonText}>Like ({item.likes})</Text>
+          </TouchableOpacity>
+        </View>
+      );
     };
     
     return (
         <View style={styles.container}>
             <Text style={styles.header}>Verbatims</Text>
-                <FlatList
-                data={discussionPosts}
-                renderItem={renderDiscussionPost}
-                keyExtractor={(item) => item.id.toString()}
-                contentContainerStyle={styles.listContainer}
-                />
+                <ScrollView contentContainerStyle={styles.scrollContainer}>
+                  <FlatList
+                  data={discussionPosts}
+                  renderItem={renderDiscussionPost}
+                  keyExtractor={(item) => item.id.toString()}
+                  contentContainerStyle={styles.listContainer}
+                  />
+                </ScrollView>
         </View>
     );
 }
@@ -104,6 +121,7 @@ const styles = StyleSheet.create({
       borderRadius: 8,
       flexDirection: 'column',
       alignItems: 'flex-start',
+      position: 'relative',
     },
     userContainer: {
       flexDirection: 'row',
@@ -124,6 +142,43 @@ const styles = StyleSheet.create({
     },
     postText: {
       fontSize: 16,
+    },
+    favoriteButton: {
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      padding: 8,
+      borderRadius: 20,
+      backgroundColor: '#e6e6e6',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    favoriteButtonText: {
+      fontSize: 12,
+      fontWeight: 'bold',
+      color: '#333',
+    },
+    favoriteButtonActive: {
+      backgroundColor: '#ffcc00',
+    },
+    favoriteButtonTextActive: {
+      color: '#fff',
+    },
+    likeButton: {
+      marginTop: 8,
+      padding: 8,
+      borderRadius: 4,
+      backgroundColor: '#e6e6e6',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    likeButtonText: {
+      fontSize: 12,
+      fontWeight: 'bold',
+      color: '#333',
+    },
+    scrollContainer: {
+      paddingBottom: 16,
     },
   });
 

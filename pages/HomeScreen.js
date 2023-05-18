@@ -29,16 +29,19 @@ const HomeScreen = ({ navigation }) => {
           id: 1,
           user: 'John',
           post: 'Hello, everyone! How is your day going?',
+          profilePic: require('./assets/kharn.jpg'),
         },
         {
           id: 2,
           user: 'Sarah',
           post: 'Hey, John! My day is great. How about you?',
+          profilePic: require('./assets/kharn.jpg'),
         },
         {
           id: 3,
           user: 'Michael',
           post: 'Hi, John and Sarah! I\'m having a good day too.',
+          profilePic: require('./assets/kharn.jpg'),
         },
       ];
   
@@ -49,6 +52,7 @@ const HomeScreen = ({ navigation }) => {
         return (
             <View style={styles.postContainer}>
                 <View style={styles.userContainer}>
+                    <Image source={item.profilePic} style={styles.profilePic} />
                     <Text style={styles.username}>{item.user}</Text>
                 </View>
                 <Text style={styles.postText}>{item.post}</Text>
@@ -96,15 +100,22 @@ const styles = StyleSheet.create({
       padding: 16,
       marginBottom: 16,
       borderRadius: 8,
+      flexDirection: 'row',
+      alignItems: 'flex-start',
     },
     userContainer: {
       flexDirection: 'row',
       alignItems: 'center',
       marginBottom: 8,
     },
+    profilePic: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      marginRight: 8,
+    },
     username: {
       fontWeight: 'bold',
-      marginRight: 8,
     },
     postText: {
       fontSize: 16,

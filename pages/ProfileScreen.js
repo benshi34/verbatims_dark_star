@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
   image: {
     width: 200,
     height: 200,
-    borderRadius: 20,
+    borderRadius: 100,
   },
   backgroundImage: {
     position: 'relative',

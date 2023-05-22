@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, View, Text, Button, TextInput, TouchableOpacity, Keyboard, TouchableWithoutFeedback, } from "react-native";
 import { Ionicons } from '@expo/vector-icons'; 
-import { useNavigation } from '@react-navigation/native';
 import { createNativeStackNavigator } from 'react-native-screens/native-stack';
-import { createDrawerNavigator } from '@react-navigation/drawer';
 
-const Drawer = createDrawerNavigator();
 const Stack = createNativeStackNavigator();
 
 const Signup = ({ navigation }) => {

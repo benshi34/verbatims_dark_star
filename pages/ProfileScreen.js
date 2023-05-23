@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Image, TouchableOpacity, Text, StyleSheet, ImageBackground, FlatList, Button } from 'react-native';
+import {ScrollView,  View, Image, TouchableOpacity, Text, StyleSheet, ImageBackground, FlatList, Button } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { db,ref,get,child } from "../Firebase.js";
+
+//const usersCollection = firestore().collection('');
 
 const dummyData = [
   {
@@ -52,6 +55,16 @@ const ProfileScreen = () => {
   };
 
   useEffect(() => {
+    
+    /*get(db, `Verbatims/`).then((snapshot) => {
+      if (snapshot.exists()) {
+        console.log(snapshot.val());
+      } else {
+        console.log("No data available");
+      }
+    }).catch((error) => {
+      console.error(error);
+    });*/
     // Simulated data for discussion posts
     const dummyData = [
       {
@@ -102,55 +115,52 @@ const ProfileScreen = () => {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={handleButtonPress} style={styles.imageButton}>
-        {selectedImage ? (
-          <Image source={{ uri: selectedImage }} style={styles.image} />
-        ) : (
-          <Image source={require('../assets/kharn.jpg')} style={styles.image} />
+      <ScrollView>
+        <TouchableOpacity onPress={handleButtonPress} style={styles.imageButton}>
+          {selectedImage ? (
+            <Image source={{ uri: selectedImage }} style={styles.image} />
+          ) : (
+            <Image source={require('../assets/kharn.jpg')} style={styles.image} />
+          )}
+        </TouchableOpacity>
+
+        <Text style={styles.text}>Verbatims You Said</Text>
+        {!showImage && (
+                  <FlatList
+                  data={lessDiscussionPosts}
+                  renderItem={renderDiscussionPost}
+                  keyExtractor={(item) => item.id.toString()}
+                  contentContainerStyle={styles.listContainer}
+                  />
         )}
-      </TouchableOpacity>
-
-
-
-
-
-
-      <Text style={styles.text}>Verbatims You Said</Text>
-      {!showImage && (
-                <FlatList
-                data={lessDiscussionPosts}
-                renderItem={renderDiscussionPost}
-                keyExtractor={(item) => item.id.toString()}
-                contentContainerStyle={styles.listContainer}
-                />
-      )}
-      {showImage && (
-                <FlatList
-                data={discussionPosts}
-                renderItem={renderDiscussionPost}
-                keyExtractor={(item) => item.id.toString()}
-                contentContainerStyle={styles.listContainer}
-                />
-      )}
-      <Button title={buttonText} onPress={toggleImageVisibility} />
-      <Text style={styles.text}>Verbatims You Submitted</Text>
-      {!submittedShowImage && (
-                <FlatList
-                data={lessDiscussionPosts}
-                renderItem={renderDiscussionPost}
-                keyExtractor={(item) => item.id.toString()}
-                contentContainerStyle={styles.listContainer}
-                />
-      )}
-      {submittedShowImage && (
-                <FlatList
-                data={discussionPosts}
-                renderItem={renderDiscussionPost}
-                keyExtractor={(item) => item.id.toString()}
-                contentContainerStyle={styles.listContainer}
-                />
-      )}
-      <Button title={submittedButtonText} onPress={toggleSubmittedImageVisibility} />
+        {showImage && (
+                  <FlatList
+                  data={discussionPosts}
+                  renderItem={renderDiscussionPost}
+                  keyExtractor={(item) => item.id.toString()}
+                  contentContainerStyle={styles.listContainer}
+                  />
+        )}
+        <Button title={buttonText} onPress={toggleImageVisibility} />
+        <Text style={styles.text}>Verbatims You Submitted</Text>
+        {!submittedShowImage && (
+                  <FlatList
+                  data={lessDiscussionPosts}
+                  renderItem={renderDiscussionPost}
+                  keyExtractor={(item) => item.id.toString()}
+                  contentContainerStyle={styles.listContainer}
+                  />
+        )}
+        {submittedShowImage && (
+                  <FlatList
+                  data={discussionPosts}
+                  renderItem={renderDiscussionPost}
+                  keyExtractor={(item) => item.id.toString()}
+                  contentContainerStyle={styles.listContainer}
+                  />
+        )}
+        <Button title={submittedButtonText} onPress={toggleSubmittedImageVisibility} />
+      </ScrollView>
     </View>
   );
 };
@@ -164,6 +174,7 @@ const styles = StyleSheet.create({
   },
   imageButton: {
     marginTop: 50, // Add top margin for spacing
+    marginLeft: 50, // Add top margin for spacing
   },
   image: {
     width: 200,

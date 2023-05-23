@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getDatabase, ref, set } from "firebase/database";
+import { getDatabase, ref, set, get, child } from "firebase/database";
 import {
   getAuth,
   createUserWithEmailAndPassword,
@@ -23,11 +23,9 @@ const firebaseConfig = {
   measurementId: "G-6YB9K09RE0",
   databaseURL: "https://verbatims-4622f-default-rtdb.firebaseio.com/",
 };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getDatabase();
-
+const db = getDatabase(app);
 // Call this to create the user
 export function createUserAuth(email, password, username) {
   return new Promise((resolve, reject) => {

@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import {ScrollView,  View, Image, TouchableOpacity, Text, StyleSheet, ImageBackground, FlatList, Button } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { db,ref,get,child } from "../Firebase.js";
+import { initializeApp } from "firebase/app";
+import { getDatabase, ref, get, child } from "firebase/database";
+import { app } from "../Firebase.js";
 
-//const usersCollection = firestore().collection('');
+const db = getDatabase(app);
 
 const dummyData = [
   {
@@ -43,6 +45,44 @@ const ProfileScreen = () => {
     setSubmittedButtonText(submittedShowImage ? 'Show More' : 'Show Less');
   };
 
+  const performFirebaseTask = async () => {
+    let list = new Map();
+
+    const dbRef = ref(db);
+    await get(child(dbRef, 'Verbatims/')).then((snapshot) => {
+      if (snapshot.exists()) {
+        list = snapshot.val();
+        /*Object.keys(list).map((key) => {
+          console.log(key);
+          console.log(list[key]);
+        })*/
+      } else {
+        console.log("No data available");
+      }
+    }).catch((error) => {
+      console.error(error);
+    });
+
+    
+    const dummyData = [];
+    curid = 1;
+    await Object.keys(list).map((key) => {
+      //console.log(key+" "+list[key]);
+      dummyData.push({ 
+        id: curid,
+        user: key,
+        post: list[key],
+        profilePic: require('../assets/kharn.jpg'), 
+      });
+      curid+=1;
+    })
+    setDiscussionPosts(dummyData);
+    setLessDiscussionPosts(dummyData);
+  };
+
+
+  
+
   const handleButtonPress = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync();
@@ -55,50 +95,7 @@ const ProfileScreen = () => {
   };
 
   useEffect(() => {
-    
-    /*get(db, `Verbatims/`).then((snapshot) => {
-      if (snapshot.exists()) {
-        console.log(snapshot.val());
-      } else {
-        console.log("No data available");
-      }
-    }).catch((error) => {
-      console.error(error);
-    });*/
-    // Simulated data for discussion posts
-    const dummyData = [
-      {
-        id: 1,
-        user: 'John',
-        post: 'Hello, everyone! How is your day going?',
-        profilePic: require('../assets/kharn.jpg'),
-      },
-      {
-        id: 2,
-        user: 'Sarah',
-        post: 'Hey, John! My day is great. How about you?',
-        profilePic: require('../assets/kharn.jpg'),
-      },
-      {
-        id: 3,
-        user: 'Michael',
-        post: 'Hi, John and Sarah! I\'m having a good day too.',
-        profilePic: require('../assets/kharn.jpg'),
-      },
-    ];
-
-    setDiscussionPosts(dummyData);
-
-    const lessDummyData = [
-      {
-        id: 1,
-        user: 'John',
-        post: 'Hello, everyone! How is your day going?',
-        profilePic: require('../assets/kharn.jpg'),
-      },
-    ];
-
-    setLessDiscussionPosts(lessDummyData);
+    performFirebaseTask();
   }, []);
 
   const renderDiscussionPost = ({ item }) => {

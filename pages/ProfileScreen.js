@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Image, TouchableOpacity, Text, StyleSheet, ImageBackground, FlatList, Button } from 'react-native';
+import {ScrollView,  View, Image, TouchableOpacity, Text, StyleSheet, ImageBackground, FlatList, Button } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { initializeApp } from "firebase/app";
+import { getDatabase, ref, get, child } from "firebase/database";
+import { app } from "../Firebase.js";
+
+const db = getDatabase(app);
 
 const dummyData = [
   {
@@ -40,6 +45,44 @@ const ProfileScreen = () => {
     setSubmittedButtonText(submittedShowImage ? 'Show More' : 'Show Less');
   };
 
+  const performFirebaseTask = async () => {
+    let list = new Map();
+
+    const dbRef = ref(db);
+    await get(child(dbRef, 'Verbatims/')).then((snapshot) => {
+      if (snapshot.exists()) {
+        list = snapshot.val();
+        /*Object.keys(list).map((key) => {
+          console.log(key);
+          console.log(list[key]);
+        })*/
+      } else {
+        console.log("No data available");
+      }
+    }).catch((error) => {
+      console.error(error);
+    });
+
+    
+    const dummyData = [];
+    curid = 1;
+    await Object.keys(list).map((key) => {
+      //console.log(key+" "+list[key]);
+      dummyData.push({ 
+        id: curid,
+        user: key,
+        post: list[key],
+        profilePic: require('../assets/kharn.jpg'), 
+      });
+      curid+=1;
+    })
+    setDiscussionPosts(dummyData);
+    setLessDiscussionPosts(dummyData);
+  };
+
+
+  
+
   const handleButtonPress = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync();
@@ -52,40 +95,7 @@ const ProfileScreen = () => {
   };
 
   useEffect(() => {
-    // Simulated data for discussion posts
-    const dummyData = [
-      {
-        id: 1,
-        user: 'John',
-        post: 'Hello, everyone! How is your day going?',
-        profilePic: require('../assets/kharn.jpg'),
-      },
-      {
-        id: 2,
-        user: 'Sarah',
-        post: 'Hey, John! My day is great. How about you?',
-        profilePic: require('../assets/kharn.jpg'),
-      },
-      {
-        id: 3,
-        user: 'Michael',
-        post: 'Hi, John and Sarah! I\'m having a good day too.',
-        profilePic: require('../assets/kharn.jpg'),
-      },
-    ];
-
-    setDiscussionPosts(dummyData);
-
-    const lessDummyData = [
-      {
-        id: 1,
-        user: 'John',
-        post: 'Hello, everyone! How is your day going?',
-        profilePic: require('../assets/kharn.jpg'),
-      },
-    ];
-
-    setLessDiscussionPosts(lessDummyData);
+    performFirebaseTask();
   }, []);
 
   const renderDiscussionPost = ({ item }) => {
@@ -102,55 +112,52 @@ const ProfileScreen = () => {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={handleButtonPress} style={styles.imageButton}>
-        {selectedImage ? (
-          <Image source={{ uri: selectedImage }} style={styles.image} />
-        ) : (
-          <Image source={require('../assets/kharn.jpg')} style={styles.image} />
+      <ScrollView>
+        <TouchableOpacity onPress={handleButtonPress} style={styles.imageButton}>
+          {selectedImage ? (
+            <Image source={{ uri: selectedImage }} style={styles.image} />
+          ) : (
+            <Image source={require('../assets/kharn.jpg')} style={styles.image} />
+          )}
+        </TouchableOpacity>
+
+        <Text style={styles.text}>Verbatims You Said</Text>
+        {!showImage && (
+                  <FlatList
+                  data={lessDiscussionPosts}
+                  renderItem={renderDiscussionPost}
+                  keyExtractor={(item) => item.id.toString()}
+                  contentContainerStyle={styles.listContainer}
+                  />
         )}
-      </TouchableOpacity>
-
-
-
-
-
-
-      <Text style={styles.text}>Verbatims You Said</Text>
-      {!showImage && (
-                <FlatList
-                data={lessDiscussionPosts}
-                renderItem={renderDiscussionPost}
-                keyExtractor={(item) => item.id.toString()}
-                contentContainerStyle={styles.listContainer}
-                />
-      )}
-      {showImage && (
-                <FlatList
-                data={discussionPosts}
-                renderItem={renderDiscussionPost}
-                keyExtractor={(item) => item.id.toString()}
-                contentContainerStyle={styles.listContainer}
-                />
-      )}
-      <Button title={buttonText} onPress={toggleImageVisibility} />
-      <Text style={styles.text}>Verbatims You Submitted</Text>
-      {!submittedShowImage && (
-                <FlatList
-                data={lessDiscussionPosts}
-                renderItem={renderDiscussionPost}
-                keyExtractor={(item) => item.id.toString()}
-                contentContainerStyle={styles.listContainer}
-                />
-      )}
-      {submittedShowImage && (
-                <FlatList
-                data={discussionPosts}
-                renderItem={renderDiscussionPost}
-                keyExtractor={(item) => item.id.toString()}
-                contentContainerStyle={styles.listContainer}
-                />
-      )}
-      <Button title={submittedButtonText} onPress={toggleSubmittedImageVisibility} />
+        {showImage && (
+                  <FlatList
+                  data={discussionPosts}
+                  renderItem={renderDiscussionPost}
+                  keyExtractor={(item) => item.id.toString()}
+                  contentContainerStyle={styles.listContainer}
+                  />
+        )}
+        <Button title={buttonText} onPress={toggleImageVisibility} />
+        <Text style={styles.text}>Verbatims You Submitted</Text>
+        {!submittedShowImage && (
+                  <FlatList
+                  data={lessDiscussionPosts}
+                  renderItem={renderDiscussionPost}
+                  keyExtractor={(item) => item.id.toString()}
+                  contentContainerStyle={styles.listContainer}
+                  />
+        )}
+        {submittedShowImage && (
+                  <FlatList
+                  data={discussionPosts}
+                  renderItem={renderDiscussionPost}
+                  keyExtractor={(item) => item.id.toString()}
+                  contentContainerStyle={styles.listContainer}
+                  />
+        )}
+        <Button title={submittedButtonText} onPress={toggleSubmittedImageVisibility} />
+      </ScrollView>
     </View>
   );
 };
@@ -164,6 +171,7 @@ const styles = StyleSheet.create({
   },
   imageButton: {
     marginTop: 50, // Add top margin for spacing
+    marginLeft: 50, // Add top margin for spacing
   },
   image: {
     width: 200,

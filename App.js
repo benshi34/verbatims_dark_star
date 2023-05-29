@@ -11,6 +11,7 @@ import ProfileScreen from './pages/ProfileScreen.js';
 import HomeScreen from './pages/HomeScreen.js';
 import GroupScreen from './pages/GroupScreen.js';
 import FirebaseTest from './pages/FirebaseTest.js';
+import AddScreen from './pages/AddScreen.js';
 
 const Tab = createBottomTabNavigator();
 
@@ -31,6 +32,7 @@ export default function App() {
         <Tab.Screen name="Settings" component={SettingScreen} />
         <Tab.Screen name="Firebase Test" component={FirebaseTest} />
         <Tab.Screen name="Groups" component={GroupScreen} />
+        <Tab.Screen name="Add Verbatim" component={AddScreen} />
       </Tab.Navigator>
     </NavigationContainer>
   );

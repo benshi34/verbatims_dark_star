@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import {ScrollView,  View, Image, TouchableOpacity, Text, StyleSheet, ImageBackground, FlatList, Button } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, ScrollView, TextInput, Modal, Button} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { initializeApp } from "firebase/app";
-import { getDatabase, ref, get, child } from "firebase/database";
+import { getDatabase, ref, get, child, onValue } from "firebase/database";
 import { app } from "../Firebase.js";
 
 const db = getDatabase(app);
@@ -34,6 +34,9 @@ const ProfileScreen = () => {
   const [submittedShowImage, setSubmittedShowImage] = useState(false);
   const [buttonText, setButtonText] = useState('Show More');
   const [submittedButtonText, setSubmittedButtonText] = useState('Show More');
+  const [selectedPost, setSelectedPost] = useState(null);
+  const [commentText, setCommentText] = useState('');
+  const [showModal, setShowModal] = useState(false);
 
   const toggleImageVisibility = () => {
     setShowImage(!showImage);
@@ -44,42 +47,6 @@ const ProfileScreen = () => {
     setSubmittedShowImage(!submittedShowImage);
     setSubmittedButtonText(submittedShowImage ? 'Show More' : 'Show Less');
   };
-
-  const performFirebaseTask = async () => {
-    let list = new Map();
-
-    const dbRef = ref(db);
-    await get(child(dbRef, 'Verbatims/')).then((snapshot) => {
-      if (snapshot.exists()) {
-        list = snapshot.val();
-        /*Object.keys(list).map((key) => {
-          console.log(key);
-          console.log(list[key]);
-        })*/
-      } else {
-        console.log("No data available");
-      }
-    }).catch((error) => {
-      console.error(error);
-    });
-
-    
-    const dummyData = [];
-    curid = 1;
-    await Object.keys(list).map((key) => {
-      //console.log(key+" "+list[key]);
-      dummyData.push({ 
-        id: curid,
-        user: key,
-        post: list[key],
-        profilePic: require('../assets/kharn.jpg'), 
-      });
-      curid+=1;
-    })
-    setDiscussionPosts(dummyData);
-    setLessDiscussionPosts(dummyData);
-  };
-
 
   
 
@@ -95,24 +62,119 @@ const ProfileScreen = () => {
   };
 
   useEffect(() => {
-    performFirebaseTask();
+    // Simulated data for discussion posts
+    const fetchDiscussionPosts = async () => {
+      try {
+        const dbref = ref(db, "Verbatims")
+        onValue(dbref, (snapshot) => {
+          data = snapshot.val()
+          if (data) {
+            const discussionPostsArray = Object.keys(data).map((key) => {
+              return { id: key, ...data[key] };
+            });
+            setDiscussionPosts(discussionPostsArray);
+            setLessDiscussionPosts(discussionPostsArray);
+          }
+        })
+      } catch (error) {
+        console.error('Error fetching discussion posts: ', error);
+      }
+    }
+    fetchDiscussionPosts();
   }, []);
 
-  const renderDiscussionPost = ({ item }) => {
-      return (
-          <View style={styles.postContainer}>
-              <View style={styles.userContainer}>
-                  <Image source={item.profilePic} style={styles.profilePic} />
-                  <Text style={styles.username}>{item.user}</Text>
-              </View>
-              <Text style={styles.postText}>{item.post}</Text>
-          </View>
-      );
+  const toggleFavorite = (postId) => {
+    setDiscussionPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post.id === postId ? { ...post, isFavorite: !post.isFavorite } : post
+      )
+    );
+  };
+  
+  const toggleLike = (postId) => {
+    setDiscussionPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post.id === postId ? { ...post, isLiked: !post.isLiked} : post
+      )
+    );
   };
 
+  const addComment = () => {
+    if (commentText.trim()) {
+      setDiscussionPosts((prevPosts) =>
+        prevPosts.map((post) =>
+          post.id === selectedPost.id ? { ...post, comments: [...post.comments, commentText] } : post
+        )
+      );
+      setCommentText('');
+    }
+  };
+
+  const openModal = (postId) => {
+    const post = discussionPosts.find((post) => post.id === postId);
+    setSelectedPost(post);
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setSelectedPost(null);
+    setShowModal(false);
+  };
+
+
+  const renderDiscussionPost = ({ item }) => {
+    const isLiked = item.isLiked ? styles.likeButtonLiked : null;
+
+    return (
+      <View style={styles.postContainer}>
+        <View style={styles.userContainer}>
+          <Image source={item.profilePic} style={styles.profilePic} />
+          <Text style={styles.username}>{item.user}</Text>
+        </View>
+        <View style={styles.postTextContainer}>
+          <Text style={styles.postText}>{item.post}</Text>
+        </View>
+        <TouchableOpacity
+          style={[styles.favoriteButton, item.isFavorite && styles.favoriteButtonActive]}
+          onPress={() => toggleFavorite(item.id)}
+        >
+          <Text style={[styles.favoriteButtonText, item.isFavorite && styles.favoriteButtonTextActive]}>
+            {item.isFavorite ? 'Unfavorite' : 'Favorite'}
+          </Text>
+        </TouchableOpacity>
+        <View style={styles.actionsContainer}>
+        <TouchableOpacity style={[styles.likeButton, isLiked]} onPress={() => toggleLike(item.id)}>
+          <Text style={styles.likeButtonText}>Like</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.commentButton} onPress={() => openModal(item.id)}>
+          <Text style={styles.commentButtonText}>View Comments</Text>
+        </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
+
+/*
+
+{!showImage && (
+                  <FlatList
+                  data={discussionPosts}
+                  renderItem={renderDiscussionPost}
+                  keyExtractor={(item) => item.id.toString()}
+                  contentContainerStyle={styles.listContainer}
+                  />
+        )}
+
+        */
+
+        /*
+        <Button title={buttonText} onPress={toggleImageVisibility} />
+        
+        <Button title={submittedButtonText} onPress={toggleSubmittedImageVisibility} />*/
   return (
     <View style={styles.container}>
-      <ScrollView>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
         <TouchableOpacity onPress={handleButtonPress} style={styles.imageButton}>
           {selectedImage ? (
             <Image source={{ uri: selectedImage }} style={styles.image} />
@@ -122,41 +184,49 @@ const ProfileScreen = () => {
         </TouchableOpacity>
 
         <Text style={styles.text}>Verbatims You Said</Text>
-        {!showImage && (
-                  <FlatList
-                  data={lessDiscussionPosts}
-                  renderItem={renderDiscussionPost}
-                  keyExtractor={(item) => item.id.toString()}
-                  contentContainerStyle={styles.listContainer}
-                  />
-        )}
-        {showImage && (
-                  <FlatList
-                  data={discussionPosts}
-                  renderItem={renderDiscussionPost}
-                  keyExtractor={(item) => item.id.toString()}
-                  contentContainerStyle={styles.listContainer}
-                  />
-        )}
-        <Button title={buttonText} onPress={toggleImageVisibility} />
+        
+        <FlatList
+          data={discussionPosts}
+          renderItem={renderDiscussionPost}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={styles.listContainer}
+          style={styles.scrollViewList}
+        />
         <Text style={styles.text}>Verbatims You Submitted</Text>
-        {!submittedShowImage && (
-                  <FlatList
-                  data={lessDiscussionPosts}
-                  renderItem={renderDiscussionPost}
-                  keyExtractor={(item) => item.id.toString()}
-                  contentContainerStyle={styles.listContainer}
-                  />
-        )}
-        {submittedShowImage && (
-                  <FlatList
-                  data={discussionPosts}
-                  renderItem={renderDiscussionPost}
-                  keyExtractor={(item) => item.id.toString()}
-                  contentContainerStyle={styles.listContainer}
-                  />
-        )}
-        <Button title={submittedButtonText} onPress={toggleSubmittedImageVisibility} />
+        <FlatList
+          data={discussionPosts}
+          renderItem={renderDiscussionPost}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={styles.listContainer}
+          style={styles.scrollViewList}
+        />
+        {selectedPost && (
+            <Modal visible={showModal} animationType="slide" transparent>
+              <View style={styles.modalContainer}>
+              <View style={styles.modalContent}>
+              <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
+                <Text style={styles.closeButtonText}>Close</Text>
+              </TouchableOpacity>
+
+              <Text style={styles.modalPost}>{selectedPost.post}</Text>
+
+              <View style={styles.commentsContainer}>
+                <Text style={styles.commentsHeading}>Comments:</Text>
+                {selectedPost.comments.map((comment, index) => (
+                  <Text key={index} style={styles.commentText}>{comment}</Text>
+                ))}
+              </View>
+              <TextInput
+                style={styles.commentInput}
+                placeholder="Add a comment..."
+                onChangeText={(text) => setCommentText(text)}
+                value={commentText}
+                onSubmitEditing={addComment}
+              />
+            </View>
+            </View>
+          </Modal>
+          )}
       </ScrollView>
     </View>
   );
@@ -168,6 +238,10 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start', // Align items to the top
     alignItems: 'center',
     backgroundColor: '#fff',
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    paddingBottom: 16,
   },
   imageButton: {
     marginTop: 50, // Add top margin for spacing
@@ -183,6 +257,9 @@ const styles = StyleSheet.create({
     width: 200,
     height: 100,
   },
+  scrollViewList: {
+    height: 50
+  },
   text: {
     marginTop: 20,
     fontSize: 18,
@@ -194,7 +271,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   listContainer: {
-    paddingBottom: 16,
+    paddingBottom: 15,
   },
   postContainer: {
     backgroundColor: '#f5f5f5',
@@ -220,6 +297,117 @@ const styles = StyleSheet.create({
   },
   postText: {
     fontSize: 16,
+  },
+  postTextContainer: {
+    flex: 1,
+    marginBottom: 8,
+  },
+  username: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  postText: {
+    fontSize: 16,
+  },
+  favoriteButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: '#e1e1e1',
+  },
+  favoriteButtonText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  favoriteButtonActive: {
+    backgroundColor: '#ffcc00',
+  },
+  likeButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: '#e1e1e1',
+  },
+  likeButtonLiked: {
+    backgroundColor: 'red',
+  },
+  likeButtonText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    paddingBottom: 16,
+  },
+  actionsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  commentButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: '#e1e1e1',
+  },
+  closeButton: {
+    alignSelf: 'flex-end',
+    backgroundColor: '#ddd',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+  closeButtonText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  commentsHeading: {
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+  },
+  commentInput: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 16,
+  },
+  commentList: {
+    maxHeight: 200,
+  },
+  comment: {
+    marginBottom: 8,
+  },
+  commentText: {
+    flexDirection: 'row',
+    marginBottom: 12,
+    alignItems: 'center',
+  },
+  commentButtonText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    width: '100%',
+    height: '70%',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  commentsContainer: {
+    marginTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#ccc',
+    paddingTop: 16,
   },
 });
 

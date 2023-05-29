@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
+import { writeMessageData } from "../Firebase.js";
+
 
 const GroupScreen = ({ navigation }) => {
   // const [Groups, setGroups] = useState([]);
@@ -12,7 +14,7 @@ const GroupScreen = ({ navigation }) => {
        {
         id: 1,
         name: 'Dark Star',
-        message: 'One new message',
+        message: 'One new message', //use database here
         profilePic: require('../assets/kharn.jpg'),
       },
       {
@@ -42,7 +44,6 @@ const GroupScreen = ({ navigation }) => {
 
     return (
       <View style={styles.container}>
-      <Text style={styles.header}>Groups</Text>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
       <FlatList
         data={Groups}

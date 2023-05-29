@@ -64,9 +64,18 @@ export function loginUserAuth(email, password) {
   });
 }
 
+// Rishi code
+export function MostRecentMessage(groupID, message) {
+    firebase.database().ref('groups/' + groupID).set({
+      MostRecentMessage: message
+    });
+}
 
-export function writeUserData(username, email) {
-  set(ref(db, "users/" + username), {
-    email: email,
-  });
+export function getMessage(groupID){
+
+  var messageDisplay = firebase.database().ref('groups/' + groupID + '/MostRecentMessage');
+  messageDisplay.on('value', (snapshot) => {
+    const data = snapshot.val();
+    updateMessage(postElement, data);
+});
 }

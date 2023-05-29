@@ -20,7 +20,14 @@ export default function App() {
       <Tab.Navigator>
         <Tab.Screen name="Home" component={HomeScreen} />
         <Tab.Screen name="Profile" component={ProfileScreen} />
-        <Tab.Screen name="Login" component={LoginScreen} />
+        <Tab.Screen
+          name="Login"
+          component={LoginScreen}
+          options={{
+            headerShown: false,
+            color: "blue",
+          }}
+        />
         <Tab.Screen name="Settings" component={SettingScreen} />
         <Tab.Screen name="Firebase Test" component={FirebaseTest} />
         <Tab.Screen name="Groups" component={GroupScreen} />

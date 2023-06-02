@@ -65,17 +65,24 @@ export function loginUserAuth(email, password) {
 }
 
 // Rishi code
-export function MostRecentMessage(groupID, message) {
-    firebase.database().ref('groups/' + groupID).set({
-      MostRecentMessage: message
-    });
-}
+//export function MostRecentMessage(groupID, message) {
+//    firebase.database().ref('groups/' + groupID).set({
+//      MostRecentMessage: message
+//    });
+//}
 
-export function getMessage(groupID){
+//export function getMessage(groupID){
+//  var messageDisplay = firebase.database().ref('groups/' + groupID + '/MostRecentMessage');
+//  messageDisplay.on('value', (snapshot) => {
+//    const data = snapshot.val();
+ //   updateMessage(postElement, data);
+//});
+//}
 
-  var messageDisplay = firebase.database().ref('groups/' + groupID + '/MostRecentMessage');
-  messageDisplay.on('value', (snapshot) => {
-    const data = snapshot.val();
-    updateMessage(postElement, data);
-});
-}
+//export function getTimeStamp(postID){
+//  const dbRef = ref(getDatabase());
+//  var timeDisplay = dbRef.ref('SentVerbatims/' + postID + '/timestamp');
+//  timeDisplay.on('value', (snapshot) => {
+//    return snapshot.val();
+//});
+//}

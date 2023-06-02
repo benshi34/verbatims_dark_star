@@ -2,29 +2,17 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, ScrollView, TextInput, Modal, Button} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { initializeApp } from "firebase/app";
-import { getDatabase, ref, get, child, onValue } from "firebase/database";
+import { getDatabase, ref, get, child, onValue, update } from "firebase/database";
 import { app } from "../Firebase.js";
+import { getStorage, ref as refStorage, uploadBytes, putFile, getMetadata, getDownloadURL } from "firebase/storage";
 
 const db = getDatabase(app);
 
-const dummyData = [
-  {
-    id: 1,
-    user: 'John',
-    post: 'Hello, everyone! How is your day going?',
-  },
-  {
-    id: 2,
-    user: 'Sarah',
-    post: 'Hey, John! My day is great. How about you?',
-  },
-  {
-    id: 3,
-    user: 'Michael',
-    post: 'Hi, John and Sarah! I\'m having a good day too.',
-  },
-];
-
+const storage = getStorage();
+const storageRef = refStorage(storage, '1.jpg');
+const metadata = {
+  contentType: 'image/jpeg',
+};
 
 const ProfileScreen = () => {
   const [discussionPosts, setDiscussionPosts] = useState([]);
@@ -37,6 +25,9 @@ const ProfileScreen = () => {
   const [selectedPost, setSelectedPost] = useState(null);
   const [commentText, setCommentText] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [metadata, setMetadata] = useState(null);
+  const [htref, setHtref] = useState('abcd');
+  //const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appspot.com/o/1.jpg?alt=media&token=11ea9825-a4e2-4a7b-97c1-c4ad1b1eaae2';  
 
   const toggleImageVisibility = () => {
     setShowImage(!showImage);
@@ -51,17 +42,56 @@ const ProfileScreen = () => {
   
 
   const handleButtonPress = async () => {
-    try {
+    try { 
       const result = await ImagePicker.launchImageLibraryAsync();
       if (!result.cancelled) {
-        setSelectedImage(result.uri);
+        const file = await uriToFile(result.uri);
+        const uploadTask = uploadBytes(storageRef, file, metadata);
+        uploadTask
+        .then((snapshot) => {
+          setSelectedImage(result.uri); 
+        })
+        .catch((error) => {
+        });
+
+        //setSelectedImage(result.uri);
       }
     } catch (error) {
       console.log('Error selecting image:', error);
     }
   };
+  
+
+  const uriToFile = async (uri) => {
+    const response = await fetch(uri);
+    const blob = await response.blob();
+    const filename = uri.substring(uri.lastIndexOf('/') + 1);
+
+    return new File([blob], filename, { type: blob.type });
+  };
 
   useEffect(() => {
+
+    const getFriends = async () => {
+        const dbref = ref(db, 'Users/' + "1" + "/friends");
+        get(dbref).then((snapshot) => {
+          if (snapshot.exists()) {
+            const updates = {};
+            updates["/friends"] = snapshot.val()+" 1";
+
+            update(ref(db, 'Users/' + "1"), updates);
+
+            /*console.log(snapshot.val());
+            set(ref(db, 'Users/' + "1"), {
+              friends:snapshot.val()+" 1"
+            });*/
+          } else {
+            console.log("No data available");
+          }
+        }).catch((error) => {
+          console.error(error);
+        });
+    };
     // Simulated data for discussion posts
     const fetchDiscussionPosts = async () => {
       try {
@@ -80,6 +110,40 @@ const ProfileScreen = () => {
         console.error('Error fetching discussion posts: ', error);
       }
     }
+    const downloadUrl = async () => {
+      getDownloadURL(storageRef )
+      .then((url) => {
+        setHtref(url)
+      })
+      .catch((error) => {
+        // A full list of error codes is available at
+        // https://firebase.google.com/docs/storage/web/handle-errors
+        switch (error.code) {
+          case 'storage/object-not-found':
+            // File doesn't exist
+            break;
+          case 'storage/unauthorized':
+            // User doesn't have permission to access the object
+            break;
+          case 'storage/canceled':
+            // User canceled the upload
+            break;
+    
+          // ...
+    
+          case 'storage/unknown':
+            // Unknown error occurred, inspect the server response
+            break;
+        }
+      });
+    
+    }
+
+
+
+
+    downloadUrl();
+    getFriends();
     fetchDiscussionPosts();
   }, []);
 
@@ -172,15 +236,34 @@ const ProfileScreen = () => {
         <Button title={buttonText} onPress={toggleImageVisibility} />
         
         <Button title={submittedButtonText} onPress={toggleSubmittedImageVisibility} />*/
-  return (
-    <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        
+        /*
         <TouchableOpacity onPress={handleButtonPress} style={styles.imageButton}>
           {selectedImage ? (
             <Image source={{ uri: selectedImage }} style={styles.image} />
           ) : (
             <Image source={require('../assets/kharn.jpg')} style={styles.image} />
           )}
+        </TouchableOpacity>
+        */
+
+/*
+const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appspot.com/o/1.jpg?alt=media&token=0b82c18e-9de4-4f37-ab86-ff2748decf86';  
+  return (
+    <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <TouchableOpacity onPress={handleButtonPress} style={styles.imageButton}>
+          {metadata && (
+            <Image source={{ uri: htref }} style={styles.image} />
+          )}
+        </TouchableOpacity>
+        */
+
+  return (
+    <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <TouchableOpacity onPress={handleButtonPress} style={styles.imageButton}>
+          <Image source={{ uri: htref }} style={styles.image} />
         </TouchableOpacity>
 
         <Text style={styles.text}>Verbatims You Said</Text>

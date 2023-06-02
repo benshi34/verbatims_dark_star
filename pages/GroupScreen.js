@@ -1,31 +1,54 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
-import { writeMessageData } from "../Firebase.js";
-
+import { getDatabase, ref, get, onValue } from "firebase/database";
+import { app } from "../Firebase.js";
 
 const GroupScreen = ({ navigation }) => {
-  // const [Groups, setGroups] = useState([]);
 
   const [Groups, setGroups] = useState([]);
 
+  const db = getDatabase(app);
+
   useEffect(() => {
     // Simulated data for discussion posts
-    const dummyData = [
+
+    /*const dummyData = [
        {
         id: 1,
         name: 'Dark Star',
         message: 'One new message', //use database here
         profilePic: require('../assets/kharn.jpg'),
+        timestamp: '7:11 PM'
       },
       {
         id: 2,
         name: 'Ben sucks I hate him so much',
         message: '10+ new messages',
         profilePic: require('../assets/kharn.jpg'),
+        timestamp: '7:11 PM'
       },
     ];
   
-      setGroups(dummyData);
+      setGroups(dummyData);*/
+
+      const fetchGroups = async () => {
+        try {
+          const dbref = ref(db, "Groups")
+          onValue(dbref, (snapshot) => {
+            data = snapshot.val()
+            if (data) {
+              const discussionPostsArray = Object.keys(data).map((key) => {
+                return { id: key, ...data[key] };
+              });
+              setGroups(discussionPostsArray);
+            }
+          })
+        } catch (error) {
+          console.error('Error fetching groups: ', error);
+        }
+      }
+      fetchGroups();
+
     }, []);
 
   const renderGroups = ({ item }) => {
@@ -38,6 +61,7 @@ const GroupScreen = ({ navigation }) => {
           <Text style={styles.username}>{item.name}</Text>
           <Text style={styles.postText}>{item.message}</Text>
         </View>
+        <Text style={styles.timeStampText}>{item.timestamp}</Text>
       </TouchableOpacity>
     );
   };
@@ -120,6 +144,24 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     paddingBottom: 16,
+  },
+  timeStampContainer: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: '#f5f5f5',
+  },
+  timeStampText: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    fontSize: 14,
+    color: '#333',
   },
 });
 

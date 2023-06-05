@@ -171,4 +171,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default GroupScreenz
+export default GroupScreen

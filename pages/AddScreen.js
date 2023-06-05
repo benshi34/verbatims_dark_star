@@ -72,7 +72,7 @@ const AddScreen = ({ navigation }) => {
       id: num,
       timestamp: formattedDate,
       post: postText,
-      verbaiter: selectedVerbaiter,
+      verbaiter: selectedVerbaiter ? selectedVerbaiter.id : '', // Store the ID of the selected verbaiter
     });
     
     num++;
@@ -93,7 +93,8 @@ const AddScreen = ({ navigation }) => {
 
   // Function to handle the selection of verbaiter from the picker
   const handleVerbaiterSelection = (itemValue) => {
-    setSelectedVerbaiter(itemValue); // Set the user's ID as the selected verbaiter
+    const selectedUser = users.find(user => user.id === itemValue);
+    setSelectedVerbaiter(selectedUser); // Set the selected verbaiter object
     setShowPicker(false);
   };
 
@@ -113,9 +114,9 @@ const AddScreen = ({ navigation }) => {
           style={styles.chooseVerbaiterButton}
           onPress={() => setShowPicker(true)}
         >
-          <Text style={styles.chooseVerbaiterButtonText}>
-            {selectedVerbaiter ? selectedVerbaiter : 'choose verbaiter...'}
-          </Text>
+        <Text style={styles.chooseVerbaiterButtonText}>
+          {selectedVerbaiter ? selectedVerbaiter.username : 'choose verbaiter...'}
+        </Text>
         </TouchableOpacity>
 
         {showPicker && (
@@ -125,7 +126,11 @@ const AddScreen = ({ navigation }) => {
               onValueChange={handleVerbaiterSelection}
             >
               {users.map((user) => (
-                <Picker.Item key={user.id} label={user.username} value={user.id} />
+                <Picker.Item
+                key={user.id}
+                label={user.username}
+                value={user.id}
+              />
               ))}
             </Picker>
             <TouchableOpacity

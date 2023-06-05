@@ -1,40 +1,51 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, ScrollView, TextInput, Modal} from 'react-native';
-import { getDatabase, ref, get, onValue } from "firebase/database";
+import { getDatabase, ref, get, onValue, update } from "firebase/database";
 
 import { app } from "../Firebase.js";
 
 const HomeScreen = ({ navigation }) => {
-    const [discussionPosts, setDiscussionPosts] = useState([]);
+    const [verbatims, setVerbatims] = useState([]);
     const [selectedPost, setSelectedPost] = useState(null);
     const [commentText, setCommentText] = useState('');
     const [showModal, setShowModal] = useState(false);
+    const [likedPosts, setLikedPosts] = useState([]);
 
     const db = getDatabase(app);
+    const userId = 24;
 
     useEffect(() => {
       // Simulated data for discussion posts
-      const fetchDiscussionPosts = async () => {
+      const fetchVerbatims = async () => {
         try {
-          const dbref = ref(db, "Verbatims")
+          const dbref = ref(db, "Verbatims");
           onValue(dbref, (snapshot) => {
             data = snapshot.val()
             if (data) {
-              const discussionPostsArray = Object.keys(data).map((key) => {
+              const verbatimsArray = Object.keys(data).map((key) => {
                 return { id: key, ...data[key] };
               });
-              setDiscussionPosts(discussionPostsArray);
+              setVerbatims(verbatimsArray);
+            }
+          })
+          const userRef = ref(db, "Users/" + userId);
+          onValue(userRef, (snapshot) => {
+            data = snapshot.val();
+            if (data) {
+              likedverbatims = data.likedverbatims || [];
+              likedverbatims = likedverbatims.filter((postId) => postId !== undefined);
+              setLikedPosts(likedverbatims);
             }
           })
         } catch (error) {
-          console.error('Error fetching discussion posts: ', error);
+          console.error('Error fetching verbatims: ', error);
         }
       }
-      fetchDiscussionPosts();
+      fetchVerbatims();
     }, []);
-    
+
     const toggleFavorite = (postId) => {
-      setDiscussionPosts((prevPosts) =>
+      setVerbatims((prevPosts) =>
         prevPosts.map((post) =>
           post.id === postId ? { ...post, isFavorite: !post.isFavorite } : post
         )
@@ -42,16 +53,56 @@ const HomeScreen = ({ navigation }) => {
     };
     
     const toggleLike = (postId) => {
-      setDiscussionPosts((prevPosts) =>
-        prevPosts.map((post) =>
-          post.id === postId ? { ...post, isLiked: !post.isLiked} : post
-        )
-      );
-    };
+      const postRef = ref(db, "Verbatims/" + postId)
+      
+      setLikedPosts((prevLikedPosts) => {
+        return prevLikedPosts[postId] = !prevLikedPosts[postId]
+      });
+
+      get(postRef).then((snapshot) => {
+        post = snapshot.val();
+        if (post) {
+          const likedUsers = post.likes || [];
+          const index = likedUsers.indexOf(userId);
+          if (index === -1) {
+            likedUsers.push(userId);
+          } else {
+            likedUsers.splice(index, 1);
+          }
+
+          const updates = {};
+          updates['Verbatims/' + postId + '/likes'] = likedUsers;
+          update(ref(db), updates);
+        }
+      }).catch((error) => {
+        console.error('Error fetching verbatim: ', error);
+      })
+
+      const userRef = ref(db, "Users/" + userId)
+
+      get(userRef).then((snapshot) => {
+        user = snapshot.val();
+        if (user) {
+          const likedPosts = user.likedverbatims || [];
+          const index = likedPosts.indexOf(postId);
+          if (index === -1) {
+            likedPosts.push(postId);
+          } else {
+            likedPosts.splice(index, 1);
+          }
+
+          const updates = {};
+          updates['Users/' + userId + '/likedverbatims'] = likedPosts;
+          update(ref(db), updates);
+        }
+      }).catch((error) => {
+        console.error('Error fetching user: ', error);
+      })
+    }
 
     const addComment = () => {
       if (commentText.trim()) {
-        setDiscussionPosts((prevPosts) =>
+        setVerbatims((prevPosts) =>
           prevPosts.map((post) =>
             post.id === selectedPost.id ? { ...post, comments: [...post.comments, commentText] } : post
           )
@@ -61,7 +112,7 @@ const HomeScreen = ({ navigation }) => {
     };
 
     const openModal = (postId) => {
-      const post = discussionPosts.find((post) => post.id === postId);
+      const post = verbatims.find((post) => post.id === postId);
       setSelectedPost(post);
       setShowModal(true);
     };
@@ -70,11 +121,19 @@ const HomeScreen = ({ navigation }) => {
       setSelectedPost(null);
       setShowModal(false);
     };
-  
+
+    const renderComment = ({ item }) => {
+      if (!item) {
+        return null;
+      }
+      return (<View>
+        <Text style={styles.commentText}>{item.username}</Text>
+        <Text style={styles.commentText}>{item.comment}</Text>
+      </View>);
+    };
 
     const renderDiscussionPost = ({ item }) => {
-      const isLiked = item.isLiked ? styles.likeButtonLiked : null;
-
+      let isLiked = false
       return (
         <View style={styles.postContainer}>
           <View style={styles.userContainer}>
@@ -109,7 +168,7 @@ const HomeScreen = ({ navigation }) => {
             <Text style={styles.header}>Verbatims</Text>
               <ScrollView contentContainerStyle={styles.scrollContainer}>
                 <FlatList
-                data={discussionPosts}
+                data={verbatims}
                 renderItem={renderDiscussionPost}
                 keyExtractor={(item) => item.id.toString()}
                 contentContainerStyle={styles.listContainer}
@@ -122,15 +181,14 @@ const HomeScreen = ({ navigation }) => {
                   <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
                     <Text style={styles.closeButtonText}>Close</Text>
                   </TouchableOpacity>
-
                   <Text style={styles.modalPost}>{selectedPost.post}</Text>
-
-                  <View style={styles.commentsContainer}>
-                    <Text style={styles.commentsHeading}>Comments:</Text>
-                    {selectedPost.comments.map((comment, index) => (
-                      <Text key={index} style={styles.commentText}>{comment}</Text>
-                    ))}
-                  </View>
+                  <Text>Comments:</Text>
+                  <FlatList
+                      data={selectedPost.comments}
+                      renderItem={renderComment}
+                      keyExtractor={(item) => item?.id.toString()}
+                      contentContainerStyle={styles.commentsContainer}
+                  />
                   <TextInput
                     style={styles.commentInput}
                     placeholder="Add a comment..."

@@ -50,33 +50,78 @@ const GroupScreen = ({ navigation }) => {
       fetchGroups();
 
     }, []);
-
-  const renderGroups = ({ item }) => {
-    return (
-      <TouchableOpacity style={styles.groupContainer}>
-        <View style={styles.leftHalf}>
-        <Image source={item.profilePic} style={styles.profilePic} />
+    const renderGroups = ({ item }) => {
+      const handleGroupPress = () => {
+        // Navigate to the chat window screen
+        navigation.navigate('Groups', { screen: 'Chat'});
+      };
+  
+      return (
+        <TouchableOpacity style={styles.groupContainer} onPress={handleGroupPress}>
+          <View style={styles.leftHalf}>
+            <Image source={item.profilePic} style={styles.profilePic} />
+          </View>
+          <View style={styles.rightHalf}>
+            <Text style={styles.username}>{item.name}</Text>
+            <Text style={styles.postText}>{item.message}</Text>
+          </View>
+        </TouchableOpacity>
+      );
+    };
+  
+    const groupListScreen = () => {
+      return (
+        <View style={styles.container}>
+          <ScrollView contentContainerStyle={styles.scrollContainer}>
+            <FlatList
+              data={Groups}
+              renderItem={renderGroups}
+              keyExtractor={(item) => item.id.toString()}
+              contentContainerStyle={styles.listContainer}
+            />
+          </ScrollView>
         </View>
-        <View style={styles.rightHalf}>
-          <Text style={styles.username}>{item.name}</Text>
-          <Text style={styles.postText}>{item.message}</Text>
+      )
+    };
+    const chatWindow = () => {
+      const messages = [
+        { id: '1', sender: 'John', message: 'Hello!' },
+        { id: '2', sender: 'Jane', message: 'Hi there!' },
+        { id: '3', sender: 'John', message: 'How are you?' },
+        // Add more messages here
+      ];
+  
+      const renderItem = ({ item }) => (
+        <View style={styles.messageContainer}>
+          <Text style={styles.sender}>{item.sender}</Text>
+          <Text style={styles.message}>{item.message}</Text>
         </View>
-        <Text style={styles.timeStampText}>{item.timestamp}</Text>
-      </TouchableOpacity>
-    );
-  };
-
+      );
+  
+      return (
+        <View style={styles.container}>
+          <FlatList
+            data={messages}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.chatContainer}
+            inverted
+          />
+          <View style={styles.inputContainer}>
+            <TextInput style={styles.input} placeholder="Type your message..." />
+            <TouchableOpacity style={styles.sendButton}>
+              <Text style={styles.sendButtonText}>Send</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        );
+      };
+  
     return (
-      <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <FlatList
-        data={Groups}
-        renderItem={renderGroups}
-        keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={styles.listContainer}
-        />
-        </ScrollView>
-    </View>
+      <Stack.Navigator>
+          <Stack.Screen name="Groups" component={groupListScreen} />
+          <Stack.Screen name="Chat" component={chatWindow} />
+      </Stack.Navigator>
     );
 };
 

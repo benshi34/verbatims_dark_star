@@ -60,40 +60,23 @@ const Signup = ({ navigation }) => {
         style={styles.scrollView}
       >
         <View style={styles.signUpHeader}>
-          <Text style={styles.signUpHeaderText}>Sign Up here, nooby</Text>
+          <Text style={styles.signUpHeaderText}>Sign Up</Text>
         </View>
 
         <View style={styles.signUpTextInputLabel}>
+          <Text style={styles.textLabel}>Email Address</Text>
+
           <TextInput
             style={styles.input}
-            placeholder="Mobile or Email"
             onChangeText={(val) => setMobileOrEmail(val)}
             AutoCapitalize="none"
           />
         </View>
 
         <View style={styles.signUpTextInputLabel}>
+          <Text style={styles.passwordTextLabel}>Password</Text>
           <TextInput
             style={styles.input}
-            placeholder="Full Name"
-            onChangeText={(val) => setFullName(val)}
-            AutoCapitalize="none"
-          />
-        </View>
-
-        <View style={styles.signUpTextInputLabel}>
-          <TextInput
-            style={styles.input}
-            placeholder="Username"
-            onChangeText={(val) => setUsername(val)}
-            AutoCapitalize="none"
-          />
-        </View>
-
-        <View style={styles.signUpTextInputLabel}>
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
             onChangeText={(val) => setPassword(val)}
             secureTextEntry={!showPassword}
           />
@@ -109,6 +92,22 @@ const Signup = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
+        <View style={styles.signUpTextInputLabel}>
+          <Text style={styles.displayTextLabel}>Display Name</Text>
+          <TextInput
+            style={styles.input}
+            onChangeText={(val) => setFullName(val)}
+            AutoCapitalize="none"
+          />
+        </View>
+
+        <TouchableOpacity
+          style={styles.finalLoginContainer}
+          onPress={handleSignup}
+        >
+          <Text style={styles.buttonText2}>{"Sign Up"}</Text>
+        </TouchableOpacity>
+
         {!isPasswordValid && (
           <View>
             <Text style={styles.errorText}>
@@ -116,17 +115,6 @@ const Signup = ({ navigation }) => {
             </Text>
           </View>
         )}
-
-        <View style={styles.buttonContainer}>
-          <Button title="Sign Up" onPress={handleSignup} />
-        </View>
-
-        <View style={styles.termsAndAgreements}>
-          <Text>
-            By signing up, you agree to our Terms, Privacy Policy and Cookies
-            Policy, and also become a slave for the rest of your life :D
-          </Text>
-        </View>
       </ScrollView>
     </TouchableWithoutFeedback>
   );
@@ -170,24 +158,21 @@ const Login = ({ navigation }) => {
         style={styles.scrollView}
       >
         <View style={styles.header}>
-          <Text style={styles.loginHeaderText}>Login here, noob</Text>
+          <Text style={styles.loginHeaderText}>Login</Text>
         </View>
 
         <View style={styles.label}>
+          <Text style={styles.textLabel}>Email Address</Text>
           <TextInput
             style={styles.input}
-            placeholder="Username"
             onChangeText={(val) => setUsername(val)}
             AutoCapitalize="none"
           />
         </View>
-
-        <Button title="forgot username?" onPress={clickForgotUser} />
-
         <View style={styles.label}>
+          <Text style={styles.passwordTextLabel}>Password</Text>
           <TextInput
             style={styles.input}
-            placeholder="Password"
             onChangeText={(val) => setPassword(val)}
             secureTextEntry={!showPassword}
           />
@@ -203,13 +188,16 @@ const Login = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        <View>
-          <Button title="forgot password?" onPress={clickForgotPassword} />
-        </View>
+        <TouchableOpacity onPress={clickForgotPassword}>
+          <Text style={styles.loginForgot}>Forgot Password?</Text>
+        </TouchableOpacity>
 
-        <View style={styles.buttonContainer}>
-          <Button title="Login!!" onPress={handleLogin} />
-        </View>
+        <TouchableOpacity
+          style={styles.finalLoginContainer}
+          onPress={handleLogin}
+        >
+          <Text style={styles.buttonText2}>{"Login"}</Text>
+        </TouchableOpacity>
       </ScrollView>
     </TouchableWithoutFeedback>
   );
@@ -306,25 +294,26 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#3E63E4",
     margin: 0,
   },
   scrollView: {
     backgroundColor: "#fff",
   },
   header: {
-    padding: 50,
+    padding: 20,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 100,
+    marginTop: 80,
+    marginBottom: 30,
   },
   loginHeaderText: {
-    fontSize: 20,
-    color: "blue",
+    fontSize: 35,
+    color: "white",
     fontWeight: "bold",
   },
   label: {
-    marginTop: 50,
+    marginTop: 20,
     alignItems: "center",
   },
   signUpTextInputLabel: {
@@ -332,30 +321,58 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   input: {
-    borderWidth: 1,
+    borderWidth: 0,
+    backgroundColor: "#1F46CF",
     borderColor: "#777",
-    padding: 8,
+    color: "#ffffff",
+    padding: 13,
+    fontWeight: "bold",
     margin: 10,
-    width: 200,
+    width: 300,
+
     borderRadius: 10,
+  },
+  textLabel: {
+    color: "#FFFFFF",
+    marginRight: 180,
+    fontSize: 17,
+    fontWeight: "bold",
+    textAlign: "left",
+  },
+
+  displayTextLabel: {
+    color: "#ffffff",
+    marginRight: 190,
+    fontSize: 17,
+    fontWeight: "bold",
+    textAlign: "left",
+  },
+  passwordTextLabel: {
+    marginRight: 220,
+    color: "#ffffff",
+    fontSize: 17,
+    fontWeight: "bold",
+    textAlign: "left",
   },
   visibilityButton: {
     position: "absolute",
-    right: 120,
-    height: 55,
+    right: 77,
+    color: "white",
+    top: 23,
+    height: 57,
     justifyContent: "center",
     alignItems: "center",
   },
   signUpHeader: {
-    padding: 50,
+    padding: 20,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 100,
-    marginBottom: 0,
+    marginTop: 80,
+    marginBottom: 30,
   },
   signUpHeaderText: {
-    fontSize: 20,
-    color: "blue",
+    fontSize: 35,
+    color: "white",
     fontWeight: "bold",
   },
   errorText: {
@@ -403,6 +420,19 @@ const styles = StyleSheet.create({
     marginLeft: 30,
     marginRight: 30,
   },
+
+  finalLoginContainer: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 30,
+    marginBottom: 20,
+    marginLeft: 60,
+    marginRight: 60,
+  },
   buttonContainer3: {
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
@@ -414,6 +444,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     marginLeft: 30,
     marginRight: 30,
+  },
+  loginForgot: {
+    color: "white",
+    marginLeft: 230,
+    fontWeight: "bold",
   },
   buttonText: {
     color: "white",

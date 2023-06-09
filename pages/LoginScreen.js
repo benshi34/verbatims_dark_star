@@ -14,35 +14,34 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { createNativeStackNavigator } from "react-native-screens/native-stack";
 import * as Font from "expo-font";
+import { createUserAuth, loginUserAuth } from "../Firebase.js";
 
 const Stack = createNativeStackNavigator();
 
-const Signup = ({ navigation }) => {
-  const [username, setUsername] = useState("");
-  const [MobileOrEmail, setMobileOrEmail] = useState("");
-  const [FullName, setFullName] = useState("");
+const Signup = ({ navigation, onLogin }) => {
+  console.log("HERE onLogin prop:", onLogin);
+
+  const [email, setEmail] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isPasswordValid, setIsPasswordValid] = useState(true);
 
   const handleSignup = () => {
-    // Perform login logic here
-    console.log(
-      "Signing up with: mobile/email ",
-      MobileOrEmail,
-      ", full name ",
-      FullName,
-      ", username ",
-      username,
-      ", password ",
-      password
-    );
-
-    if (password.length < 8) {
-      setIsPasswordValid(false); // Invalid password, set isPasswordValid to false
-    } else {
-      setIsPasswordValid(true); // Valid password, set isPasswordValid to true
-    }
+    createUserAuth(email, password, displayName)
+      .then((userId) => {
+        var created = `User created with ID: ${userId}`;
+        console.log(created);
+        onLogin["onLogin"](userId, "true");
+        // setShowing(true);
+        // setMessage(created);
+      })
+      .catch((errorMessage) => {
+        console.log(`Error creating user: ${errorMessage}`);
+        // setShowing(true);
+        // setMessage(errorMessage);
+        // Handle the error case
+      });
   };
 
   const dismissKeyboard = () => {
@@ -68,7 +67,7 @@ const Signup = ({ navigation }) => {
 
           <TextInput
             style={styles.input}
-            onChangeText={(val) => setMobileOrEmail(val)}
+            onChangeText={(val) => setEmail(val)}
             AutoCapitalize="none"
           />
         </View>
@@ -96,7 +95,7 @@ const Signup = ({ navigation }) => {
           <Text style={styles.displayTextLabel}>Display Name</Text>
           <TextInput
             style={styles.input}
-            onChangeText={(val) => setFullName(val)}
+            onChangeText={(val) => setDisplayName(val)}
             AutoCapitalize="none"
           />
         </View>
@@ -120,19 +119,24 @@ const Signup = ({ navigation }) => {
   );
 };
 
-const Login = ({ navigation }) => {
-  const [username, setUsername] = useState("");
+const Login = ({ navigation, onLogin }) => {
+  const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = () => {
     // Perform login logic here
-    console.log(
-      "Logging in with: username ",
-      username,
-      " and password ",
-      password
-    );
+    loginUserAuth(emailAddress, password)
+      .then((userId) => {
+        var loggedIn = `User logged in  with ID: ${userId}`;
+        console.log(loggedIn);
+        onLogin["onLogin"](userId, "true");
+        // Handle the successful creation of the user
+      })
+      .catch((errorMessage) => {
+        console.log(`Error logging in user: ${errorMessage}`);
+        // Handle the error case
+      });
   };
 
   const clickForgotUser = () => {
@@ -165,7 +169,7 @@ const Login = ({ navigation }) => {
           <Text style={styles.textLabel}>Email Address</Text>
           <TextInput
             style={styles.input}
-            onChangeText={(val) => setUsername(val)}
+            onChangeText={(val) => setEmailAddress(val)}
             AutoCapitalize="none"
           />
         </View>
@@ -270,12 +274,16 @@ const BaseScreen = ({ navigation }) => {
   );
 };
 
-const MainNavigator = () => {
+const MainNavigator = (onLogin) => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="  " component={BaseScreen} />
-      <Stack.Screen name="Login" component={Login} />
-      <Stack.Screen name="Signup" component={Signup} />
+      <Stack.Screen name="Login" options={{ onLogin: onLogin }}>
+        {(props) => <Login {...props} onLogin={onLogin} />}
+      </Stack.Screen>
+      <Stack.Screen name="Signup" options={{ onLogin: onLogin }}>
+        {(props) => <Signup {...props} onLogin={onLogin} />}
+      </Stack.Screen>
     </Stack.Navigator>
   );
 };

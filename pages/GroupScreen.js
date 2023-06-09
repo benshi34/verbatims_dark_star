@@ -2,6 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
 import { getDatabase, ref, get, onValue } from "firebase/database";
 import { app } from "../Firebase.js";
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import ChatScreen from './ChatScreen.js';
+
+const Stack = createNativeStackNavigator();
+
 
 const GroupScreen = ({ navigation }) => {
 
@@ -50,34 +56,48 @@ const GroupScreen = ({ navigation }) => {
       fetchGroups();
 
     }, []);
+  
+    const renderGroups = ({ item }) => {
+      const handleGroupPress = () => {
+        // Navigate to the chat window screen
+        navigation.navigate('Groups', { screen: 'Chat'});
+      };
+  
+      return (
+        <TouchableOpacity style={styles.groupContainer} onPress={handleGroupPress}>
+          <View style={styles.leftHalf}>
+            <Image source={item.profilePic} style={styles.profilePic} />
+          </View>
+          <View style={styles.rightHalf}>
+            <Text style={styles.username}>{item.name}</Text>
+            <Text style={styles.postText}>{item.message}</Text>
+          </View>
+        </TouchableOpacity>
+      );
+    };
+  
+    const groupListScreen = () => {
+      return (
+        <View style={styles.container}>
+          <ScrollView contentContainerStyle={styles.scrollContainer}>
+            <FlatList
+              data={Groups}
+              renderItem={renderGroups}
+              keyExtractor={(item) => item.id.toString()}
+              contentContainerStyle={styles.listContainer}
+            />
+          </ScrollView>
+        </View>
+      )
+    };
 
-  const renderGroups = ({ item }) => {
     return (
-      <TouchableOpacity style={styles.groupContainer} onPress={handleGroupPress}>
-        <View style={styles.leftHalf}>
-          <Image source={item.profilePic} style={styles.profilePic} />
-        </View>
-        <View style={styles.rightHalf}>
-          <Text style={styles.username}>{item.name}</Text>
-          <Text style={styles.postText}>{item.message}</Text>
-        </View>
-      </TouchableOpacity>
+      <Stack.Navigator>
+          <Stack.Screen name="Groups" component={groupListScreen} />
+          <Stack.Screen name="Chat" component={ChatScreen} />
+      </Stack.Navigator>
     );
   };
-
-    return (
-      <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <FlatList
-        data={Groups}
-        renderItem={renderGroups}
-        keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={styles.listContainer}
-        />
-        </ScrollView>
-    </View>
-    );
-};
 
 const styles = StyleSheet.create({
   container: {

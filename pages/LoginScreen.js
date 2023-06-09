@@ -14,13 +14,14 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { createNativeStackNavigator } from "react-native-screens/native-stack";
 import * as Font from "expo-font";
-import { createUserAuth, loginUserAuth } from "../Firebase.js";
+import { createUserAuth, loginUserAuth, sendResetEmail } from "../Firebase.js";
+import { getAuth } from "firebase/auth";
 
 const Stack = createNativeStackNavigator();
 
 const Signup = ({ navigation, onLogin }) => {
   const [email, setEmail] = useState("");
-  const [displayName, setDisplayName] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isPasswordValid, setIsPasswordValid] = useState(true);
@@ -33,13 +34,14 @@ const Signup = ({ navigation, onLogin }) => {
       return;
     }
 
-    createUserAuth(email, password, displayName)
+    createUserAuth(email, password, username)
       .then((userId) => {
         var created = `User created with ID: ${userId}`;
         console.log(created);
         onLogin["onLogin"](userId, "true");
         // setShowing(true);
         // setMessage(created);
+        setErrorMessage("");
       })
       .catch((errorMessage) => {
         console.log(`Error creating user: ${errorMessage}`);
@@ -83,7 +85,7 @@ const Signup = ({ navigation, onLogin }) => {
           <TextInput
             style={styles.input}
             onChangeText={(val) => setEmail(val)}
-            AutoCapitalize="none"
+            autoCapitalize="none"
           />
         </View>
 
@@ -107,10 +109,10 @@ const Signup = ({ navigation, onLogin }) => {
         </View>
 
         <View style={styles.signUpTextInputLabel}>
-          <Text style={styles.displayTextLabel}>Display Name</Text>
+          <Text style={styles.usernameTextLabel}>Username</Text>
           <TextInput
             style={styles.input}
-            onChangeText={(val) => setDisplayName(val)}
+            onChangeText={(val) => setUsername(val)}
             AutoCapitalize="none"
           />
         </View>
@@ -149,6 +151,7 @@ const Login = ({ navigation, onLogin }) => {
       })
       .catch((errorMessage) => {
         console.log(`Error logging in user: ${errorMessage}`);
+        setErrorMessage("");
 
         message =
           "We are unable to log you in at this time. Please try again later.";
@@ -172,12 +175,8 @@ const Login = ({ navigation, onLogin }) => {
       });
   };
 
-  const clickForgotUser = () => {
-    // Log username/pw
-  };
-
   const clickForgotPassword = () => {
-    // Log username/pw
+    navigation.navigate("ForgotPassword");
   };
 
   const dismissKeyboard = () => {
@@ -201,6 +200,7 @@ const Login = ({ navigation, onLogin }) => {
         <View style={styles.label}>
           <Text style={styles.textLabel}>Email Address</Text>
           <TextInput
+            autoCapitalize="none"
             style={styles.input}
             onChangeText={(val) => setEmailAddress(val)}
             AutoCapitalize="none"
@@ -239,6 +239,58 @@ const Login = ({ navigation, onLogin }) => {
         {errorMessage !== "" && (
           <View>
             <Text style={styles.errorText}>{errorMessage}</Text>
+          </View>
+        )}
+      </ScrollView>
+    </TouchableWithoutFeedback>
+  );
+};
+
+const ForgotPassword = ({ navigation, onLogin }) => {
+  const [emailAddress, setEmailAddress] = useState("");
+  const [confirmationMessage, setConfirmationMessage] = useState("");
+
+  const handlePasswordReset = () => {
+    sendResetEmail(emailAddress);
+    setConfirmationMessage(
+      "We sent a password reset email to you! Please check your email to reset your password."
+    );
+  };
+
+  const dismissKeyboard = () => {
+    Keyboard.dismiss(); // Dismiss the keyboard
+  };
+
+  return (
+    <TouchableWithoutFeedback onPress={dismissKeyboard}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        style={styles.scrollView}
+      >
+        <View style={styles.header}>
+          <Text style={styles.loginHeaderText}>Forgot Password?</Text>
+        </View>
+
+        <View style={styles.label}>
+          <Text style={styles.textLabelForgot}>
+            Enter your email address below to get a password reset link.
+          </Text>
+          <TextInput
+            style={styles.inputForgot}
+            onChangeText={(val) => setEmailAddress(val)}
+            autoCapitalize="none"
+          />
+        </View>
+        <TouchableOpacity
+          style={styles.finalLoginContainer}
+          onPress={handlePasswordReset}
+        >
+          <Text style={styles.buttonText2}>{"Reset Your Password"}</Text>
+        </TouchableOpacity>
+
+        {confirmationMessage !== "" && (
+          <View>
+            <Text style={styles.confirmationText}>{confirmationMessage}</Text>
           </View>
         )}
       </ScrollView>
@@ -317,6 +369,7 @@ const MainNavigator = (onLogin) => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="  " component={BaseScreen} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
       <Stack.Screen name="Login" options={{ onLogin: onLogin }}>
         {(props) => <Login {...props} onLogin={onLogin} />}
       </Stack.Screen>
@@ -379,12 +432,35 @@ const styles = StyleSheet.create({
 
     borderRadius: 10,
   },
+  inputForgot: {
+    borderWidth: 0,
+    backgroundColor: "#1F46CF",
+    borderColor: "#777",
+    color: "#ffffff",
+    padding: 13,
+    fontWeight: "bold",
+    margin: 10,
+    marginBottom: -5,
+    width: 300,
+
+    borderRadius: 10,
+  },
+
   textLabel: {
     color: "#FFFFFF",
     marginRight: 180,
     fontSize: 17,
     fontWeight: "bold",
     textAlign: "left",
+  },
+  textLabelForgot: {
+    color: "#FFFFFF",
+    marginRight: 0,
+    marginBottom: 20,
+    fontSize: 17,
+    width: 320,
+    fontWeight: "bold",
+    textAlign: "center",
   },
 
   displayTextLabel: {
@@ -394,6 +470,23 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "left",
   },
+
+  usernameTextLabel: {
+    color: "#ffffff",
+    marginRight: 218,
+    fontSize: 17,
+    fontWeight: "bold",
+    textAlign: "left",
+  },
+
+  fullNameTextLabel: {
+    color: "#ffffff",
+    marginRight: 218,
+    fontSize: 17,
+    fontWeight: "bold",
+    textAlign: "left",
+  },
+
   passwordTextLabel: {
     marginRight: 220,
     color: "#ffffff",
@@ -429,7 +522,15 @@ const styles = StyleSheet.create({
     width: 300,
     fontWeight: "bold",
     alignSelf: "flex-start", // Adjusts the alignment to the start of the container
-    alignSelf: "left",
+    fontSize: 15,
+  },
+  confirmationText: {
+    color: "white",
+    marginTop: 10,
+    marginLeft: 60,
+    width: 300,
+    fontWeight: "bold",
+    alignSelf: "flex-start", // Adjusts the alignment to the start of the container
     fontSize: 15,
   },
   buttonContainer: {

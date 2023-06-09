@@ -95,7 +95,7 @@ export default function App() {
         <Tab.Screen name="Home" component={HomeScreen} />
         <Tab.Screen name="Profile" component={ProfileScreen} />
         <Tab.Screen
-          name="SettingScreen"
+          name="Settings"
           component={() => <SettingScreen onLogout={handleLogout} />}
         />
         <Tab.Screen name="Groups" component={GroupScreen} />

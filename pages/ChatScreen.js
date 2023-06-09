@@ -3,12 +3,13 @@ import { View, Text, TextInput, FlatList, StyleSheet, Image, TouchableOpacity, S
 
 
 const ChatScreen = ({ navigation }) => {
-    const messages = [
+    let messages = [
         { id: '1', sender: 'John', message: 'Hello!' },
         { id: '2', sender: 'Jane', message: 'Hi there!' },
         { id: '3', sender: 'John', message: 'How are you?' },
         // Add more messages here
       ];
+      let currID = messages.length; 
 
       const renderItem = ({ item }) => (
         <View style={styles.messageContainer}>
@@ -16,6 +17,11 @@ const ChatScreen = ({ navigation }) => {
           <Text style={styles.message}>{item.message}</Text>
         </View>
       );
+
+      const sendMessage = (message) => {
+        messages.push({id: ++currID, sender: "You", message: message});
+      }
+
       return (
         <View style={styles.container}>
           <FlatList
@@ -27,7 +33,7 @@ const ChatScreen = ({ navigation }) => {
           />
           <View style={styles.inputContainer}>
             <TextInput style={styles.input} placeholder="Type your message..." />
-            <TouchableOpacity style={styles.sendButton}>
+            <TouchableOpacity style={styles.sendButton} onPress={sendMessage()}>
               <Text style={styles.sendButtonText}>Send</Text>
             </TouchableOpacity>
           </View>

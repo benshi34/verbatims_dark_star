@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, ScrollView, TextInput, Modal} from 'react-native';
-import { getDatabase, ref, get, onValue, update } from "firebase/database";
+import { getDatabase, ref, get, set, onValue, update, push } from "firebase/database";
 
 import { app } from "../Firebase.js";
 
@@ -22,9 +22,10 @@ const HomeScreen = ({ navigation }) => {
           onValue(dbref, (snapshot) => {
             data = snapshot.val()
             if (data) {
-              const verbatimsArray = Object.keys(data).map((key) => {
+              let verbatimsArray = Object.keys(data).map((key) => {
                 return { id: key, ...data[key] };
               });
+              console.log(verbatimsArray[1].comments);
               setVerbatims(verbatimsArray);
             }
           })
@@ -100,13 +101,20 @@ const HomeScreen = ({ navigation }) => {
       })
     }
 
-    const addComment = () => {
+    const addComment = (postId) => {
       if (commentText.trim()) {
-        setVerbatims((prevPosts) =>
-          prevPosts.map((post) =>
-            post.id === selectedPost.id ? { ...post, comments: [...post.comments, commentText] } : post
-          )
-        );
+        // setVerbatims((prevPosts) =>
+        //   prevPosts.map((post) =>
+        //     post.id === selectedPost.id ? { ...post, comments: [...post.comments, commentText] } : post
+        //   )
+        // );
+        const commentsRef = ref(db, "Verbatims/" + postId + "/comments");
+        const newCommentsRef = push(commentsRef);
+        set(newCommentsRef, {
+          comment: commentText,
+          user: 1,
+          username: "Sygnisc"
+        });
         setCommentText('');
       }
     };
@@ -123,6 +131,7 @@ const HomeScreen = ({ navigation }) => {
     };
 
     const renderComment = ({ item }) => {
+      console.log(item);
       if (!item) {
         return null;
       }
@@ -134,12 +143,22 @@ const HomeScreen = ({ navigation }) => {
 
     const renderDiscussionPost = ({ item }) => {
       let isLiked = false
+      let groupName = null
+      if (item.groupName === null) {
+        groupName = "No Group"
+      }
+      else {
+        groupName = item.groupName
+      }
+
       return (
         <View style={styles.postContainer}>
           <View style={styles.userContainer}>
             <Image source={item.profilePic} style={styles.profilePic} />
-            <Text style={styles.username}>{item.user}</Text>
+            <Text style={styles.username}>{item.verbaiterName} Said:</Text>
           </View>
+          <Text>{item.timestamp}</Text>
+          <Text>Submitted by: {item.verbastardName} | {groupName}</Text>
           <View style={styles.postTextContainer}>
             <Text style={styles.postText}>{item.post}</Text>
           </View>
@@ -170,7 +189,7 @@ const HomeScreen = ({ navigation }) => {
                 <FlatList
                 data={verbatims}
                 renderItem={renderDiscussionPost}
-                keyExtractor={(item) => item.id.toString()}
+                keyExtractor={(item) => item.id}
                 contentContainerStyle={styles.listContainer}
                 />
               </ScrollView>
@@ -184,9 +203,9 @@ const HomeScreen = ({ navigation }) => {
                   <Text style={styles.modalPost}>{selectedPost.post}</Text>
                   <Text>Comments:</Text>
                   <FlatList
-                      data={selectedPost.comments}
+                      data={Object.values(selectedPost.comments)}
                       renderItem={renderComment}
-                      keyExtractor={(item) => item?.id.toString()}
+                      keyExtractor={(item, index) => index}
                       contentContainerStyle={styles.commentsContainer}
                   />
                   <TextInput
@@ -194,7 +213,7 @@ const HomeScreen = ({ navigation }) => {
                     placeholder="Add a comment..."
                     onChangeText={(text) => setCommentText(text)}
                     value={commentText}
-                    onSubmitEditing={addComment}
+                    onSubmitEditing={() => addComment(selectedPost.id)}
                   />
                 </View>
                 </View>

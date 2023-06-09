@@ -19,15 +19,20 @@ import { createUserAuth, loginUserAuth } from "../Firebase.js";
 const Stack = createNativeStackNavigator();
 
 const Signup = ({ navigation, onLogin }) => {
-  console.log("HERE onLogin prop:", onLogin);
-
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isPasswordValid, setIsPasswordValid] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleSignup = () => {
+    if (password.length < 8) {
+      message = "Password is too short (must be at least 8 characters).";
+      setErrorMessage(message);
+      return;
+    }
+
     createUserAuth(email, password, displayName)
       .then((userId) => {
         var created = `User created with ID: ${userId}`;
@@ -38,6 +43,16 @@ const Signup = ({ navigation, onLogin }) => {
       })
       .catch((errorMessage) => {
         console.log(`Error creating user: ${errorMessage}`);
+
+        message =
+          "We are unable to sign you up at this time. Please try again later.";
+
+        if (errorMessage === "auth/email-already-in-use") {
+          message =
+            "This email is already associated with an account. Please login instead.";
+        }
+
+        setErrorMessage(message);
         // setShowing(true);
         // setMessage(errorMessage);
         // Handle the error case
@@ -107,11 +122,9 @@ const Signup = ({ navigation, onLogin }) => {
           <Text style={styles.buttonText2}>{"Sign Up"}</Text>
         </TouchableOpacity>
 
-        {!isPasswordValid && (
+        {errorMessage !== "" && (
           <View>
-            <Text style={styles.errorText}>
-              Password must be at least 8 characters
-            </Text>
+            <Text style={styles.errorText}>{errorMessage}</Text>
           </View>
         )}
       </ScrollView>
@@ -123,6 +136,7 @@ const Login = ({ navigation, onLogin }) => {
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleLogin = () => {
     // Perform login logic here
@@ -135,7 +149,26 @@ const Login = ({ navigation, onLogin }) => {
       })
       .catch((errorMessage) => {
         console.log(`Error logging in user: ${errorMessage}`);
-        // Handle the error case
+
+        message =
+          "We are unable to log you in at this time. Please try again later.";
+
+        if (errorMessage === "auth/wrong-password") {
+          message =
+            "Invalid login credentials. The password you entered does not match the email account.";
+        }
+
+        if (errorMessage === "auth/too-many-requests") {
+          message =
+            "Login attempts exceeded for this account. Please try again later.";
+        }
+
+        if (errorMessage === "auth/user-not-found") {
+          message =
+            "We couldn't find a user associated with that email. Please sign up if you don't have an account registered with us yet.";
+        }
+
+        setErrorMessage(message);
       });
   };
 
@@ -202,6 +235,12 @@ const Login = ({ navigation, onLogin }) => {
         >
           <Text style={styles.buttonText2}>{"Login"}</Text>
         </TouchableOpacity>
+
+        {errorMessage !== "" && (
+          <View>
+            <Text style={styles.errorText}>{errorMessage}</Text>
+          </View>
+        )}
       </ScrollView>
     </TouchableWithoutFeedback>
   );
@@ -384,12 +423,14 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   errorText: {
-    color: "red",
-    marginTop: 50,
-    position: "absolute",
+    color: "#FF7272",
+    marginTop: 10,
+    marginLeft: 60,
+    width: 300,
+    fontWeight: "bold",
     alignSelf: "flex-start", // Adjusts the alignment to the start of the container
-    alignSelf: "center",
-    fontSize: 10,
+    alignSelf: "left",
+    fontSize: 15,
   },
   buttonContainer: {
     marginTop: 20,

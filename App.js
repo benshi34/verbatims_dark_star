@@ -33,7 +33,7 @@ export default function App() {
 
         console.log(">>>>>> CHECK AUTH >>>>>>");
         if (userId && loggedIn) {
-          console.log("User ID: ", userId);
+          console.log("USER ID: ", userId);
           setLoggedIn(true);
         } else {
           console.log("No user logged in");

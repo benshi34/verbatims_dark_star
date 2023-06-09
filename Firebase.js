@@ -44,7 +44,7 @@ export function createUserAuth(email, password, username) {
       })
       .catch((error) => {
         const errorMessage = error.message;
-        reject(errorMessage);
+        reject(error.code);
       });
   });
 }
@@ -59,7 +59,7 @@ export function loginUserAuth(email, password) {
       })
       .catch((error) => {
         const errorMessage = error.message;
-        reject(error.message);
+        reject(error.code);
       });
   });
 }

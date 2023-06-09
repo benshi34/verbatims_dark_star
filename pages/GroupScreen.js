@@ -1,108 +1,103 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, FlatList, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
-import { writeMessageData } from "../Firebase.js";
+import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
+import { getDatabase, ref, get, onValue } from "firebase/database";
+import { app } from "../Firebase.js";
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import ChatScreen from './ChatScreen.js';
 
 const Stack = createNativeStackNavigator();
 
+
 const GroupScreen = ({ navigation }) => {
+
   const [Groups, setGroups] = useState([]);
+
+  const db = getDatabase(app);
 
   useEffect(() => {
     // Simulated data for discussion posts
-    const dummyData = [
-      {
+
+    /*const dummyData = [
+       {
         id: 1,
         name: 'Dark Star',
-        message: 'One new message',
+        message: 'One new message', //use database here
         profilePic: require('../assets/kharn.jpg'),
+        timestamp: '7:11 PM'
       },
       {
         id: 2,
         name: 'Ben sucks I hate him so much',
         message: '10+ new messages',
         profilePic: require('../assets/kharn.jpg'),
+        timestamp: '7:11 PM'
       },
     ];
+  
+      setGroups(dummyData);*/
 
-    setGroups(dummyData);
-  }, []);
+      const fetchGroups = async () => {
+        try {
+          const dbref = ref(db, "Groups")
+          onValue(dbref, (snapshot) => {
+            data = snapshot.val()
+            if (data) {
+              const discussionPostsArray = Object.keys(data).map((key) => {
+                return { id: key, ...data[key] };
+              });
+              setGroups(discussionPostsArray);
+            }
+          })
+        } catch (error) {
+          console.error('Error fetching groups: ', error);
+        }
+      }
+      fetchGroups();
 
-  const renderGroups = ({ item }) => {
-    const handleGroupPress = () => {
-      // Navigate to the chat window screen
-      navigation.navigate('Groups', { screen: 'Chat'});
-    };
-
-    return (
-      <TouchableOpacity style={styles.groupContainer} onPress={handleGroupPress}>
-        <View style={styles.leftHalf}>
-          <Image source={item.profilePic} style={styles.profilePic} />
-        </View>
-        <View style={styles.rightHalf}>
-          <Text style={styles.username}>{item.name}</Text>
-          <Text style={styles.postText}>{item.message}</Text>
-        </View>
-      </TouchableOpacity>
-    );
-  };
-
-  const groupListScreen = () => {
-    return (
-      <View style={styles.container}>
-        <ScrollView contentContainerStyle={styles.scrollContainer}>
-          <FlatList
-            data={Groups}
-            renderItem={renderGroups}
-            keyExtractor={(item) => item.id.toString()}
-            contentContainerStyle={styles.listContainer}
-          />
-        </ScrollView>
-      </View>
-    )
-  };
-  const chatWindow = () => {
-    const messages = [
-      { id: '1', sender: 'John', message: 'Hello!' },
-      { id: '2', sender: 'Jane', message: 'Hi there!' },
-      { id: '3', sender: 'John', message: 'How are you?' },
-      // Add more messages here
-    ];
-
-    const renderItem = ({ item }) => (
-      <View style={styles.messageContainer}>
-        <Text style={styles.sender}>{item.sender}</Text>
-        <Text style={styles.message}>{item.message}</Text>
-      </View>
-    );
-
-    return (
-      <View style={styles.container}>
-        <FlatList
-          data={messages}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.chatContainer}
-          inverted
-        />
-        <View style={styles.inputContainer}>
-          <TextInput style={styles.input} placeholder="Type your message..." />
-          <TouchableOpacity style={styles.sendButton}>
-            <Text style={styles.sendButtonText}>Send</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+    }, []);
+  
+    const renderGroups = ({ item }) => {
+      const handleGroupPress = () => {
+        // Navigate to the chat window screen
+        navigation.navigate('Groups', { screen: 'Chat'});
+      };
+  
+      return (
+        <TouchableOpacity style={styles.groupContainer} onPress={handleGroupPress}>
+          <View style={styles.leftHalf}>
+            <Image source={item.profilePic} style={styles.profilePic} />
+          </View>
+          <View style={styles.rightHalf}>
+            <Text style={styles.username}>{item.name}</Text>
+            <Text style={styles.postText}>{item.message}</Text>
+          </View>
+        </TouchableOpacity>
       );
     };
+  
+    const groupListScreen = () => {
+      return (
+        <View style={styles.container}>
+          <ScrollView contentContainerStyle={styles.scrollContainer}>
+            <FlatList
+              data={Groups}
+              renderItem={renderGroups}
+              keyExtractor={(item) => item.id.toString()}
+              contentContainerStyle={styles.listContainer}
+            />
+          </ScrollView>
+        </View>
+      )
+    };
 
-  return (
-    <Stack.Navigator>
-        <Stack.Screen name="Groups" component={groupListScreen} />
-        <Stack.Screen name="Chat" component={chatWindow} />
-    </Stack.Navigator>
-  );
-};
+    return (
+      <Stack.Navigator>
+          <Stack.Screen name="Groups" component={groupListScreen} />
+          <Stack.Screen name="Chat" component={ChatScreen} />
+      </Stack.Navigator>
+    );
+  };
 
 const styles = StyleSheet.create({
   container: {
@@ -168,6 +163,24 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     paddingBottom: 16,
+  },
+  timeStampContainer: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: '#f5f5f5',
+  },
+  timeStampText: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    fontSize: 14,
+    color: '#333',
   },
 });
 

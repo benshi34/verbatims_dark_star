@@ -18,6 +18,7 @@ import { createUserAuth, loginUserAuth, sendResetEmail } from "../Firebase.js";
 import { getAuth } from "firebase/auth";
 
 const Stack = createNativeStackNavigator();
+let userID = null;
 
 const Signup = ({ navigation, onLogin }) => {
   const [email, setEmail] = useState("");
@@ -148,6 +149,7 @@ const Login = ({ navigation, onLogin }) => {
         console.log(loggedIn);
         onLogin["onLogin"](userId, "true");
         // Handle the successful creation of the user
+        userID = userId
       })
       .catch((errorMessage) => {
         console.log(`Error logging in user: ${errorMessage}`);

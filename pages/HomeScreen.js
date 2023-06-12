@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, ScrollView, TextInput, Modal} from 'react-native';
 import { getDatabase, ref, get, set, onValue, update, push } from "firebase/database";
-
+import userID from "./LoginScreen.js";
 import { app } from "../Firebase.js";
 
 const HomeScreen = ({ navigation }) => {
@@ -25,7 +25,6 @@ const HomeScreen = ({ navigation }) => {
               let verbatimsArray = Object.keys(data).map((key) => {
                 return { id: key, ...data[key] };
               });
-              console.log(verbatimsArray[1].comments);
               setVerbatims(verbatimsArray);
             }
           })
@@ -57,7 +56,15 @@ const HomeScreen = ({ navigation }) => {
       const postRef = ref(db, "Verbatims/" + postId)
       
       setLikedPosts((prevLikedPosts) => {
-        return prevLikedPosts[postId] = !prevLikedPosts[postId]
+        let index = prevLikedPosts.indexOf(postId)
+        if (index !== -1) {
+          prevLikedPosts.splice(index, 1);
+        }
+        else {
+          prevLikedPosts.push(postId)
+        }
+        console.log(prevLikedPosts);
+        return prevLikedPosts;
       });
 
       get(postRef).then((snapshot) => {
@@ -142,13 +149,13 @@ const HomeScreen = ({ navigation }) => {
     };
 
     const renderDiscussionPost = ({ item }) => {
-      let isLiked = false
-      let groupName = null
+      let isLiked = likedPosts.includes(item.id);
+      let groupName = null;
       if (item.groupName === null) {
-        groupName = "No Group"
+        groupName = "No Group";
       }
       else {
-        groupName = item.groupName
+        groupName = item.groupName;
       }
 
       return (
@@ -171,7 +178,7 @@ const HomeScreen = ({ navigation }) => {
             </Text>
           </TouchableOpacity>
           <View style={styles.actionsContainer}>
-          <TouchableOpacity style={[styles.likeButton, isLiked]} onPress={() => toggleLike(item.id)}>
+          <TouchableOpacity style={[styles.likeButton, isLiked && styles.likeButtonLiked]} onPress={() => toggleLike(item.id)}>
             <Text style={styles.likeButtonText}>Like</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.commentButton} onPress={() => openModal(item.id)}>

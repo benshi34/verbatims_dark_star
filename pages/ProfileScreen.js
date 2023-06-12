@@ -27,6 +27,8 @@ const ProfileScreen = () => {
   const [showModal, setShowModal] = useState(false);
   const [metadata, setMetadata] = useState(null);
   const [htref, setHtref] = useState('abcd');
+  const [profileId, setProfileId] = useState(0);
+  const [friendName, setFriendName] = useState('');
   //const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appspot.com/o/1.jpg?alt=media&token=11ea9825-a4e2-4a7b-97c1-c4ad1b1eaae2';  
 
   const toggleImageVisibility = () => {
@@ -70,28 +72,33 @@ const ProfileScreen = () => {
     return new File([blob], filename, { type: blob.type });
   };
 
+  const getFriends = async () => {
+      const dbref = ref(db, 'Users/' + "1" + "/friends");
+      get(dbref).then((snapshot) => {
+        if (snapshot.exists()) {
+          //console.log(Object.keys(snapshot.val()).length);
+          const updates = {};
+          updates["/"+Object.keys(snapshot.val()).length] = friendName;
+
+          update(ref(db, 'Users/' + "1" + "/friends"), updates);
+
+          //console.log(snapshot.val());
+          /*set(ref(db, 'Users/' + "1" + "\friends"), {
+            friends:snapshot.val()+" 1"
+          });*/
+        } else {
+          const updates = {};
+          updates["/"+"0"] = friendName;
+
+          update(ref(db, 'Users/' + "1" + "/friends"), updates);
+          //console.log("No data available");
+        }
+      }).catch((error) => {
+        console.error(error);
+      });
+  };
+
   useEffect(() => {
-
-    const getFriends = async () => {
-        const dbref = ref(db, 'Users/' + "1" + "/friends");
-        get(dbref).then((snapshot) => {
-          if (snapshot.exists()) {
-            const updates = {};
-            updates["/friends"] = snapshot.val()+" 1";
-
-            update(ref(db, 'Users/' + "1"), updates);
-
-            /*console.log(snapshot.val());
-            set(ref(db, 'Users/' + "1"), {
-              friends:snapshot.val()+" 1"
-            });*/
-          } else {
-            console.log("No data available");
-          }
-        }).catch((error) => {
-          console.error(error);
-        });
-    };
     // Simulated data for discussion posts
     const fetchDiscussionPosts = async () => {
       try {
@@ -139,11 +146,30 @@ const ProfileScreen = () => {
     
     }
 
+    const profileIdSetter = async () => {
+      const dbref = ref(db, 'Users/' + profileId + "/friends");
+      get(dbref).then((snapshot) => {
+        if (snapshot.exists()) {
+          const updates = {};
+          updates["/friends"] = snapshot.val()+" 1";
 
+          update(ref(db, 'Users/' + "1"), updates);
+
+          /*console.log(snapshot.val());
+          set(ref(db, 'Users/' + "1"), {
+            friends:snapshot.val()+" 1"
+          });*/
+        } else {
+          console.log("No data available");
+        }
+      }).catch((error) => {
+        console.error(error);
+      });
+    }
 
 
     downloadUrl();
-    getFriends();
+    //getFriends(friendName);
     fetchDiscussionPosts();
   }, []);
 
@@ -262,6 +288,20 @@ const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appsp
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
+
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.inputField}
+            placeholder="Enter friend's name"
+            onChangeText={setFriendName}
+            value={friendName}
+          />
+          <TouchableOpacity onPress={getFriends} style={styles.closeButton}>
+            <Text style={styles.closeButtonText}>Add Friend</Text>
+          </TouchableOpacity>
+        </View>
+
+
         <TouchableOpacity onPress={handleButtonPress} style={styles.imageButton}>
           <Image source={{ uri: htref }} style={styles.image} />
         </TouchableOpacity>
@@ -491,6 +531,23 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#ccc',
     paddingTop: 16,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginBottom: 16,
+  },
+  inputField: {
+    flex: 1,
+    height: 40,
+    borderColor: 'gray',
+    borderWidth: 1,
+    borderRadius: 4,
+    paddingHorizontal: 12,
+    marginRight: 8,
   },
 });
 

@@ -1,45 +1,74 @@
 import React from 'react';
-import { View, Text, TextInput, FlatList, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
-
+import { View, Text, TextInput, FlatList, StyleSheet, Image, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 
 const ChatScreen = ({ navigation }) => {
-    const messages = [
-        { id: '1', sender: 'John', message: 'Hello!' },
-        { id: '2', sender: 'Jane', message: 'Hi there!' },
-        { id: '3', sender: 'John', message: 'How are you?' },
-        // Add more messages here
-      ];
+  const [messages, setMessages] = React.useState([
+    { id: '1', sender: 'John', message: 'Hello!' },
+    { id: '2', sender: 'Jane', message: 'Hi there!' },
+    { id: '3', sender: 'John', message: 'How are you?' },
+  ]);
+  const [currID, setCurrID] = React.useState(messages.length);
+  const [inputMessage, setInputMessage] = React.useState('');
 
-      const renderItem = ({ item }) => (
-        <View style={styles.messageContainer}>
-          <Text style={styles.sender}>{item.sender}</Text>
-          <Text style={styles.message}>{item.message}</Text>
-        </View>
-      );
-      return (
-        <View style={styles.container}>
-          <FlatList
-            data={messages}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.chatContainer}
-            inverted
+  const renderItem = ({ item }) => (
+    <View style={styles.messageContainer}>
+      <View style={styles.messageContent}>
+        <Text style={styles.sender}>{item.sender}: </Text>
+        <Text style={styles.message}>{item.message}</Text>
+      </View>
+    </View>
+  );
+
+  const sendMessage = () => {
+    const newMessage = { id: String(currID + 1), sender: 'You', message: inputMessage };
+    setMessages([newMessage, ...messages]);
+    setInputMessage('');
+    setCurrID(currID + 1);
+  };
+
+  const handleInputSubmit = () => {
+    if (inputMessage.trim() !== '') {
+      sendMessage();
+    }
+  };
+
+  return (
+    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : null} keyboardVerticalOffset={Platform.OS === 'ios' ? 140 : 0}>
+      <FlatList
+        data={messages}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.chatContainer}
+        inverted
+      />
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'position' : null} keyboardVerticalOffset={Platform.OS === 'ios' ? -120 : null}>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Type your message..."
+            value={inputMessage}
+            onChangeText={setInputMessage}
+            onSubmitEditing={handleInputSubmit}
           />
-          <View style={styles.inputContainer}>
-            <TextInput style={styles.input} placeholder="Type your message..." />
-            <TouchableOpacity style={styles.sendButton}>
-              <Text style={styles.sendButtonText}>Send</Text>
-            </TouchableOpacity>
-          </View>
         </View>
-        );
-}
+      </KeyboardAvoidingView>
+    </KeyboardAvoidingView>
+  );
+};
+
+//        <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
+//        <Text style={styles.sendButtonText}>Send</Text>
+//        </TouchableOpacity>
 
 const styles = StyleSheet.create({
     container: {
       flex: 1,
       padding: 16,
       backgroundColor: '#fff',
+    },
+    messageContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
     },
     header: {
       fontSize: 24,
@@ -74,6 +103,38 @@ const styles = StyleSheet.create({
     },
     username: {
       fontWeight: 'bold',
+    },
+    inputContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderTopWidth: 1,
+      borderTopColor: '#CCCCCC',
+      backgroundColor: '#FFFFFF',
+    },
+    input: {
+      flex: 1,
+      height: 40,
+      borderWidth: 1,
+      borderColor: '#CCCCCC',
+      borderRadius: 4,
+      paddingHorizontal: 8,
+      marginRight: 8,
+    },
+    messageContainer: {
+      marginBottom: 16,
+    },
+    messageContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    sender: {
+      fontWeight: 'bold',
+      marginRight: 4,
+    },
+    message: {
+      fontSize: 16,
     },
     postText: {
       fontSize: 16,

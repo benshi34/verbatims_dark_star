@@ -31,10 +31,12 @@ export default function App() {
 
         // Update the authentication status based on the retrieved data
 
-        console.log(">>>>>> CHECK AUTH");
-        console.log(userId);
+        console.log(">>>>>> CHECK AUTH >>>>>>");
         if (userId && loggedIn) {
+          console.log("USER ID: ", userId);
           setLoggedIn(true);
+        } else {
+          console.log("No user logged in");
         }
 
         setLoading(false);
@@ -92,18 +94,12 @@ export default function App() {
       <Tab.Navigator>
         <Tab.Screen name="Home" component={HomeScreen} />
         <Tab.Screen name="Profile" component={ProfileScreen} />
-        {/* <Tab.Screen
-          name="Login"
-          component={LoginScreen}
-          options={{
-            headerShown: false,
-            color: "blue",
-          }}
-        /> */}
-        <Tab.Screen name="Settings" component={SettingScreen} />
+        <Tab.Screen
+          name="Settings"
+          component={() => <SettingScreen onLogout={handleLogout} />}
+        />
         <Tab.Screen name="Groups" component={GroupScreen} />
         <Tab.Screen name="Add Verbatim" component={AddScreen} />
-        <Tab.Screen name="GroupChat" component={ChatScreen} />
       </Tab.Navigator>
     </NavigationContainer>
   );

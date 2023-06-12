@@ -1,19 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, ScrollView, TextInput, Modal} from 'react-native';
 import { getDatabase, ref, get, set, onValue, update, push } from "firebase/database";
-import userID from "./LoginScreen.js";
 import { app } from "../Firebase.js";
 
-const HomeScreen = ({ navigation }) => {
+const HomeScreen = ({ route }) => {
     const [verbatims, setVerbatims] = useState([]);
     const [selectedPost, setSelectedPost] = useState(null);
     const [commentText, setCommentText] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [likedPosts, setLikedPosts] = useState([]);
 
+    const { value } = route.params;
+    console.log(value);
+
     const db = getDatabase(app);
     const userId = 24;
-
     useEffect(() => {
       // Simulated data for discussion posts
       const fetchVerbatims = async () => {

@@ -3,43 +3,52 @@ import { View, Text, TextInput, FlatList, StyleSheet, Image, TouchableOpacity, S
 
 
 const ChatScreen = ({ navigation }) => {
-    let messages = [
-        { id: '1', sender: 'John', message: 'Hello!' },
-        { id: '2', sender: 'Jane', message: 'Hi there!' },
-        { id: '3', sender: 'John', message: 'How are you?' },
-        // Add more messages here
-      ];
-      let currID = messages.length; 
-
-      const renderItem = ({ item }) => (
-        <View style={styles.messageContainer}>
-          <Text style={styles.sender}>{item.sender}</Text>
-          <Text style={styles.message}>{item.message}</Text>
-        </View>
-      );
-
-      const sendMessage = (message) => {
-        messages.push({id: ++currID, sender: "You", message: message});
-      }
-
-      return (
-        <View style={styles.container}>
-          <FlatList
-            data={messages}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.chatContainer}
-            inverted
+    const [messages, setMessages] = React.useState([
+      { id: '1', sender: 'John', message: 'Hello!' },
+      { id: '2', sender: 'Jane', message: 'Hi there!' },
+      { id: '3', sender: 'John', message: 'How are you?' },
+      // Add more messages here
+    ]);
+    const [currID, setCurrID] = React.useState(messages.length);
+    const [inputMessage, setInputMessage] = React.useState('');
+  
+    const renderItem = ({ item }) => (
+      <View style={styles.messageContainer}>
+        <Text style={styles.sender}>{item.sender}</Text>
+        <Text style={styles.message}>{item.message}</Text>
+      </View>
+    );
+  
+    const sendMessage = () => {
+      const newMessage = { id: String(currID + 1), sender: 'You', message: inputMessage };
+      setMessages([...messages, newMessage]);
+      setInputMessage('');
+      setCurrID(currID + 1);
+    };
+  
+    return (
+      <View style={styles.container}>
+        <FlatList
+          data={messages}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.chatContainer}
+          inverted
+        />
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Type your message..."
+            value={inputMessage}
+            onChangeText={setInputMessage}
           />
-          <View style={styles.inputContainer}>
-            <TextInput style={styles.input} placeholder="Type your message..." />
-            <TouchableOpacity style={styles.sendButton} onPress={sendMessage()}>
-              <Text style={styles.sendButtonText}>Send</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
+            <Text style={styles.sendButtonText}>Send</Text>
+          </TouchableOpacity>
         </View>
-        );
-}
+      </View>
+    );
+  };
 
 const styles = StyleSheet.create({
     container: {

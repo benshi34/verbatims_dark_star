@@ -100,7 +100,6 @@ export default function App() {
         />
         <Tab.Screen name="Groups" component={GroupScreen} />
         <Tab.Screen name="Add Verbatim" component={AddScreen} />
-        <Tab.Screen name="GroupChat" component={ChatScreen} />
       </Tab.Navigator>
     </NavigationContainer>
   );

@@ -1,11 +1,14 @@
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, set, get, child } from "firebase/database";
+
 import {
-  getAuth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   updateProfile,
+  sendPasswordResetEmail,
 } from "firebase/auth";
+import { getAuth, generatePasswordResetLink } from "firebase/auth";
+
 // const { getDatabase } = require("firebase-admin/database");
 
 // TODO: Add SDKs for Firebase products that you want to use
@@ -26,6 +29,15 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
+
+export function sendResetEmail(userEmail) {
+  sendPasswordResetEmail(auth, userEmail)
+    .then(() => {})
+    .catch((error) => {
+      console.log(error);
+    });
+}
+
 // Call this to create the user
 export function createUserAuth(email, password, username) {
   return new Promise((resolve, reject) => {
@@ -37,14 +49,16 @@ export function createUserAuth(email, password, username) {
         })
           .then(() => {
             resolve(user.uid);
+            addUserToFirebase(user.uid, email, username);
           })
           .catch((error) => {
             reject(error.message);
           });
       })
+
       .catch((error) => {
         const errorMessage = error.message;
-        reject(errorMessage);
+        reject(error.code);
       });
   });
 }
@@ -59,8 +73,18 @@ export function loginUserAuth(email, password) {
       })
       .catch((error) => {
         const errorMessage = error.message;
-        reject(error.message);
+        reject(error.code);
       });
+  });
+}
+
+function addUserToFirebase(userId, email, displayName) {
+  console.log("ADD USER TO FIREBASE");
+  console.log(userId);
+
+  set(ref(db, "Users/" + userId), {
+    username: displayName,
+    email: email,
   });
 }
 

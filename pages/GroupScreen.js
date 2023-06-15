@@ -60,7 +60,7 @@ const GroupScreen = ({ navigation }) => {
     const renderGroups = ({ item }) => {
       const handleGroupPress = () => {
         // Navigate to the chat window screen
-        navigation.navigate('Groups', { screen: 'Chat'});
+        navigation.navigate('Groups', { screen: 'Chat', params: {id: item.id}});
       };
   
       return (

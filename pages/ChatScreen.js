@@ -5,7 +5,7 @@ import { View, Text, TextInput, FlatList, StyleSheet, Image, TouchableOpacity, K
 
 const db = getDatabase(app);
 
-const ChatScreen = ({ navigation }) => {
+const ChatScreen = ({ route, navigation }) => {
   const [messages, setMessages] = React.useState([
     //{ id: '1', sender: 'John', message: 'Hello!' },
     //{ id: '2', sender: 'Jane', message: 'Hi there!' },
@@ -21,7 +21,6 @@ const ChatScreen = ({ navigation }) => {
         data = snapshot.val()
         if (data) {
           const messages = data.slice(1);
-          console.log(messages);
           setMessages(messages);
         }
       })
@@ -53,8 +52,9 @@ const ChatScreen = ({ navigation }) => {
   };
 
   useEffect(() => {
-    fetchChatMessages(1);
-  }, []);
+    const groupID = route.params.id;
+    fetchChatMessages(groupID);
+  }, [route.params.id]);
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : null} keyboardVerticalOffset={Platform.OS === 'ios' ? 140 : 0}>

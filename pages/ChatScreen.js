@@ -1,14 +1,34 @@
-import React from 'react';
+import React, { useEffect} from 'react';
+import { getDatabase, ref, get, onValue } from "firebase/database";
+import { app } from "../Firebase.js";
 import { View, Text, TextInput, FlatList, StyleSheet, Image, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+
+const db = getDatabase(app);
 
 const ChatScreen = ({ navigation }) => {
   const [messages, setMessages] = React.useState([
-    { id: '1', sender: 'John', message: 'Hello!' },
-    { id: '2', sender: 'Jane', message: 'Hi there!' },
-    { id: '3', sender: 'John', message: 'How are you?' },
+    //{ id: '1', sender: 'John', message: 'Hello!' },
+    //{ id: '2', sender: 'Jane', message: 'Hi there!' },
+    //{ id: '3', sender: 'Jim', message: 'How are you?' },
   ]);
   const [currID, setCurrID] = React.useState(messages.length);
   const [inputMessage, setInputMessage] = React.useState('');
+
+  const fetchChatMessages = async (groupID) => {
+    try {
+      const dbref = ref(db, `Groups/${groupID}/chat`);
+      onValue(dbref, (snapshot) => {
+        data = snapshot.val()
+        if (data) {
+          const messages = data.slice(1);
+          console.log(messages);
+          setMessages(messages);
+        }
+      })
+    } catch (error) {
+      console.error('Error fetching groups: ', error);
+    }
+  };
 
   const renderItem = ({ item }) => (
     <View style={styles.messageContainer}>
@@ -31,6 +51,10 @@ const ChatScreen = ({ navigation }) => {
       sendMessage();
     }
   };
+
+  useEffect(() => {
+    fetchChatMessages(1);
+  }, []);
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : null} keyboardVerticalOffset={Platform.OS === 'ios' ? 140 : 0}>
@@ -56,9 +80,9 @@ const ChatScreen = ({ navigation }) => {
   );
 };
 
-//        <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
-//        <Text style={styles.sendButtonText}>Send</Text>
-//        </TouchableOpacity>
+//Just pushed changes that makes the userID globally accessible: just add 
+//"route" to your params for the screen and call route.params to retrieve the value. 
+//Follow the example in HomeScreen.js
 
 const styles = StyleSheet.create({
     container: {

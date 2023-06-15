@@ -76,7 +76,7 @@ const GroupScreen = ({ navigation }) => {
       );
     };
   
-    const groupListScreen = () => {
+    const GroupListScreen = () => {
       return (
         <View style={styles.container}>
           <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -93,7 +93,7 @@ const GroupScreen = ({ navigation }) => {
 
     return (
       <Stack.Navigator>
-          <Stack.Screen name="Groups" component={groupListScreen} />
+          <Stack.Screen name="Groups" component={GroupListScreen} />
           <Stack.Screen name="Chat" component={ChatScreen} />
       </Stack.Navigator>
     );

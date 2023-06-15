@@ -15,12 +15,14 @@ import GroupScreen from "./pages/GroupScreen.js";
 import FirebaseTest from "./pages/FirebaseTest.js";
 import AddScreen from "./pages/AddScreen.js";
 import ChatScreen from "./pages/ChatScreen.js";
+import SearchScreen from "./pages/SearchScreen.js";
 
 const Tab = createBottomTabNavigator();
 
 export default function App() {
   const [isLoggedIn, setLoggedIn] = React.useState(false);
   const [isLoading, setLoading] = React.useState(false);
+  const [userID, setUserID] = React.useState('');
 
   React.useEffect(() => {
     const checkAuthentication = async () => {
@@ -28,9 +30,9 @@ export default function App() {
         // Check if the user ID and login information exist in AsyncStorage
         const userId = await AsyncStorage.getItem("userId");
         const loggedIn = await AsyncStorage.getItem("loggedIn");
-
+        setUserID(userId);
         // Update the authentication status based on the retrieved data
-
+        
         console.log(">>>>>> CHECK AUTH >>>>>>");
         if (userId && loggedIn) {
           console.log("USER ID: ", userId);
@@ -50,10 +52,12 @@ export default function App() {
 
   const handleLogin = async (userId, loggedIn) => {
     try {
+      console.log(">>>>>HANDLE LOGIN USER ID: ", userID)
       // Save the user ID and login information to AsyncStorage
       await AsyncStorage.setItem("userId", userId);
       await AsyncStorage.setItem("loggedIn", loggedIn);
 
+      setUserID(userId);
       setLoggedIn(true);
     } catch (error) {
       console.log("Error saving authentication data:", error);
@@ -92,14 +96,16 @@ export default function App() {
   return (
     <NavigationContainer>
       <Tab.Navigator>
-        <Tab.Screen name="Home" component={HomeScreen} />
-        <Tab.Screen name="Profile" component={ProfileScreen} />
+        <Tab.Screen name="Home" component={HomeScreen} initialParams={{ value: userID }}/>
+        <Tab.Screen name="Profile" component={ProfileScreen} initialParams={{ value: userID }}/>
         <Tab.Screen
           name="Settings"
           component={() => <SettingScreen onLogout={handleLogout} />}
+          initialParams={{ value: userID }}
         />
-        <Tab.Screen name="Groups" component={GroupScreen} />
-        <Tab.Screen name="Add Verbatim" component={AddScreen} />
+        <Tab.Screen name="Groups" component={GroupScreen} initialParams={{ value: userID }}/>
+        <Tab.Screen name="Add Verbatim" component={AddScreen} initialParams={{ value: userID }}/>
+        <Tab.Screen name="Search Screen" component={SearchScreen} />
       </Tab.Navigator>
     </NavigationContainer>
   );

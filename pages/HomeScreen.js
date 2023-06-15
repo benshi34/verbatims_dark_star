@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, ScrollView, TextInput, Modal} from 'react-native';
+import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, ScrollView, TextInput, Modal, Keyboard, KeyboardAvoidingView} from 'react-native';
 import { getDatabase, ref, get, set, onValue, update, push } from "firebase/database";
 import { app } from "../Firebase.js";
+import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 
 const HomeScreen = ({ route }) => {
     const [verbatims, setVerbatims] = useState([]);
@@ -9,12 +10,13 @@ const HomeScreen = ({ route }) => {
     const [commentText, setCommentText] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [likedPosts, setLikedPosts] = useState([]);
+    const [username, setUsername] = useState('');
+    const [currComments, setCurrComments] = useState([]);
 
     const { value } = route.params;
-    console.log(value);
 
     const db = getDatabase(app);
-    const userId = 24;
+    const userId = value;
     useEffect(() => {
       // Simulated data for discussion posts
       const fetchVerbatims = async () => {
@@ -33,9 +35,10 @@ const HomeScreen = ({ route }) => {
           onValue(userRef, (snapshot) => {
             data = snapshot.val();
             if (data) {
-              likedverbatims = data.likedverbatims || [];
+              let likedverbatims = data.likedverbatims || [];
               likedverbatims = likedverbatims.filter((postId) => postId !== undefined);
               setLikedPosts(likedverbatims);
+              setUsername(data.username === undefined ? "NoName" : data.username)
             }
           })
         } catch (error) {
@@ -51,6 +54,10 @@ const HomeScreen = ({ route }) => {
           post.id === postId ? { ...post, isFavorite: !post.isFavorite } : post
         )
       );
+    };
+
+    const dismissKeyboard = () => {
+      Keyboard.dismiss(); // Dismiss the keyboard
     };
     
     const toggleLike = (postId) => {
@@ -120,9 +127,12 @@ const HomeScreen = ({ route }) => {
         const newCommentsRef = push(commentsRef);
         set(newCommentsRef, {
           comment: commentText,
-          user: 1,
-          username: "Sygnisc"
+          user: userId,
+          username: username
         });
+        onValue(newCommentsRef, (snapshot) => {
+          setCurrComments((prevComments) => [...prevComments, snapshot.val()]);
+        })
         setCommentText('');
       }
     };
@@ -130,6 +140,7 @@ const HomeScreen = ({ route }) => {
     const openModal = (postId) => {
       const post = verbatims.find((post) => post.id === postId);
       setSelectedPost(post);
+      setCurrComments(Object.values(post.comments === undefined ? [] : post.comments));
       setShowModal(true);
     };
   
@@ -192,6 +203,8 @@ const HomeScreen = ({ route }) => {
     
     return (
         <View style={styles.container}>
+          <TouchableWithoutFeedback onPress={dismissKeyboard}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
             <Text style={styles.header}>Verbatims</Text>
               <ScrollView contentContainerStyle={styles.scrollContainer}>
                 <FlatList
@@ -211,11 +224,12 @@ const HomeScreen = ({ route }) => {
                   <Text style={styles.modalPost}>{selectedPost.post}</Text>
                   <Text>Comments:</Text>
                   <FlatList
-                      data={Object.values(selectedPost.comments)}
+                      data={currComments}
                       renderItem={renderComment}
                       keyExtractor={(item, index) => index}
                       contentContainerStyle={styles.commentsContainer}
                   />
+                  <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
                   <TextInput
                     style={styles.commentInput}
                     placeholder="Add a comment..."
@@ -223,10 +237,13 @@ const HomeScreen = ({ route }) => {
                     value={commentText}
                     onSubmitEditing={() => addComment(selectedPost.id)}
                   />
+                  </KeyboardAvoidingView>
                 </View>
                 </View>
               </Modal>
               )}
+      </KeyboardAvoidingView>
+      </TouchableWithoutFeedback>
       </View>
     );
 }

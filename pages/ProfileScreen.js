@@ -107,7 +107,9 @@ const ProfileScreen = () => {
         if (snapshot.exists()) {
           //console.log(Object.keys(snapshot.val()).length);
           const updates = {};
-          updates["/"+Object.keys(snapshot.val()).length] = friendName;
+          //updates["/"+Object.keys(snapshot.val()).length] = friendName;
+          updates["/"+Object.keys(snapshot.val()).length] = "1";
+
 
           update(ref(db, 'Users/' + "1" + "/friends"), updates);
 
@@ -117,7 +119,8 @@ const ProfileScreen = () => {
           });*/
         } else {
           const updates = {};
-          updates["/"+"0"] = friendName;
+          //updates["/"+"0"] = friendName;
+          updates["/"+"0"] = "1";
 
           update(ref(db, 'Users/' + "1" + "/friends"), updates);
           //console.log("No data available");
@@ -135,11 +138,13 @@ const ProfileScreen = () => {
         onValue(dbref, (snapshot) => {
           data = snapshot.val()
           if (data) {
-            const discussionPostsArray = Object.keys(data).map((key) => {
+            const mapA = Object.keys(data).map((key) => {
               return { id: key, ...data[key] };
             });
-            setDiscussionPosts(discussionPostsArray);
-            setLessDiscussionPosts(discussionPostsArray);
+            //console.log(mapA)
+            const mapB = mapA.filter((item) => item.id === 128);
+            setDiscussionPosts(mapB);
+            setLessDiscussionPosts(mapB);
           }
         })
       } catch (error) {
@@ -285,18 +290,18 @@ const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appsp
           )}
         </TouchableOpacity>
         */
-
-  return (
-    <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-
-        <View style={styles.inputContainer}>
+            /*
           <TextInput
             style={styles.inputField}
             placeholder="Enter friend's name"
             onChangeText={setFriendName}
             value={friendName}
-          />
+          />*/
+  return (
+    <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+
+        <View style={styles.inputContainer}>
           <TouchableOpacity onPress={getFriends} style={styles.closeButton}>
             <Text style={styles.closeButtonText}>Add Friend</Text>
           </TouchableOpacity>

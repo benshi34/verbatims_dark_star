@@ -15,6 +15,7 @@ import GroupScreen from "./pages/GroupScreen.js";
 import FirebaseTest from "./pages/FirebaseTest.js";
 import AddScreen from "./pages/AddScreen.js";
 import ChatScreen from "./pages/ChatScreen.js";
+import SearchScreen from "./pages/SearchScreen.js";
 
 const Tab = createBottomTabNavigator();
 
@@ -100,6 +101,7 @@ export default function App() {
         />
         <Tab.Screen name="Groups" component={GroupScreen} />
         <Tab.Screen name="Add Verbatim" component={AddScreen} />
+        <Tab.Screen name="Search Screen" component={SearchScreen} />
       </Tab.Navigator>
     </NavigationContainer>
   );

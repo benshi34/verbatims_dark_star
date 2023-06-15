@@ -24,10 +24,8 @@ import {
 
 const db = getDatabase(app);
 
-var num = 0;
 
-
-const AddScreen = ({ navigation }) => {
+const AddScreen = ({ route }) => {
   const [postText, setPostText] = useState('');
   const [verbaiter, setVerbaiter] = useState(''); 
   const [users, setUsers] = useState([]);
@@ -36,7 +34,6 @@ const AddScreen = ({ navigation }) => {
   const [groups, setGroups] = useState([]); // Store the groups
   const [showVerbaiterPicker, setShowVerbaiterPicker] = useState(false); // Track whether the verbaiter picker is visible or not
   const [selectedVerbaiter, setSelectedVerbaiter] = useState(''); // Store the selected verbaiter
-
 
   
 
@@ -66,7 +63,7 @@ const AddScreen = ({ navigation }) => {
       if (snapshot.exists()) {
         const usersData = snapshot.val();
         const usersArray = Object.entries(usersData).map(([id, user]) => ({
-          id, // Store the user's ID
+          id, 
           ...user,
         }));
         setUsers(usersArray);
@@ -76,10 +73,6 @@ const AddScreen = ({ navigation }) => {
 
 
   const submitVerbatim = () => {
-    
-    // Generate a unique ID for the post
-    // ?????????????????????????????
-    
 
     // Get the current timestamp
     const timestamp = Date.now();
@@ -91,27 +84,46 @@ const AddScreen = ({ navigation }) => {
     const day = String(date.getDate()).padStart(2, '0');
     const formattedDate = `${year}-${month}-${day}`;
     
+    const newVerbatimKey = push(child(ref(db), 'Verbatims')).key;
     
-    // Create verbatim, save the verbatim to the database
-    set(ref(db, 'Verbatims/' + num), {
-      group: selectedGroup ? selectedGroup.id : '', 
-      id: num,
-      post: postText,
-      timestamp: formattedDate,
-      verbaiter: selectedVerbaiter ? selectedVerbaiter.id : '', // Store the ID of the selected verbaiter
-      verbastard: '', 
-    });
-    
-    num++;
-    setPostText('');
-    setVerbaiter('');
-    setSelectedVerbaiter(''); // Reset the selected verbaiter
-    setSelectedGroup('');
+    const usersRef = ref(db, 'Users');
+    onValue(usersRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const usersData = snapshot.val();
+        const matchingUser = Object.entries(usersData).find(
+          ([id, user]) => user.username === selectedVerbaiter.username
+        );
 
-    // Reset the button text to "Choose Verbaiter" if it's not already displaying that
-    if (selectedVerbaiter !== 'Choose Verbaiter') {
-      setShowVerbaiterPicker(false);
-    }
+        if (matchingUser) {
+          const [userId] = matchingUser; // Get the ID of the matching user
+
+          // Set the selectedVerbaiter to the matching user's ID
+          setSelectedVerbaiter(userId);
+
+          // Create verbatim, save the verbatim to the database
+          set(ref(db, 'Verbatims/' + newVerbatimKey), {
+            group: selectedGroup ? selectedGroup.id : '',
+            id: newVerbatimKey,
+            post: postText,
+            timestamp: formattedDate,
+            verbaiter: userId,
+            verbastard: route.params,
+          });
+
+          setPostText('');
+          setVerbaiter('');
+          setSelectedGroup('');
+          setSelectedVerbaiter('');
+
+          // Reset the button text to "Choose Verbaiter" if it's not already displaying that
+          if (selectedVerbaiter !== 'Choose Verbaiter') {
+            setShowVerbaiterPicker(false);
+          }
+        } else {
+          console.log('User not found with the selected verbaiter username.');
+        }
+      }
+    });
   };
 
 
@@ -121,7 +133,7 @@ const AddScreen = ({ navigation }) => {
 
 
   const handleGroupSelection = (itemValue) => {
-    const selectedGroup = groups.find(group => group.id === itemValue);
+    const selectedGroup = groups.find((group) => group.id === itemValue);
     setSelectedGroup(selectedGroup); // Set the selected group object
   
     if (selectedGroup) {
@@ -233,7 +245,7 @@ const AddScreen = ({ navigation }) => {
           <TextInput 
             multiline={true}
             style={styles.verbatimInputTextbox} 
-            placeholder='"Yeken is so smart and cool and handsome! What would we ever do without Test Dummy Yeken?" ' 
+            placeholder='"Yechan is so smart and cool and handsome! What would we ever do without Test Dummy Yechan?" ' 
             onChangeText={(val) => setPostText(val)}
             value={postText}
           />

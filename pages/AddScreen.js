@@ -134,7 +134,7 @@ const AddScreen = ({ route }) => {
 
   const handleGroupSelection = (itemValue) => {
     const selectedGroup = groups.find((group) => group.id === itemValue);
-    setSelectedGroup(selectedGroup); // Set the selected group object
+    setSelectedGroup(selectedGroup ? selectedGroup : ''); // Set the selected group object
   
     if (selectedGroup) {
       const usersRef = ref(db, 'Users');
@@ -154,10 +154,9 @@ const AddScreen = ({ route }) => {
     setShowGroupPicker(false);
   };
 
-  // Function to handle the selection of verbaiter from the picker
   const handleVerbaiterSelection = (itemValue) => {
     const selectedUser = users.find(user => user.id === itemValue);
-    setSelectedVerbaiter(selectedUser); // Set the selected verbaiter object
+    setSelectedVerbaiter(selectedUser ? selectedUser : ''); // Update selectedVerbaiter
     setShowVerbaiterPicker(false);
   };
 
@@ -208,16 +207,18 @@ const AddScreen = ({ route }) => {
           </View>
         )}
 
-        <TouchableOpacity
-          style={styles.chooseVerbaiterButton}
-          onPress={() => setShowVerbaiterPicker(true)}
-        >
-          <Text style={styles.chooseVerbaiterButtonText}>
-            {selectedVerbaiter ? selectedVerbaiter.username : 'Choose verbaiter...'}
-          </Text>
-        </TouchableOpacity>
+{selectedGroup && ( // Check if a group is selected before showing the "Choose verbaiter..." picker
+          <TouchableOpacity
+            style={styles.chooseVerbaiterButton}
+            onPress={() => setShowVerbaiterPicker(true)}
+          >
+            <Text style={styles.chooseVerbaiterButtonText}>
+              {selectedVerbaiter ? selectedVerbaiter.username : 'Choose verbaiter...'}
+            </Text>
+          </TouchableOpacity>
+        )}
 
-        {showVerbaiterPicker && (
+        {showVerbaiterPicker && selectedGroup && ( // Check if a group is selected before showing the "Choose verbaiter..." picker
           <View style={styles.pickerContainer}>
             <Picker
               selectedValue={selectedVerbaiter}

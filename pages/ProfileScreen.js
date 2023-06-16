@@ -9,12 +9,11 @@ import { getStorage, ref as refStorage, uploadBytes, putFile, getMetadata, getDo
 const db = getDatabase(app);
 
 const storage = getStorage();
-const storageRef = refStorage(storage, '1.jpg');
 const metadata = {
   contentType: 'image/jpeg',
 };
 
-const ProfileScreen = () => {
+const ProfileScreen = ({ route }) => {
   const [discussionPosts, setDiscussionPosts] = useState([]);
   const [lessDiscussionPosts, setLessDiscussionPosts] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
@@ -31,6 +30,9 @@ const ProfileScreen = () => {
   const [friendName, setFriendName] = useState('');
   //const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appspot.com/o/1.jpg?alt=media&token=11ea9825-a4e2-4a7b-97c1-c4ad1b1eaae2';  
 
+  const { value } = route.params;
+  const userId = value;
+  const storageRef = refStorage(storage, '1.jpg');
   const toggleImageVisibility = () => {
     setShowImage(!showImage);
     setButtonText(showImage ? 'Show More' : 'Show Less');
@@ -42,8 +44,8 @@ const ProfileScreen = () => {
   };
 
   
-  const downloadUrl = async () => {
-    getDownloadURL(storageRef )
+  const downloadUrl = async (storageRef) => {
+    getDownloadURL(storageRef)
     .then((url) => {
       setHtref(url)
     })
@@ -79,7 +81,7 @@ const ProfileScreen = () => {
         const uploadTask = uploadBytes(storageRef, file, metadata);
         uploadTask
         .then((snapshot) => {
-          downloadUrl();
+          downloadUrl(storageRef);
           //setSelectedImage(result.uri); 
         })
         .catch((error) => {
@@ -174,7 +176,7 @@ const ProfileScreen = () => {
     }
 
 
-    downloadUrl();
+    downloadUrl(storageRef);
     //getFriends(friendName);
     fetchDiscussionPosts();
   }, []);

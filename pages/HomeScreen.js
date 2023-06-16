@@ -3,6 +3,8 @@ import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, ScrollView, 
 import { getDatabase, ref, get, set, onValue, update, push } from "firebase/database";
 import { app } from "../Firebase.js";
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
+import { downloadUrl } from './ProfileScreen.js';
+import { getStorage, ref as refStorage } from "firebase/storage";
 
 const HomeScreen = ({ route }) => {
     const [verbatims, setVerbatims] = useState([]);
@@ -17,6 +19,9 @@ const HomeScreen = ({ route }) => {
 
     const db = getDatabase(app);
     const userId = value;
+    const storage = getStorage();
+    const storageRef = refStorage(storage, '1.jpg');
+
     useEffect(() => {
       // Simulated data for discussion posts
       const fetchVerbatims = async () => {
@@ -204,7 +209,6 @@ const HomeScreen = ({ route }) => {
     return (
         <View style={styles.container}>
           <TouchableWithoutFeedback onPress={dismissKeyboard}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
             <Text style={styles.header}>Verbatims</Text>
               <ScrollView contentContainerStyle={styles.scrollContainer}>
                 <FlatList
@@ -229,7 +233,7 @@ const HomeScreen = ({ route }) => {
                       keyExtractor={(item, index) => index}
                       contentContainerStyle={styles.commentsContainer}
                   />
-                  <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+                  <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? -120 : null}>
                   <TextInput
                     style={styles.commentInput}
                     placeholder="Add a comment..."
@@ -242,7 +246,6 @@ const HomeScreen = ({ route }) => {
                 </View>
               </Modal>
               )}
-      </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
       </View>
     );

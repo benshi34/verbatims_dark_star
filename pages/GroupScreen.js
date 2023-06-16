@@ -62,6 +62,7 @@ const GroupScreen = ({ navigation }) => {
           <Text style={styles.postText}>{item.message}</Text>
         </View>
         <Text style={styles.timeStampText}>{item.timestamp}</Text>
+        <View style={styles.circle}></View>
       </TouchableOpacity>
     );
   };
@@ -119,14 +120,16 @@ const styles = StyleSheet.create({
   },
   username: {
     fontWeight: 'bold',
+    fontSize: 20,
   },
   postText: {
-    fontSize: 16,
+    fontSize: 14,
+    color: 'grey'
   },
   groupContainer: {
     flex: 1,
     flexDirection: 'row', // Arrange children in a row
-    backgroundColor: '#f5f5f5',
+    //backgroundColor: '#f5f5f5',
     padding: 16,
     marginBottom: 16,
     borderRadius: 8,
@@ -135,12 +138,12 @@ const styles = StyleSheet.create({
   },
   leftHalf: {
     flex: 1, // Take half of the available space
-    backgroundColor: '#f5f5f5', // Customize the left half's background color
+    //backgroundColor: '#f5f5f5', // Customize the left half's background color
   },
   rightHalf: {
     flexDirection: 'column', // Arrange children in a row
     flex: 4, // Take half of the available space
-    backgroundColor: '#F5F5F5', // Customize the right half's background color
+    //backgroundColor: '#F5F5F5', // Customize the right half's background color
   },
   scrollContainer: {
     paddingBottom: 16,
@@ -161,7 +164,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     fontSize: 14,
-    color: '#333',
+    color: 'blue',
+  },
+  circle: {
+    position: 'absolute',
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: 'blue', // Set the desired background color for the circle
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    bottom: 8,
+    right: 8,
   },
 });
 

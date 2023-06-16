@@ -24,15 +24,37 @@ import {
 
 const db = getDatabase(app);
 
-var num = 0;
 
-
-const AddScreen = ({ navigation }) => {
+const AddScreen = ({ route }) => {
   const [postText, setPostText] = useState('');
   const [verbaiter, setVerbaiter] = useState(''); 
   const [users, setUsers] = useState([]);
-  const [showPicker, setShowPicker] = useState(false); // Track whether the picker is visible or not
+  const [showGroupPicker, setShowGroupPicker] = useState(false); // Track whether the group picker is visible or not
+  const [selectedGroup, setSelectedGroup] = useState(''); // Store the selected group
+  const [groups, setGroups] = useState([]); // Store the groups
+  const [showVerbaiterPicker, setShowVerbaiterPicker] = useState(false); // Track whether the verbaiter picker is visible or not
   const [selectedVerbaiter, setSelectedVerbaiter] = useState(''); // Store the selected verbaiter
+
+  
+
+  const fetchGroups = () => {
+    const groupsRef = ref(db, 'Groups');
+    onValue(groupsRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const groupsData = snapshot.val();
+        const groupsArray = Object.entries(groupsData).map(([id, group]) => ({
+          id, 
+          ...group,
+        }));
+        setGroups(groupsArray);
+      }
+    });
+  };
+  
+  useEffect(() => {
+      fetchGroups();
+    }, []);
+
 
   // Fetch the user data from Firebase
   const fetchUsers = () => {
@@ -41,7 +63,7 @@ const AddScreen = ({ navigation }) => {
       if (snapshot.exists()) {
         const usersData = snapshot.val();
         const usersArray = Object.entries(usersData).map(([id, user]) => ({
-          id, // Store the user's ID
+          id, 
           ...user,
         }));
         setUsers(usersArray);
@@ -51,10 +73,6 @@ const AddScreen = ({ navigation }) => {
 
 
   const submitVerbatim = () => {
-    
-    // Generate a unique ID for the post
-    // ?????????????????????????????
-    
 
     // Get the current timestamp
     const timestamp = Date.now();
@@ -66,24 +84,46 @@ const AddScreen = ({ navigation }) => {
     const day = String(date.getDate()).padStart(2, '0');
     const formattedDate = `${year}-${month}-${day}`;
     
+    const newVerbatimKey = push(child(ref(db), 'Verbatims')).key;
     
-    // Create verbatim, save the verbatim to the database
-    set(ref(db, 'SentVerbatims/' + num), {
-      id: num,
-      timestamp: formattedDate,
-      post: postText,
-      verbaiter: selectedVerbaiter,
-    });
-    
-    num++;
-    setPostText('');
-    setVerbaiter('');
-    setSelectedVerbaiter(''); // Reset the selected verbaiter
+    const usersRef = ref(db, 'Users');
+    onValue(usersRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const usersData = snapshot.val();
+        const matchingUser = Object.entries(usersData).find(
+          ([id, user]) => user.username === selectedVerbaiter.username
+        );
 
-    // Reset the button text to "Choose Verbaiter" if it's not already displaying that
-    if (selectedVerbaiter !== 'Choose Verbaiter') {
-      setShowPicker(false);
-    }
+        if (matchingUser) {
+          const [userId] = matchingUser; // Get the ID of the matching user
+
+          // Set the selectedVerbaiter to the matching user's ID
+          setSelectedVerbaiter(userId);
+
+          // Create verbatim, save the verbatim to the database
+          set(ref(db, 'Verbatims/' + newVerbatimKey), {
+            group: selectedGroup ? selectedGroup.id : '',
+            id: newVerbatimKey,
+            post: postText,
+            timestamp: formattedDate,
+            verbaiter: userId,
+            verbastard: route.params,
+          });
+
+          setPostText('');
+          setVerbaiter('');
+          setSelectedGroup('');
+          setSelectedVerbaiter('');
+
+          // Reset the button text to "Choose Verbaiter" if it's not already displaying that
+          if (selectedVerbaiter !== 'Choose Verbaiter') {
+            setShowVerbaiterPicker(false);
+          }
+        } else {
+          console.log('User not found with the selected verbaiter username.');
+        }
+      }
+    });
   };
 
 
@@ -91,15 +131,39 @@ const AddScreen = ({ navigation }) => {
     Keyboard.dismiss(); // Dismiss the keyboard
   };
 
-  // Function to handle the selection of verbaiter from the picker
+
+  const handleGroupSelection = (itemValue) => {
+    const selectedGroup = groups.find((group) => group.id === itemValue);
+    setSelectedGroup(selectedGroup ? selectedGroup : ''); // Set the selected group object
+  
+    if (selectedGroup) {
+      const usersRef = ref(db, 'Users');
+      onValue(usersRef, (snapshot) => {
+        if (snapshot.exists()) {
+          const usersData = snapshot.val();
+          const groupUsers = selectedGroup.users.map(userId => usersData[userId]);
+          const usersArray = Object.entries(groupUsers).map(([id, user]) => ({
+            id,
+            ...user,
+          }));
+          setUsers(usersArray);
+        }
+      });
+    }
+  
+    setShowGroupPicker(false);
+  };
+
   const handleVerbaiterSelection = (itemValue) => {
-    setSelectedVerbaiter(itemValue); // Set the user's ID as the selected verbaiter
-    setShowPicker(false);
+    const selectedUser = users.find(user => user.id === itemValue);
+    setSelectedVerbaiter(selectedUser ? selectedUser : ''); // Update selectedVerbaiter
+    setShowVerbaiterPicker(false);
   };
 
   // Fetch the user data when the component mounts
   useEffect(() => {
-    fetchUsers();
+    fetchUsers(),
+    fetchGroups(); 
   }, []);
 
   return (
@@ -110,27 +174,68 @@ const AddScreen = ({ navigation }) => {
         </View>
 
         <TouchableOpacity
-          style={styles.chooseVerbaiterButton}
-          onPress={() => setShowPicker(true)}
+          style={styles.chooseGroupsButton}
+          onPress={() => setShowGroupPicker(true)}
         >
-          <Text style={styles.chooseVerbaiterButtonText}>
-            {selectedVerbaiter ? selectedVerbaiter : 'choose verbaiter...'}
+          <Text style={styles.chooseGroupsButtonText}>
+            {selectedGroup ? selectedGroup.name : 'Choose group...'}
           </Text>
         </TouchableOpacity>
+       
+        {showGroupPicker && (
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={selectedGroup}
+              style={styles.picker}
+              onValueChange={handleGroupSelection}
+            >
+              <Picker.Item label="Choose group..." value="" />
+              {groups.map((group) => (
+                <Picker.Item 
+                  key={group.id} 
+                  label={group.name} 
+                  value={group.id} 
+                />
+              ))}
+            </Picker>
+            <TouchableOpacity
+              style={styles.pickerCloseButton}
+              onPress={() => setShowGroupPicker(false)}
+            >
+              <Text style={styles.pickerCloseButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
-        {showPicker && (
+{selectedGroup && ( // Check if a group is selected before showing the "Choose verbaiter..." picker
+          <TouchableOpacity
+            style={styles.chooseVerbaiterButton}
+            onPress={() => setShowVerbaiterPicker(true)}
+          >
+            <Text style={styles.chooseVerbaiterButtonText}>
+              {selectedVerbaiter ? selectedVerbaiter.username : 'Choose verbaiter...'}
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        {showVerbaiterPicker && selectedGroup && ( // Check if a group is selected before showing the "Choose verbaiter..." picker
           <View style={styles.pickerContainer}>
             <Picker
               selectedValue={selectedVerbaiter}
               onValueChange={handleVerbaiterSelection}
             >
+              <Picker.Item label="Choose verbaiter..." value="" />
               {users.map((user) => (
-                <Picker.Item key={user.id} label={user.username} value={user.id} />
+                <Picker.Item
+                  key={user.id}
+                  label={user.username}
+                  value={user.id}
+                />
               ))}
             </Picker>
             <TouchableOpacity
               style={styles.pickerCloseButton}
-              onPress={() => setShowPicker(false)}
+              onPress={() => setShowVerbaiterPicker(false)}
             >
               <Text style={styles.pickerCloseButtonText}>Close</Text>
             </TouchableOpacity>
@@ -141,7 +246,7 @@ const AddScreen = ({ navigation }) => {
           <TextInput 
             multiline={true}
             style={styles.verbatimInputTextbox} 
-            placeholder='"Yeken is so smart and cool and handsome! What would we ever do without Test Dummy Yeken?" ' 
+            placeholder='"Yechan is so smart and cool and handsome! What would we ever do without Test Dummy Yechan?" ' 
             onChangeText={(val) => setPostText(val)}
             value={postText}
           />
@@ -170,6 +275,26 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: 'blue',
     fontWeight: 'bold',
+  },
+  chooseGroupsButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  chooseGroupsButton: {
+    borderWidth: 1,
+    borderColor: '#777',
+    borderRadius: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    marginVertical: 10,
+    marginLeft: 10,
+    alignSelf: 'center',
+  },
+  chooseGroupsButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'blue',
   },
   chooseVerbaiterButton: {
     borderWidth: 1,

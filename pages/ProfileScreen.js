@@ -27,6 +27,8 @@ const ProfileScreen = () => {
   const [showModal, setShowModal] = useState(false);
   const [metadata, setMetadata] = useState(null);
   const [htref, setHtref] = useState('abcd');
+  const [profileId, setProfileId] = useState(0);
+  const [friendName, setFriendName] = useState('');
   //const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appspot.com/o/1.jpg?alt=media&token=11ea9825-a4e2-4a7b-97c1-c4ad1b1eaae2';  
 
   const toggleImageVisibility = () => {
@@ -40,6 +42,34 @@ const ProfileScreen = () => {
   };
 
   
+  const downloadUrl = async () => {
+    getDownloadURL(storageRef )
+    .then((url) => {
+      setHtref(url)
+    })
+    .catch((error) => {
+      // A full list of error codes is available at
+      // https://firebase.google.com/docs/storage/web/handle-errors
+      switch (error.code) {
+        case 'storage/object-not-found':
+          // File doesn't exist
+          break;
+        case 'storage/unauthorized':
+          // User doesn't have permission to access the object
+          break;
+        case 'storage/canceled':
+          // User canceled the upload
+          break;
+  
+        // ...
+  
+        case 'storage/unknown':
+          // Unknown error occurred, inspect the server response
+          break;
+      }
+    });
+  
+  }  
 
   const handleButtonPress = async () => {
     try { 
@@ -49,7 +79,8 @@ const ProfileScreen = () => {
         const uploadTask = uploadBytes(storageRef, file, metadata);
         uploadTask
         .then((snapshot) => {
-          setSelectedImage(result.uri); 
+          downloadUrl();
+          //setSelectedImage(result.uri); 
         })
         .catch((error) => {
         });
@@ -70,28 +101,36 @@ const ProfileScreen = () => {
     return new File([blob], filename, { type: blob.type });
   };
 
+  const getFriends = async () => {
+      const dbref = ref(db, 'Users/' + "1" + "/friends");
+      get(dbref).then((snapshot) => {
+        if (snapshot.exists()) {
+          //console.log(Object.keys(snapshot.val()).length);
+          const updates = {};
+          //updates["/"+Object.keys(snapshot.val()).length] = friendName;
+          updates["/"+Object.keys(snapshot.val()).length] = "1";
+
+
+          update(ref(db, 'Users/' + "1" + "/friends"), updates);
+
+          //console.log(snapshot.val());
+          /*set(ref(db, 'Users/' + "1" + "\friends"), {
+            friends:snapshot.val()+" 1"
+          });*/
+        } else {
+          const updates = {};
+          //updates["/"+"0"] = friendName;
+          updates["/"+"0"] = "1";
+
+          update(ref(db, 'Users/' + "1" + "/friends"), updates);
+          //console.log("No data available");
+        }
+      }).catch((error) => {
+        console.error(error);
+      });
+  };
+
   useEffect(() => {
-
-    const getFriends = async () => {
-        const dbref = ref(db, 'Users/' + "1" + "/friends");
-        get(dbref).then((snapshot) => {
-          if (snapshot.exists()) {
-            const updates = {};
-            updates["/friends"] = snapshot.val()+" 1";
-
-            update(ref(db, 'Users/' + "1"), updates);
-
-            /*console.log(snapshot.val());
-            set(ref(db, 'Users/' + "1"), {
-              friends:snapshot.val()+" 1"
-            });*/
-          } else {
-            console.log("No data available");
-          }
-        }).catch((error) => {
-          console.error(error);
-        });
-    };
     // Simulated data for discussion posts
     const fetchDiscussionPosts = async () => {
       try {
@@ -99,51 +138,44 @@ const ProfileScreen = () => {
         onValue(dbref, (snapshot) => {
           data = snapshot.val()
           if (data) {
-            const discussionPostsArray = Object.keys(data).map((key) => {
+            const mapA = Object.keys(data).map((key) => {
               return { id: key, ...data[key] };
             });
-            setDiscussionPosts(discussionPostsArray);
-            setLessDiscussionPosts(discussionPostsArray);
+            //console.log(mapA)
+            const mapB = mapA.filter((item) => item.id === 128);
+            setDiscussionPosts(mapB);
+            setLessDiscussionPosts(mapB);
           }
         })
       } catch (error) {
         console.error('Error fetching discussion posts: ', error);
       }
     }
-    const downloadUrl = async () => {
-      getDownloadURL(storageRef )
-      .then((url) => {
-        setHtref(url)
-      })
-      .catch((error) => {
-        // A full list of error codes is available at
-        // https://firebase.google.com/docs/storage/web/handle-errors
-        switch (error.code) {
-          case 'storage/object-not-found':
-            // File doesn't exist
-            break;
-          case 'storage/unauthorized':
-            // User doesn't have permission to access the object
-            break;
-          case 'storage/canceled':
-            // User canceled the upload
-            break;
-    
-          // ...
-    
-          case 'storage/unknown':
-            // Unknown error occurred, inspect the server response
-            break;
+
+    const profileIdSetter = async () => {
+      const dbref = ref(db, 'Users/' + profileId + "/friends");
+      get(dbref).then((snapshot) => {
+        if (snapshot.exists()) {
+          const updates = {};
+          updates["/friends"] = snapshot.val()+" 1";
+
+          update(ref(db, 'Users/' + "1"), updates);
+
+          /*console.log(snapshot.val());
+          set(ref(db, 'Users/' + "1"), {
+            friends:snapshot.val()+" 1"
+          });*/
+        } else {
+          console.log("No data available");
         }
+      }).catch((error) => {
+        console.error(error);
       });
-    
     }
 
 
-
-
     downloadUrl();
-    getFriends();
+    //getFriends(friendName);
     fetchDiscussionPosts();
   }, []);
 
@@ -258,10 +290,24 @@ const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appsp
           )}
         </TouchableOpacity>
         */
-
+            /*
+          <TextInput
+            style={styles.inputField}
+            placeholder="Enter friend's name"
+            onChangeText={setFriendName}
+            value={friendName}
+          />*/
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
+
+        <View style={styles.inputContainer}>
+          <TouchableOpacity onPress={getFriends} style={styles.closeButton}>
+            <Text style={styles.closeButtonText}>Add Friend</Text>
+          </TouchableOpacity>
+        </View>
+
+
         <TouchableOpacity onPress={handleButtonPress} style={styles.imageButton}>
           <Image source={{ uri: htref }} style={styles.image} />
         </TouchableOpacity>
@@ -491,6 +537,23 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#ccc',
     paddingTop: 16,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginBottom: 16,
+  },
+  inputField: {
+    flex: 1,
+    height: 40,
+    borderColor: 'gray',
+    borderWidth: 1,
+    borderRadius: 4,
+    paddingHorizontal: 12,
+    marginRight: 8,
   },
 });
 

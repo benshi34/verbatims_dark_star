@@ -108,8 +108,8 @@ const GroupScreen = ({ navigation }) => {
         />
         </ScrollView>
       </View>
-
-  const renderGroups = ({ item }) => {
+    );
+  /*const renderGroups = ({ item }) => {
     return (
       <TouchableOpacity style={styles.groupContainer}>
         <View style={styles.leftHalf}>
@@ -136,7 +136,7 @@ const GroupScreen = ({ navigation }) => {
         />
         </ScrollView>
     </View>
-    );
+    );*/
   };
 
 const styles = StyleSheet.create({

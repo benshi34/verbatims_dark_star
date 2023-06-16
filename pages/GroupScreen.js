@@ -72,10 +72,11 @@ const GroupScreen = ({ navigation }) => {
             <Text style={styles.username}>{item.name}</Text>
             <Text style={styles.postText}>{item.message}</Text>
           </View>
+        <Text style={styles.timeStampText}>{item.timestamp}</Text>
+        <View style={styles.circle}></View>
         </TouchableOpacity>
       );
     };
-  
     const GroupListScreen = () => {
       return (
         <View style={styles.container}>
@@ -92,10 +93,21 @@ const GroupScreen = ({ navigation }) => {
     };
 
     return (
-      <Stack.Navigator>
+      /*<Stack.Navigator>
           <Stack.Screen name="Groups" component={GroupListScreen} />
           <Stack.Screen name="Chat" component={ChatScreen} />
-      </Stack.Navigator>
+      </Stack.Navigator>*/
+
+      <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <FlatList
+        data={Groups}
+        renderItem={renderGroups}
+        keyExtractor={(item) => item.id.toString()}
+        contentContainerStyle={styles.listContainer}
+        />
+        </ScrollView>
+      </View>
     );
   };
 

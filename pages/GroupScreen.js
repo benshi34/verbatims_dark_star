@@ -18,25 +18,6 @@ const GroupScreen = ({ navigation }) => {
   useEffect(() => {
     // Simulated data for discussion posts
 
-    /*const dummyData = [
-       {
-        id: 1,
-        name: 'Dark Star',
-        message: 'One new message', //use database here
-        profilePic: require('../assets/kharn.jpg'),
-        timestamp: '7:11 PM'
-      },
-      {
-        id: 2,
-        name: 'Ben sucks I hate him so much',
-        message: '10+ new messages',
-        profilePic: require('../assets/kharn.jpg'),
-        timestamp: '7:11 PM'
-      },
-    ];
-  
-      setGroups(dummyData);*/
-
       const fetchGroups = async () => {
         try {
           const dbref = ref(db, "Groups")
@@ -77,6 +58,7 @@ const GroupScreen = ({ navigation }) => {
         </TouchableOpacity>
       );
     };
+
     const GroupListScreen = () => {
       return (
         <View style={styles.container}>
@@ -92,51 +74,14 @@ const GroupScreen = ({ navigation }) => {
       )
     };
 
-    return (
-      /*<Stack.Navigator>
-          <Stack.Screen name="Groups" component={GroupListScreen} />
-          <Stack.Screen name="Chat" component={ChatScreen} />
-      </Stack.Navigator>*/
-
-      <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <FlatList
-        data={Groups}
-        renderItem={renderGroups}
-        keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={styles.listContainer}
-        />
-        </ScrollView>
-      </View>
-    );
-  /*const renderGroups = ({ item }) => {
-    return (
-      <TouchableOpacity style={styles.groupContainer}>
-        <View style={styles.leftHalf}>
-        <Image source={item.profilePic} style={styles.profilePic} />
-        </View>
-        <View style={styles.rightHalf}>
-          <Text style={styles.username}>{item.name}</Text>
-          <Text style={styles.postText}>{item.message}</Text>
-        </View>
-        <Text style={styles.timeStampText}>{item.timestamp}</Text>
-        <View style={styles.circle}></View>
-      </TouchableOpacity>
-    );
-  };
-
-    return (
-      <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <FlatList
-        data={Groups}
-        renderItem={renderGroups}
-        keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={styles.listContainer}
-        />
-        </ScrollView>
-    </View>
-    );*/
+return (
+  <View style={styles.container}>
+    <Stack.Navigator>
+      <Stack.Screen name="Groups" component={GroupListScreen} />
+      <Stack.Screen name="Chat" component={ChatScreen} />
+    </Stack.Navigator>
+  </View>
+);
   };
 
 const styles = StyleSheet.create({

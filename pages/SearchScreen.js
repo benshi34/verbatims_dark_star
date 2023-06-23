@@ -1,9 +1,11 @@
 import React, { useEffect,useState } from 'react';
-import { View, TextInput, FlatList, Text, StyleSheet } from 'react-native';
+import { View, TextInput, FlatList, Text, StyleSheet, Image } from 'react-native';
 import { getDatabase, ref, get, child, onValue, update } from "firebase/database";
+import { getStorage, ref as refStorage, getDownloadURL } from "firebase/storage";
 import { app } from "../Firebase.js";
 
 const db = getDatabase(app);
+const storage = getStorage();
 
 const SearchScreen = () => {
   const [searchText, setSearchText] = useState('');
@@ -37,12 +39,19 @@ const SearchScreen = () => {
         onValue(dbref, (snapshot) => {
           data = snapshot.val()
           if (data) {
-            const mapA = Object.keys(data).map((key) => {
-                const user = data[key];
-                return { username: user.username };
+            const userInfo = Object.keys(data).map(async (key) => {
+                const userInfo = data[key];
+                const defaultStorageRef = refStorage(storage, '1.jpg');
+                const defaultUrl = await getDownloadURL(defaultStorageRef);
+                const storageRef = refStorage(storage, String(key) + '.jpg');
+                const url = await getDownloadURL(storageRef).catch((error) => {
+                  console.log(error);
+                });
+                return { username: userInfo.username, userId: key, profilePic: url !== undefined ? url : defaultUrl};
             });
-            const usernameValues = mapA.map((obj) => obj.username);
-            setDataArray(usernameValues);
+            Promise.all(userInfo).then(userInfoArr => {
+              setDataArray(userInfoArr);
+            })
           }
         })
       } catch (error) {
@@ -53,9 +62,19 @@ const SearchScreen = () => {
     fetchDiscussionPosts();
   }, []);
 
+  const renderResults = ({ item }) => {
+    if (!item) {
+      return null;
+    }
+    return (<View style={styles.item}>
+      <Image source={{uri: item.profilePic}} style={styles.profilePic} />
+      <Text style={styles.usernameText}>{item.username}</Text>
+    </View>);
+  };
+
   const handleSearch = (text) => {
-    const filteredResults = text ? dataArray.filter((item) =>
-      item.toLowerCase().includes(text.toLowerCase())
+    const filteredResults = text ? dataArray.filter((item) => 
+      item.username.toLowerCase().includes(text.toLowerCase())
     ) : [];
     setSearchText(text);
     setSearchResults(filteredResults);
@@ -74,7 +93,7 @@ const SearchScreen = () => {
       {searchText !== '' ? (
         <FlatList
           data={searchResults}
-          renderItem={({ item }) => <Text style={styles.item}>{item}</Text>}
+          renderItem={renderResults}
           keyExtractor={(item) => item}
           ListEmptyComponent={<Text style={styles.emptyText}>No results found</Text>}
         />
@@ -101,10 +120,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   item: {
-    fontSize: 18,
+    flexDirection: "row",
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
+  },
+  usernameText: {
+    fontSize: 18,
     color: '#333',
   },
   emptyText: {
@@ -112,6 +134,12 @@ const styles = StyleSheet.create({
     marginTop: 16,
     textAlign: 'center',
     color: '#555',
+  },
+  profilePic: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    marginRight: 8,
   },
 });
 

@@ -2,20 +2,20 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, ScrollView, TextInput, Modal, Button} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { initializeApp } from "firebase/app";
-import { getDatabase, ref, get, child, onValue, update } from "firebase/database";
+import { getDatabase, ref, get, child, onValue, update, remove, push } from "firebase/database";
 import { app } from "../Firebase.js";
 import { getStorage, ref as refStorage, uploadBytes, putFile, getMetadata, getDownloadURL } from "firebase/storage";
 
-const db = getDatabase(app);
 
 const storage = getStorage();
-const storageRef = refStorage(storage, '1.jpg');
 const metadata = {
   contentType: 'image/jpeg',
 };
 
-const ProfileScreen = () => {
-  const [discussionPosts, setDiscussionPosts] = useState([]);
+const ProfileScreen = ({ route }) => {
+  const [verbatims, setVerbatims] = useState([]);
+  const [likedPosts, setLikedPosts] = useState([]);
+  const [username, setUsername] = useState('');
   const [lessDiscussionPosts, setLessDiscussionPosts] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
   const [showImage, setShowImage] = useState(false);
@@ -29,7 +29,16 @@ const ProfileScreen = () => {
   const [htref, setHtref] = useState('abcd');
   const [profileId, setProfileId] = useState(0);
   const [friendName, setFriendName] = useState('');
+  const [friendButtonTitle, setFriendButtonTitle] = useState('');
   //const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appspot.com/o/1.jpg?alt=media&token=11ea9825-a4e2-4a7b-97c1-c4ad1b1eaae2';  
+
+  
+  const { value } = route.params;
+
+  const db = getDatabase(app);
+  const userId = value;
+
+  const storageRef = refStorage(storage, userId+'.jpg');
 
   const toggleImageVisibility = () => {
     setShowImage(!showImage);
@@ -96,59 +105,92 @@ const ProfileScreen = () => {
   const uriToFile = async (uri) => {
     const response = await fetch(uri);
     const blob = await response.blob();
-    const filename = uri.substring(uri.lastIndexOf('/') + 1);
+    const filename = uri.substring(uri.lastIndexOf('/') + userId);
 
     return new File([blob], filename, { type: blob.type });
   };
 
-  const getFriends = async () => {
-      const dbref = ref(db, 'Users/' + "1" + "/friends");
-      get(dbref).then((snapshot) => {
-        if (snapshot.exists()) {
-          //console.log(Object.keys(snapshot.val()).length);
-          const updates = {};
-          //updates["/"+Object.keys(snapshot.val()).length] = friendName;
-          updates["/"+Object.keys(snapshot.val()).length] = "1";
 
+  const addFriendButton = () => {
+    //console.log("1");
+    const dbref = ref(db, 'Users/' + userId + "/friends");
+    const friendToAdd = userId;
+    get(dbref).then((snapshot) => {
+      if (snapshot.exists()) {
+        data=snapshot.val();
+        //console.log("2");
+        let verbatimsArray = Object.keys(data).map((key) => {
+          return { id: key, value:data[key] };
+        });
 
-          update(ref(db, 'Users/' + "1" + "/friends"), updates);
+        let isFriend = false;
+        let idFound = -1;
+        verbatimsArray.forEach((friend) => {
+          if (friend.value === friendToAdd) {
+            isFriend=true;
+            idFound=friend.id;
+          }
+        });
 
-          //console.log(snapshot.val());
-          /*set(ref(db, 'Users/' + "1" + "\friends"), {
-            friends:snapshot.val()+" 1"
-          });*/
+        //const isFriend = verbatimsArray.some((friend) => friend.id === userId);
+        
+
+        if (isFriend) {
+          //console.log("3");
+          remove(ref(db, 'Users/' + userId + "/friends/"+idFound));
         } else {
+          //console.log("4");
+          
+          const newPostKey = push(child(ref(db), 'Users/' + userId + "/friends")).key;
           const updates = {};
-          //updates["/"+"0"] = friendName;
-          updates["/"+"0"] = "1";
-
-          update(ref(db, 'Users/' + "1" + "/friends"), updates);
-          //console.log("No data available");
+          updates["/"+newPostKey] = friendToAdd;
+          update(ref(db, 'Users/' + userId + "/friends"), updates);
         }
-      }).catch((error) => {
-        console.error(error);
-      });
-  };
+      
+      } else {
+        //console.log("5");
+        const updates = {};
+        const newPostKey = push(child(ref(db), 'Users/' + userId + "/friends")).key;
+        updates["/"+newPostKey] = friendToAdd;
+        update(ref(db, 'Users/' + userId + "/friends"), updates);
+      }
+    }).catch((error) => {
+      //console.log("6");
+      console.error(error);
+    });
+  }
+
+
+
 
   useEffect(() => {
     // Simulated data for discussion posts
-    const fetchDiscussionPosts = async () => {
+
+    const fetchVerbatims = async () => {
       try {
-        const dbref = ref(db, "Verbatims")
+        const dbref = ref(db, "Verbatims");
         onValue(dbref, (snapshot) => {
           data = snapshot.val()
           if (data) {
-            const mapA = Object.keys(data).map((key) => {
+            let verbatimsArray = Object.keys(data).map((key) => {
               return { id: key, ...data[key] };
             });
-            //console.log(mapA)
-            const mapB = mapA.filter((item) => item.id === 128);
-            setDiscussionPosts(mapB);
-            setLessDiscussionPosts(mapB);
+            const mapB = verbatimsArray.filter((item) => item.id === userId);
+            setVerbatims(mapB);
+          }
+        })
+        const userRef = ref(db, "Users/" + userId);
+        onValue(userRef, (snapshot) => {
+          data = snapshot.val();
+          if (data) {
+            let likedverbatims = data.likedverbatims || [];
+            likedverbatims = likedverbatims.filter((postId) => postId !== undefined);
+            setLikedPosts(likedverbatims);
+            setUsername(data.username === undefined ? "NoName" : data.username)
           }
         })
       } catch (error) {
-        console.error('Error fetching discussion posts: ', error);
+        console.error('Error fetching verbatims: ', error);
       }
     }
 
@@ -157,13 +199,13 @@ const ProfileScreen = () => {
       get(dbref).then((snapshot) => {
         if (snapshot.exists()) {
           const updates = {};
-          updates["/friends"] = snapshot.val()+" 1";
+          updates["/friends"] = snapshot.val()+" "+userId;
 
-          update(ref(db, 'Users/' + "1"), updates);
+          update(ref(db, 'Users/' + userId), updates);
 
           /*console.log(snapshot.val());
-          set(ref(db, 'Users/' + "1"), {
-            friends:snapshot.val()+" 1"
+          set(ref(db, 'Users/' + userId), {
+            friends:snapshot.val()+" "+userId
           });*/
         } else {
           console.log("No data available");
@@ -174,41 +216,144 @@ const ProfileScreen = () => {
     }
 
 
+    const titleFriendButton = async () => {
+      //console.log("1");
+      const dbref = ref(db, 'Users/' + userId + "/friends");
+      const friendToAdd = userId;
+      onValue(dbref, (snapshot) => {
+        if (snapshot.exists()) {
+          data=snapshot.val();
+          //console.log("2");
+          let verbatimsArray = Object.keys(data).map((key) => {
+            return { id: key, value:data[key] };
+          });
+  
+          let isFriend = false;
+          let idFound = -1;
+          verbatimsArray.forEach((friend) => {
+            if (friend.value === friendToAdd) {
+              isFriend=true;
+              idFound=friend.id;
+            }
+          });
+  
+          //const isFriend = verbatimsArray.some((friend) => friend.id === userId);
+          
+  
+          if (isFriend) {
+            setFriendButtonTitle("Remove Friend");
+          } else {
+            setFriendButtonTitle("Add Friend");
+          }
+        
+        } else {
+          setFriendButtonTitle("Add Friend");
+        }
+      }).catch((error) => {
+        //console.log("6");
+        console.error(error);
+      });
+    }
+
     downloadUrl();
     //getFriends(friendName);
-    fetchDiscussionPosts();
+    fetchVerbatims();
+    titleFriendButton();
   }, []);
 
   const toggleFavorite = (postId) => {
-    setDiscussionPosts((prevPosts) =>
+    setVerbatims((prevPosts) =>
       prevPosts.map((post) =>
         post.id === postId ? { ...post, isFavorite: !post.isFavorite } : post
       )
     );
   };
+
+  const dismissKeyboard = () => {
+    Keyboard.dismiss(); // Dismiss the keyboard
+  };
   
   const toggleLike = (postId) => {
-    setDiscussionPosts((prevPosts) =>
-      prevPosts.map((post) =>
-        post.id === postId ? { ...post, isLiked: !post.isLiked} : post
-      )
-    );
-  };
+    const postRef = ref(db, "Verbatims/" + postId)
+    
+    setLikedPosts((prevLikedPosts) => {
+      let index = prevLikedPosts.indexOf(postId)
+      if (index !== -1) {
+        prevLikedPosts.splice(index, 1);
+      }
+      else {
+        prevLikedPosts.push(postId)
+      }
+      console.log(prevLikedPosts);
+      return prevLikedPosts;
+    });
 
-  const addComment = () => {
+    get(postRef).then((snapshot) => {
+      post = snapshot.val();
+      if (post) {
+        const likedUsers = post.likes || [];
+        const index = likedUsers.indexOf(userId);
+        if (index === -1) {
+          likedUsers.push(userId);
+        } else {
+          likedUsers.splice(index, 1);
+        }
+
+        const updates = {};
+        updates['Verbatims/' + postId + '/likes'] = likedUsers;
+        update(ref(db), updates);
+      }
+    }).catch((error) => {
+      console.error('Error fetching verbatim: ', error);
+    })
+
+    const userRef = ref(db, "Users/" + userId)
+
+    get(userRef).then((snapshot) => {
+      user = snapshot.val();
+      if (user) {
+        const likedPosts = user.likedverbatims || [];
+        const index = likedPosts.indexOf(postId);
+        if (index === -1) {
+          likedPosts.push(postId);
+        } else {
+          likedPosts.splice(index, 1);
+        }
+
+        const updates = {};
+        updates['Users/' + userId + '/likedverbatims'] = likedPosts;
+        update(ref(db), updates);
+      }
+    }).catch((error) => {
+      console.error('Error fetching user: ', error);
+    })
+  }
+
+  const addComment = (postId) => {
     if (commentText.trim()) {
-      setDiscussionPosts((prevPosts) =>
-        prevPosts.map((post) =>
-          post.id === selectedPost.id ? { ...post, comments: [...post.comments, commentText] } : post
-        )
-      );
+      // setVerbatims((prevPosts) =>
+      //   prevPosts.map((post) =>
+      //     post.id === selectedPost.id ? { ...post, comments: [...post.comments, commentText] } : post
+      //   )
+      // );
+      const commentsRef = ref(db, "Verbatims/" + postId + "/comments");
+      const newCommentsRef = push(commentsRef);
+      set(newCommentsRef, {
+        comment: commentText,
+        user: userId,
+        username: username
+      });
+      onValue(newCommentsRef, (snapshot) => {
+        setCurrComments((prevComments) => [...prevComments, snapshot.val()]);
+      })
       setCommentText('');
     }
   };
 
   const openModal = (postId) => {
-    const post = discussionPosts.find((post) => post.id === postId);
+    const post = verbatims.find((post) => post.id === postId);
     setSelectedPost(post);
+    setCurrComments(Object.values(post.comments === undefined ? [] : post.comments));
     setShowModal(true);
   };
 
@@ -217,16 +362,35 @@ const ProfileScreen = () => {
     setShowModal(false);
   };
 
+  const renderComment = ({ item }) => {
+    console.log(item);
+    if (!item) {
+      return null;
+    }
+    return (<View>
+      <Text style={styles.commentText}>{item.username}</Text>
+      <Text style={styles.commentText}>{item.comment}</Text>
+    </View>);
+  };
 
   const renderDiscussionPost = ({ item }) => {
-    const isLiked = item.isLiked ? styles.likeButtonLiked : null;
+    let isLiked = likedPosts.includes(item.id);
+    let groupName = null;
+    if (item.groupName === null) {
+      groupName = "No Group";
+    }
+    else {
+      groupName = item.groupName;
+    }
 
     return (
       <View style={styles.postContainer}>
         <View style={styles.userContainer}>
           <Image source={item.profilePic} style={styles.profilePic} />
-          <Text style={styles.username}>{item.user}</Text>
+          <Text style={styles.username}>{item.verbaiterName} Said:</Text>
         </View>
+        <Text>{item.timestamp}</Text>
+        <Text>Submitted by: {item.verbastardName} | {groupName}</Text>
         <View style={styles.postTextContainer}>
           <Text style={styles.postText}>{item.post}</Text>
         </View>
@@ -239,7 +403,7 @@ const ProfileScreen = () => {
           </Text>
         </TouchableOpacity>
         <View style={styles.actionsContainer}>
-        <TouchableOpacity style={[styles.likeButton, isLiked]} onPress={() => toggleLike(item.id)}>
+        <TouchableOpacity style={[styles.likeButton, isLiked && styles.likeButtonLiked]} onPress={() => toggleLike(item.id)}>
           <Text style={styles.likeButtonText}>Like</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.commentButton} onPress={() => openModal(item.id)}>
@@ -302,8 +466,8 @@ const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appsp
       <ScrollView contentContainerStyle={styles.scrollContainer}>
 
         <View style={styles.inputContainer}>
-          <TouchableOpacity onPress={getFriends} style={styles.closeButton}>
-            <Text style={styles.closeButtonText}>Add Friend</Text>
+          <TouchableOpacity onPress={addFriendButton} style={styles.closeButton}>
+            <Text style={styles.closeButtonText}>{friendButtonTitle}</Text>
           </TouchableOpacity>
         </View>
 
@@ -315,7 +479,7 @@ const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appsp
         <Text style={styles.text}>Verbatims You Said</Text>
         
         <FlatList
-          data={discussionPosts}
+          data={verbatims}
           renderItem={renderDiscussionPost}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContainer}
@@ -323,7 +487,7 @@ const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appsp
         />
         <Text style={styles.text}>Verbatims You Submitted</Text>
         <FlatList
-          data={discussionPosts}
+          data={verbatims}
           renderItem={renderDiscussionPost}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContainer}

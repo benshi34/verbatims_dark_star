@@ -96,15 +96,32 @@ export default function App() {
   return (
     <NavigationContainer>
       <Tab.Navigator>
-        <Tab.Screen name="Home" component={HomeScreen} initialParams={{ value: userID }}/>
-        <Tab.Screen name="Profile" component={ProfileScreen} initialParams={{ value: userID }}/>
+        <Tab.Screen
+          name="Home"
+          component={HomeScreen}
+          initialParams={{ value: userID }}
+        />
+        <Tab.Screen
+          name="Profile"
+          component={ProfileScreen}
+          initialParams={{ value: userID }}
+        />
         <Tab.Screen
           name="Settings"
           component={() => <SettingScreen onLogout={handleLogout} />}
           initialParams={{ value: userID }}
         />
-        <Tab.Screen name="Groups" component={GroupScreen} initialParams={{ value: userID }}/>
-        <Tab.Screen name="Add Verbatim" component={AddScreen} initialParams={{ value: userID }}/>
+        <Tab.Screen
+          name="Groups"
+          component={GroupScreen}
+          initialParams={{ value: userID }}
+        />
+        <Tab.Screen
+          name="Add Verbatim"
+          options={{ headerShown: false }}
+          component={AddScreen}
+          initialParams={{ value: userID }}
+        />
         <Tab.Screen name="Search Screen" component={SearchScreen} />
       </Tab.Navigator>
     </NavigationContainer>

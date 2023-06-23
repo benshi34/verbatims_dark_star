@@ -113,7 +113,8 @@ const AddScreen = ({ route }) => {
 
           // Set the selectedVerbaiter to the matching user's ID
           setSelectedVerbaiter(userId);
-
+          
+          const { value } = route.params;
           // Create verbatim, save the verbatim to the database
           set(ref(db, "Verbatims/" + newVerbatimKey), {
             group: selectedGroup ? selectedGroup.id : "",
@@ -121,7 +122,9 @@ const AddScreen = ({ route }) => {
             post: postText,
             timestamp: formattedDate,
             verbaiter: userId,
-            verbastard: route.params,
+            // verbaiterName: snapshot.val().{$userId}.username,
+            verbastard: value,
+            // verbastardName: snapshot.val().{$userId}.username,
           });
 
           setPostText("");

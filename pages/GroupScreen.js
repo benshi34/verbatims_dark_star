@@ -18,25 +18,6 @@ const GroupScreen = ({ navigation }) => {
   useEffect(() => {
     // Simulated data for discussion posts
 
-    /*const dummyData = [
-       {
-        id: 1,
-        name: 'Dark Star',
-        message: 'One new message', //use database here
-        profilePic: require('../assets/kharn.jpg'),
-        timestamp: '7:11 PM'
-      },
-      {
-        id: 2,
-        name: 'Ben sucks I hate him so much',
-        message: '10+ new messages',
-        profilePic: require('../assets/kharn.jpg'),
-        timestamp: '7:11 PM'
-      },
-    ];
-  
-      setGroups(dummyData);*/
-
       const fetchGroups = async () => {
         try {
           const dbref = ref(db, "Groups")
@@ -77,6 +58,7 @@ const GroupScreen = ({ navigation }) => {
         </TouchableOpacity>
       );
     };
+
     const GroupListScreen = () => {
       return (
         <View style={styles.container}>
@@ -92,23 +74,14 @@ const GroupScreen = ({ navigation }) => {
       )
     };
 
-    return (
-      /*<Stack.Navigator>
-          <Stack.Screen name="Groups" component={GroupListScreen} />
-          <Stack.Screen name="Chat" component={ChatScreen} />
-      </Stack.Navigator>*/
-
-      <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <FlatList
-        data={Groups}
-        renderItem={renderGroups}
-        keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={styles.listContainer}
-        />
-        </ScrollView>
-      </View>
-    );
+return (
+  <View style={styles.container}>
+    <Stack.Navigator>
+      <Stack.Screen name="Groups" component={GroupListScreen} />
+      <Stack.Screen name="Chat" component={ChatScreen} />
+    </Stack.Navigator>
+  </View>
+);
   };
 
 const styles = StyleSheet.create({
@@ -150,14 +123,16 @@ const styles = StyleSheet.create({
   },
   username: {
     fontWeight: 'bold',
+    fontSize: 20,
   },
   postText: {
-    fontSize: 16,
+    fontSize: 14,
+    color: 'grey'
   },
   groupContainer: {
     flex: 1,
     flexDirection: 'row', // Arrange children in a row
-    backgroundColor: '#f5f5f5',
+    //backgroundColor: '#f5f5f5',
     padding: 16,
     marginBottom: 16,
     borderRadius: 8,
@@ -166,12 +141,12 @@ const styles = StyleSheet.create({
   },
   leftHalf: {
     flex: 1, // Take half of the available space
-    backgroundColor: '#f5f5f5', // Customize the left half's background color
+    //backgroundColor: '#f5f5f5', // Customize the left half's background color
   },
   rightHalf: {
     flexDirection: 'column', // Arrange children in a row
     flex: 4, // Take half of the available space
-    backgroundColor: '#F5F5F5', // Customize the right half's background color
+    //backgroundColor: '#F5F5F5', // Customize the right half's background color
   },
   scrollContainer: {
     paddingBottom: 16,
@@ -192,7 +167,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     fontSize: 14,
-    color: '#333',
+    color: 'blue',
+  },
+  circle: {
+    position: 'absolute',
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: 'blue', // Set the desired background color for the circle
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    bottom: 8,
+    right: 8,
   },
 });
 

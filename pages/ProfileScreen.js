@@ -13,9 +13,13 @@ const metadata = {
 };
 
 const ProfileScreen = ({ route }) => {
+<<<<<<< HEAD
   const [verbatims, setVerbatims] = useState([]);
   const [likedPosts, setLikedPosts] = useState([]);
   const [username, setUsername] = useState('');
+=======
+  const [discussionPosts, setDiscussionPosts] = useState([]);
+>>>>>>> cbb3a569c25eb2f6ba8db3629e24a94601fdf811
   const [lessDiscussionPosts, setLessDiscussionPosts] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
   const [showImage, setShowImage] = useState(false);
@@ -32,6 +36,20 @@ const ProfileScreen = ({ route }) => {
   const [friendButtonTitle, setFriendButtonTitle] = useState('');
   //const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appspot.com/o/1.jpg?alt=media&token=11ea9825-a4e2-4a7b-97c1-c4ad1b1eaae2';  
 
+<<<<<<< HEAD
+  
+  const { value } = route.params;
+
+  const db = getDatabase(app);
+  const userId = value;
+
+  const storageRef = refStorage(storage, userId+'.jpg');
+
+=======
+  const { value } = route.params;
+  const userId = value;
+  const storageRef = refStorage(storage, '1.jpg');
+>>>>>>> cbb3a569c25eb2f6ba8db3629e24a94601fdf811
   const toggleImageVisibility = () => {
     setShowImage(!showImage);
     setButtonText(showImage ? 'Show More' : 'Show Less');
@@ -207,6 +225,45 @@ const ProfileScreen = ({ route }) => {
       });
     }
 
+
+    const titleFriendButton = async () => {
+      //console.log("1");
+      const dbref = ref(db, 'Users/' + userId + "/friends");
+      const friendToAdd = userId;
+      onValue(dbref, (snapshot) => {
+        if (snapshot.exists()) {
+          data=snapshot.val();
+          //console.log("2");
+          let verbatimsArray = Object.keys(data).map((key) => {
+            return { id: key, value:data[key] };
+          });
+  
+          let isFriend = false;
+          let idFound = -1;
+          verbatimsArray.forEach((friend) => {
+            if (friend.value === friendToAdd) {
+              isFriend=true;
+              idFound=friend.id;
+            }
+          });
+  
+          //const isFriend = verbatimsArray.some((friend) => friend.id === userId);
+          
+  
+          if (isFriend) {
+            setFriendButtonTitle("Remove Friend");
+          } else {
+            setFriendButtonTitle("Add Friend");
+          }
+        
+        } else {
+          setFriendButtonTitle("Add Friend");
+        }
+      }).catch((error) => {
+        //console.log("6");
+        console.error(error);
+      });
+    }
 
     downloadUrl();
     //getFriends(friendName);

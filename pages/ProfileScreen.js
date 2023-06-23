@@ -32,14 +32,6 @@ const ProfileScreen = ({ route }) => {
   const [friendButtonTitle, setFriendButtonTitle] = useState('');
   //const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appspot.com/o/1.jpg?alt=media&token=11ea9825-a4e2-4a7b-97c1-c4ad1b1eaae2';  
 
-  
-  const { value } = route.params;
-
-  const db = getDatabase(app);
-  const userId = value;
-
-  const storageRef = refStorage(storage, userId+'.jpg');
-
   const toggleImageVisibility = () => {
     setShowImage(!showImage);
     setButtonText(showImage ? 'Show More' : 'Show Less');
@@ -51,8 +43,8 @@ const ProfileScreen = ({ route }) => {
   };
 
   
-  const downloadUrl = async () => {
-    getDownloadURL(storageRef )
+  const downloadUrl = async (storageRef) => {
+    getDownloadURL(storageRef)
     .then((url) => {
       setHtref(url)
     })
@@ -88,7 +80,7 @@ const ProfileScreen = ({ route }) => {
         const uploadTask = uploadBytes(storageRef, file, metadata);
         uploadTask
         .then((snapshot) => {
-          downloadUrl();
+          downloadUrl(storageRef);
           //setSelectedImage(result.uri); 
         })
         .catch((error) => {
@@ -215,45 +207,6 @@ const ProfileScreen = ({ route }) => {
       });
     }
 
-
-    const titleFriendButton = async () => {
-      //console.log("1");
-      const dbref = ref(db, 'Users/' + userId + "/friends");
-      const friendToAdd = userId;
-      onValue(dbref, (snapshot) => {
-        if (snapshot.exists()) {
-          data=snapshot.val();
-          //console.log("2");
-          let verbatimsArray = Object.keys(data).map((key) => {
-            return { id: key, value:data[key] };
-          });
-  
-          let isFriend = false;
-          let idFound = -1;
-          verbatimsArray.forEach((friend) => {
-            if (friend.value === friendToAdd) {
-              isFriend=true;
-              idFound=friend.id;
-            }
-          });
-  
-          //const isFriend = verbatimsArray.some((friend) => friend.id === userId);
-          
-  
-          if (isFriend) {
-            setFriendButtonTitle("Remove Friend");
-          } else {
-            setFriendButtonTitle("Add Friend");
-          }
-        
-        } else {
-          setFriendButtonTitle("Add Friend");
-        }
-      }).catch((error) => {
-        //console.log("6");
-        console.error(error);
-      });
-    }
 
     downloadUrl();
     //getFriends(friendName);

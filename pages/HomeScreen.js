@@ -3,6 +3,7 @@ import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, ScrollView, 
 import { getDatabase, ref, get, set, onValue, update, push } from "firebase/database";
 import { app } from "../Firebase.js";
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
+import { getStorage, ref as refStorage, getDownloadURL } from "firebase/storage";
 
 const HomeScreen = ({ route }) => {
     const [verbatims, setVerbatims] = useState([]);
@@ -17,6 +18,8 @@ const HomeScreen = ({ route }) => {
 
     const db = getDatabase(app);
     const userId = value;
+    const storage = getStorage();
+
     useEffect(() => {
       // Simulated data for discussion posts
       const fetchVerbatims = async () => {
@@ -28,7 +31,18 @@ const HomeScreen = ({ route }) => {
               let verbatimsArray = Object.keys(data).map((key) => {
                 return { id: key, ...data[key] };
               });
-              setVerbatims(verbatimsArray);
+              const promises = verbatimsArray.map(async item => {
+                const defaultStorageRef = refStorage(storage, '1.jpg');
+                const defaultUrl = await getDownloadURL(defaultStorageRef);
+                const storageRef = refStorage(storage, String(item.verbaiter) + '.jpg');
+                const url = await getDownloadURL(storageRef).catch((error) => {
+                  console.log(error);
+                });
+                return { ...item, profilePic: url === undefined ? defaultUrl : url};
+              })
+              Promise.all(promises).then(verbatimsArray => {
+                setVerbatims(verbatimsArray);
+              })
             }
           })
           const userRef = ref(db, "Users/" + userId);
@@ -71,7 +85,6 @@ const HomeScreen = ({ route }) => {
         else {
           prevLikedPosts.push(postId)
         }
-        console.log(prevLikedPosts);
         return prevLikedPosts;
       });
 
@@ -150,7 +163,6 @@ const HomeScreen = ({ route }) => {
     };
 
     const renderComment = ({ item }) => {
-      console.log(item);
       if (!item) {
         return null;
       }
@@ -169,11 +181,10 @@ const HomeScreen = ({ route }) => {
       else {
         groupName = item.groupName;
       }
-
       return (
         <View style={styles.postContainer}>
           <View style={styles.userContainer}>
-            <Image source={item.profilePic} style={styles.profilePic} />
+            <Image source={{uri: item.profilePic}} style={styles.profilePic} />
             <Text style={styles.username}>{item.verbaiterName} Said:</Text>
           </View>
           <Text>{item.timestamp}</Text>
@@ -204,7 +215,6 @@ const HomeScreen = ({ route }) => {
     return (
         <View style={styles.container}>
           <TouchableWithoutFeedback onPress={dismissKeyboard}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
             <Text style={styles.header}>Verbatims</Text>
               <ScrollView contentContainerStyle={styles.scrollContainer}>
                 <FlatList
@@ -229,7 +239,7 @@ const HomeScreen = ({ route }) => {
                       keyExtractor={(item, index) => index}
                       contentContainerStyle={styles.commentsContainer}
                   />
-                  <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+                  <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? -120 : null}>
                   <TextInput
                     style={styles.commentInput}
                     placeholder="Add a comment..."
@@ -242,7 +252,6 @@ const HomeScreen = ({ route }) => {
                 </View>
               </Modal>
               )}
-      </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
       </View>
     );

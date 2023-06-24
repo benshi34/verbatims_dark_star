@@ -30,6 +30,7 @@ const ProfileScreen = ({ route }) => {
   const [profileId, setProfileId] = useState(0);
   const [friendName, setFriendName] = useState('');
   const [friendButtonTitle, setFriendButtonTitle] = useState('');
+  const [profilePicUrl,setProfilePicUrl] = useState('');
   //const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appspot.com/o/1.jpg?alt=media&token=11ea9825-a4e2-4a7b-97c1-c4ad1b1eaae2';  
 
   
@@ -39,6 +40,8 @@ const ProfileScreen = ({ route }) => {
   const userId = value;
 
   const storageRef = refStorage(storage, userId+'.jpg');
+
+  const defaultRef = refStorage(storage, '1.jpg');
 
   const toggleImageVisibility = () => {
     setShowImage(!showImage);
@@ -52,32 +55,13 @@ const ProfileScreen = ({ route }) => {
 
   
   const downloadUrl = async () => {
-    getDownloadURL(storageRef )
-    .then((url) => {
-      setHtref(url)
-    })
-    .catch((error) => {
-      // A full list of error codes is available at
-      // https://firebase.google.com/docs/storage/web/handle-errors
-      switch (error.code) {
-        case 'storage/object-not-found':
-          // File doesn't exist
-          break;
-        case 'storage/unauthorized':
-          // User doesn't have permission to access the object
-          break;
-        case 'storage/canceled':
-          // User canceled the upload
-          break;
-  
-        // ...
-  
-        case 'storage/unknown':
-          // Unknown error occurred, inspect the server response
-          break;
-      }
+    const defaultStorageRef = refStorage(storage, '1.jpg');
+    const defaultUrl = await getDownloadURL(defaultStorageRef);
+    const storageRef = refStorage(storage, String(userId) + '.jpg');
+    const url = await getDownloadURL(storageRef).catch((error) => {
+      console.log(error);
     });
-  
+    setProfilePicUrl(url !== undefined ? url : defaultUrl);
   }  
 
   const handleButtonPress = async () => {
@@ -473,7 +457,7 @@ const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appsp
 
 
         <TouchableOpacity onPress={handleButtonPress} style={styles.imageButton}>
-          <Image source={{ uri: htref }} style={styles.image} />
+          <Image source={{ uri: profilePicUrl }} style={styles.image} />
         </TouchableOpacity>
 
         <Text style={styles.text}>Verbatims You Said</Text>

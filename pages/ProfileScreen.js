@@ -14,6 +14,7 @@ const metadata = {
 
 const ProfileScreen = ({ route }) => {
   const [verbatims, setVerbatims] = useState([]);
+  const [verbastards, setVerbastards] = useState([]);
   const [likedPosts, setLikedPosts] = useState([]);
   const [username, setUsername] = useState('');
   const [lessDiscussionPosts, setLessDiscussionPosts] = useState([]);
@@ -159,8 +160,10 @@ const ProfileScreen = ({ route }) => {
             let verbatimsArray = Object.keys(data).map((key) => {
               return { id: key, ...data[key] };
             });
-            const mapB = verbatimsArray.filter((item) => item.id === userId);
-            setVerbatims(mapB);
+            const mapC = verbatimsArray.filter((item) => item.verbaiter === userId);
+            setVerbatims(mapC);
+            const mapB = verbatimsArray.filter((item) => item.verbastard === userId);
+            setVerbastards(mapB);
           }
         })
         const userRef = ref(db, "Users/" + userId);
@@ -471,7 +474,7 @@ const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appsp
         />
         <Text style={styles.text}>Verbatims You Submitted</Text>
         <FlatList
-          data={verbatims}
+          data={verbastards}
           renderItem={renderDiscussionPost}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContainer}

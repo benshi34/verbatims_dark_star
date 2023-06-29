@@ -124,8 +124,8 @@ const GroupScreen = ({ navigation }) => {
 return (
   <View style={styles.container}>
     <Stack.Navigator>
-      <Stack.Screen name="Groups" component={GroupListScreen} />
-      <Stack.Screen name="Chat" component={ChatScreen} />
+      <Stack.Screen options={{headerShown: false}} name="Groups" component={GroupListScreen} />
+      <Stack.Screen options={{headerShown: true}} name="Chat" component={ChatScreen} />
     </Stack.Navigator>
   </View>
 );

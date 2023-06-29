@@ -73,7 +73,7 @@ const GroupScreen = ({ navigation }) => {
       }
       }
       if (mes_exist == true){
-        return Message[mostRecentId].post;
+        return Message[mostRecentId].verbaiterName + ": " + Message[mostRecentId].post;
       }
       else{
         return "No new messages"

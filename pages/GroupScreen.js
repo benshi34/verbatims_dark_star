@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import { getDatabase, ref, get, onValue } from "firebase/database";
 import { app } from "../Firebase.js";
 import { NavigationContainer } from '@react-navigation/native';
@@ -12,6 +12,7 @@ const Stack = createNativeStackNavigator();
 const GroupScreen = ({ navigation }) => {
 
   const [Groups, setGroups] = useState([]);
+  const [Message, setMessage] = useState([]);
 
   const db = getDatabase(app);
 
@@ -36,7 +37,48 @@ const GroupScreen = ({ navigation }) => {
       }
       fetchGroups();
 
+      const getVerbatims = async () => {
+        try {
+          const dbref = ref(db, 'Verbatims');
+          get(dbref).then((snapshot) => {
+            data = snapshot.val()
+            if (data) {
+              const verbatimsArray = Object.keys(data).map((key) => {
+                return { id: key, ...data[key] };
+              });
+              setMessage(verbatimsArray)
+            }
+          })
+        } catch (error) {
+          console.error('Error fetching groups: ', error);
+        }
+      }
+      getVerbatims(); 
+
     }, []);
+
+    const MostRecentMessage = (groupid) => {
+      str1 = "";
+      mostRecent = "";
+      mostRecentId = 0;
+      mes_exist = false;
+      for (let i = 0; i < Message.length; i++) {
+        if (Message[i].group == groupid){
+          mes_exist = true;
+          str1 = Message[i].timestamp;
+          if (str1 > mostRecent){
+            mostRecent = str1;
+            mostRecentId = i;
+        }
+      }
+      }
+      if (mes_exist == true){
+        return Message[mostRecentId].post;
+      }
+      else{
+        return "No new messages"
+      }
+    }
   
     const renderGroups = ({ item }) => {
       const handleGroupPress = () => {
@@ -51,7 +93,7 @@ const GroupScreen = ({ navigation }) => {
           </View>
           <View style={styles.rightHalf}>
             <Text style={styles.username}>{item.name}</Text>
-            <Text style={styles.postText}>{item.message}</Text>
+            <Text style={styles.postText}>{MostRecentMessage(item.id)}</Text>
           </View>
         <Text style={styles.timeStampText}>{item.timestamp}</Text>
         <View style={styles.circle}></View>
@@ -63,6 +105,11 @@ const GroupScreen = ({ navigation }) => {
       return (
         <View style={styles.container}>
           <ScrollView contentContainerStyle={styles.scrollContainer}>
+          <TextInput
+        style={styles.input}
+        placeholder="Search..."
+        placeholderTextColor="#888"
+        />
             <FlatList
               data={Groups}
               renderItem={renderGroups}
@@ -179,6 +226,17 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     bottom: 8,
     right: 8,
+  },
+  input: {
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    marginBottom: 16,
+    fontSize: 16,
+    color: '#333',
+    backgroundColor: '#fff',
   },
 });
 

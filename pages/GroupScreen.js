@@ -23,17 +23,28 @@ const GroupScreen = ({ navigation }) => {
 
   useEffect(() => {
     // Simulated data for discussion posts
-
       const fetchGroups = async () => {
         try {
           const dbref = ref(db, "Groups")
           onValue(dbref, (snapshot) => {
             data = snapshot.val()
             if (data) {
-              const discussionPostsArray = Object.keys(data).map((key) => {
+              const groupArray = Object.keys(data).map((key) => {
                 return { id: key, ...data[key] };
               });
-              setGroups(discussionPostsArray);
+              const promises = groupArray.map(async item => {
+                const defaultStorageRef = refStorage(storage, '1.jpg');
+                const defaultUrl = await getDownloadURL(defaultStorageRef);
+                const storageRef = refStorage(storage, String(item.id) + '.jpg');
+                const url = await getDownloadURL(storageRef).catch((error) => {
+                  console.log(error);
+                });
+                return { ...item, profilePic: url === undefined ? defaultUrl : url};
+              })
+              Promise.all(promises).then(groupArray => {
+                setGroups(groupArray);
+              })
+              console.log(groupArray);
             }
           })
         } catch (error) {
@@ -59,34 +70,6 @@ const GroupScreen = ({ navigation }) => {
         }
       }
       getVerbatims(); 
-
-      const fetchUserInfo = async () => {
-        try {
-          const dbref = ref(db, "Users/")
-          onValue(dbref, (snapshot) => {
-            data = snapshot.val()
-            if (data) {
-              const userInfo = Object.keys(data).map(async (key) => {
-                  const userInfo = data[key];
-                  const defaultStorageRef = refStorage(storage, '1.jpg');
-                  const defaultUrl = await getDownloadURL(defaultStorageRef);
-                  const storageRef = refStorage(storage, String(key) + '.jpg');
-                  const url = await getDownloadURL(storageRef).catch((error) => {
-                    console.log(error);
-                  });
-                  return { username: userInfo.username, userId: key, profilePic: url !== undefined ? url : defaultUrl};
-              });
-              Promise.all(userInfo).then(userInfoArr => {
-                setDataArray(userInfoArr);
-              })
-            }
-          })
-        } catch (error) {
-          console.error('Error fetching discussion posts: ', error);
-        }
-      }
-      fetchUserInfo();
-
     }, []);
 
     const MostRecentMessage = (groupid) => {
@@ -123,11 +106,6 @@ const GroupScreen = ({ navigation }) => {
     };
 
     const handleSearch = (text) => {
-      const filteredResults = text ? dataArray.filter((item) => 
-        item.username.toLowerCase().includes(text.toLowerCase())
-      ) : [];
-      setSearchText(text);
-      setSearchResults(filteredResults);
     };
   
     const renderGroups = ({ item }) => {
@@ -139,7 +117,7 @@ const GroupScreen = ({ navigation }) => {
       return (
         <TouchableOpacity style={styles.groupContainer} onPress={handleGroupPress}>
           <View style={styles.leftHalf}>
-            <Image source={item.profilePic} style={styles.groupPic} />
+            <Image source={{uri: item.profilePic}} style={styles.groupPic} />
           </View>
           <View style={styles.rightHalf}>
             <Text style={styles.username}>{item.name}</Text>

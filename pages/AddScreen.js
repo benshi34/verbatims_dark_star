@@ -8,7 +8,8 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   Image,
-  Button,
+  Modal,
+  Pressable,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import ButtonContainer from "./ButtonContainer.js";
@@ -30,14 +31,14 @@ const db = getDatabase(app);
 
 const AddScreen = ({ route }) => {
   const [postText, setPostText] = useState("");
-  const [verbaiter, setVerbaiter] = useState("");
   const [users, setUsers] = useState([]);
-  const [showGroupPicker, setShowGroupPicker] = useState(false); // Track whether the group picker is visible or not
   const [selectedGroup, setSelectedGroup] = useState(""); // Store the selected group
   const [sampledGroups, setSampledGroups] = useState([]);
   const [groups, setGroups] = useState([]); // Store the groups
-  const [showVerbaiterPicker, setShowVerbaiterPicker] = useState(false); // Track whether the verbaiter picker is visible or not
   const [selectedVerbaiter, setSelectedVerbaiter] = useState(""); // Store the selected verbaiter
+  const [verbaiterModalVisible, setVerbaiterModalVisible] = useState(false);
+  const [groupsModalVisible, setGroupsModalVisible] = useState(false);
+
 
   const fetchGroups = () => {
     const groupsRef = ref(db, "Groups");
@@ -145,6 +146,8 @@ const AddScreen = ({ route }) => {
 
   const dismissKeyboard = () => {
     Keyboard.dismiss(); // Dismiss the keyboard
+    () => setGroupsModalVisible(!groupsModalVisible);
+    () => setGroupsModalVisible(!verbaiterModalVisibleModalVisible);
   };
 
   const handleGroupSelection = (itemValue) => {
@@ -186,6 +189,47 @@ const AddScreen = ({ route }) => {
   return (
     <TouchableWithoutFeedback onPress={dismissKeyboard}>
       <View style={styles.generalContainer}>
+
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={verbaiterModalVisible}
+          onRequestClose={() => {
+            Alert.alert('Modal has been closed.');
+            setVerbaiterModalVisible(!verbaiterModalVisible);
+          }}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalText}>Hello World!</Text>
+              <Pressable
+                style={[styles.button, styles.buttonClose]}
+                onPress={() => setVerbaiterModalVisible(!verbaiterModalVisible)}>
+                <Text style={styles.textStyle}>Hide Modal</Text>
+              </Pressable>
+            </View>
+          </View>
+        </Modal>
+
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={groupsModalVisible}
+          onRequestClose={() => {
+            Alert.alert('Modal has been closed.');
+            setGroupsModalVisible(!groupsModalVisible);
+          }}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalText}>Hello World!</Text>
+              <Pressable
+                style={[styles.button, styles.buttonClose]}
+                onPress={() => setGroupsModalVisible(!groupsModalVisible)}>
+                <Text style={styles.textStyle}>Hide Modal</Text>
+              </Pressable>
+            </View>
+          </View>
+        </Modal>
+
         <View style={styles.rectangle}>
           <Text style={styles.verbatimText}>Add Verbatim</Text>
         </View>
@@ -207,7 +251,9 @@ const AddScreen = ({ route }) => {
               ))}
             </View>
 
-            <TouchableOpacity style={styles.otherButton}>
+            <TouchableOpacity 
+              style={styles.otherButton}
+              onPress={() => setVerbaiterModalVisible(true)}>
               <Text style={styles.otherButtonText}>Choose Other Contact</Text>
             </TouchableOpacity>
           </View>
@@ -239,7 +285,9 @@ const AddScreen = ({ route }) => {
               ))}
             </View>
 
-            <TouchableOpacity style={styles.otherButton}>
+            <TouchableOpacity 
+              style={styles.otherButton}
+              onPress={() => setGroupsModalVisible(true)}>
               <Text style={styles.otherButtonText}>Choose Other Group</Text>
             </TouchableOpacity>
           </View>
@@ -251,92 +299,6 @@ const AddScreen = ({ route }) => {
             />
             <Text style={styles.submitButtonText}>Add Verbatim</Text>
           </TouchableOpacity>
-
-          {/* <TouchableOpacity
-            style={styles.chooseGroupsButton}
-            onPress={() => setShowGroupPicker(true)}
-          >
-            <Text style={styles.chooseGroupsButtonText}>
-              {selectedGroup ? selectedGroup.name : "Choose group..."}
-            </Text>
-          </TouchableOpacity>
-
-          {showGroupPicker && (
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={selectedGroup}
-                style={styles.picker}
-                onValueChange={handleGroupSelection}
-              >
-                <Picker.Item label="Choose group..." value="" />
-                {groups.map((group) => (
-                  <Picker.Item
-                    key={group.id}
-                    label={group.name}
-                    value={group.id}
-                  />
-                ))}
-              </Picker>
-              <TouchableOpacity
-                style={styles.pickerCloseButton}
-                onPress={() => setShowGroupPicker(false)}
-              >
-                <Text style={styles.pickerCloseButtonText}>Close</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {selectedGroup && ( // Check if a group is selected before showing the "Choose verbaiter..." picker
-            <TouchableOpacity
-              style={styles.chooseVerbaiterButton}
-              onPress={() => setShowVerbaiterPicker(true)}
-            >
-              <Text style={styles.chooseVerbaiterButtonText}>
-                {selectedVerbaiter
-                  ? selectedVerbaiter.username
-                  : "Choose verbaiter..."}
-              </Text>
-            </TouchableOpacity>
-          )}
-
-          {showVerbaiterPicker &&
-            selectedGroup && ( // Check if a group is selected before showing the "Choose verbaiter..." picker
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={selectedVerbaiter}
-                  onValueChange={handleVerbaiterSelection}
-                >
-                  <Picker.Item label="Choose verbaiter..." value="" />
-                  {users.map((user) => (
-                    <Picker.Item
-                      key={user.id}
-                      label={user.username}
-                      value={user.id}
-                    />
-                  ))}
-                </Picker>
-                <TouchableOpacity
-                  style={styles.pickerCloseButton}
-                  onPress={() => setShowVerbaiterPicker(false)}
-                >
-                  <Text style={styles.pickerCloseButtonText}>Close</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-
-          <View style={styles.verbatimInputContainer}>
-            <TextInput
-              multiline={true}
-              style={styles.verbatimInputTextbox}
-              placeholder='"Yechan is so smart and cool and handsome! What would we ever do without Test Dummy Yechan?" '
-              onChangeText={(val) => setPostText(val)}
-              value={postText}
-            />
-
-            <TouchableOpacity style={styles.addButton} onPress={submitVerbatim}>
-              <Text style={styles.addButtonText}>Add Verbatim</Text>
-            </TouchableOpacity> */}
-          {/* </View> */}
         </ScrollView>
       </View>
     </TouchableWithoutFeedback>
@@ -596,11 +558,52 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    width: '100%',
+    height: '70%',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
   addButtonText: {
     color: "white",
     fontSize: 16,
     fontWeight: "bold",
     textAlign: "center",
+  },
+  button: {
+    borderRadius: 20,
+    padding: 10,
+    elevation: 2,
+  },
+  buttonOpen: {
+    backgroundColor: '#F194FF',
+  },
+  buttonClose: {
+    backgroundColor: '#2196F3',
+  },
+  textStyle: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: 'center',
   },
 });
 

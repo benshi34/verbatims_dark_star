@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, ScrollView, TextInput, Modal, Button} from 'react-native';
+import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, ScrollView, TextInput, Modal, Button, KeyboardAvoidingView} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, get, child, onValue, update, remove, push } from "firebase/database";
@@ -14,23 +14,20 @@ const metadata = {
 
 const ProfileScreen = ({ route }) => {
   const [verbatims, setVerbatims] = useState([]);
+  const [verbastards, setVerbastards] = useState([]);
   const [likedPosts, setLikedPosts] = useState([]);
   const [username, setUsername] = useState('');
-  const [lessDiscussionPosts, setLessDiscussionPosts] = useState([]);
-  const [selectedImage, setSelectedImage] = useState(null);
   const [showImage, setShowImage] = useState(false);
   const [submittedShowImage, setSubmittedShowImage] = useState(false);
-  const [buttonText, setButtonText] = useState('Show More');
-  const [submittedButtonText, setSubmittedButtonText] = useState('Show More');
   const [selectedPost, setSelectedPost] = useState(null);
   const [commentText, setCommentText] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [metadata, setMetadata] = useState(null);
-  const [htref, setHtref] = useState('abcd');
   const [profileId, setProfileId] = useState(0);
-  const [friendName, setFriendName] = useState('');
   const [friendButtonTitle, setFriendButtonTitle] = useState('');
   const [profilePicUrl,setProfilePicUrl] = useState('');
+  const [currComments, setCurrComments] = useState([]);
+  const [profileUsername, setProfileUsername] = useState('');
   //const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appspot.com/o/1.jpg?alt=media&token=11ea9825-a4e2-4a7b-97c1-c4ad1b1eaae2';  
 
   
@@ -159,8 +156,21 @@ const ProfileScreen = ({ route }) => {
             let verbatimsArray = Object.keys(data).map((key) => {
               return { id: key, ...data[key] };
             });
-            const mapB = verbatimsArray.filter((item) => item.id === userId);
-            setVerbatims(mapB);
+            const promises = verbatimsArray.map(async item => {
+              const defaultStorageRef = refStorage(storage, '1.jpg');
+              const defaultUrl = await getDownloadURL(defaultStorageRef);
+              const storageRef = refStorage(storage, String(item.verbaiter) + '.jpg');
+              const url = await getDownloadURL(storageRef).catch((error) => {
+                console.log(error);
+              });
+              return { ...item, profilePic: url === undefined ? defaultUrl : url};
+            })
+            Promise.all(promises).then(verbatimsArray => {
+              const mapC = verbatimsArray.filter((item) => item.verbaiter === userId);
+              setVerbatims(mapC);
+              const mapB = verbatimsArray.filter((item) => item.verbastard === userId);
+              setVerbastards(mapB);
+            })
           }
         })
         const userRef = ref(db, "Users/" + userId);
@@ -177,6 +187,8 @@ const ProfileScreen = ({ route }) => {
         console.error('Error fetching verbatims: ', error);
       }
     }
+
+
 
     const profileIdSetter = async () => {
       const dbref = ref(db, 'Users/' + profileId + "/friends");
@@ -239,6 +251,24 @@ const ProfileScreen = ({ route }) => {
       });
     }
 
+    
+
+
+    const findUsername = async () => {
+      //console.log("1");
+      const dbref = ref(db, 'Users/' + userId);
+      const friendToAdd = userId;
+      onValue(dbref, (snapshot) => {
+        if (snapshot.exists()) {
+          setProfileUsername(snapshot.val().username);
+        }
+      }).catch((error) => {
+        //console.log("6");
+        console.error(error);
+      });
+    }
+
+    findUsername();
     downloadUrl();
     //getFriends(friendName);
     fetchVerbatims();
@@ -247,6 +277,11 @@ const ProfileScreen = ({ route }) => {
 
   const toggleFavorite = (postId) => {
     setVerbatims((prevPosts) =>
+      prevPosts.map((post) =>
+        post.id === postId ? { ...post, isFavorite: !post.isFavorite } : post
+      )
+    );
+    setVerbastards((prevPosts) =>
       prevPosts.map((post) =>
         post.id === postId ? { ...post, isFavorite: !post.isFavorite } : post
       )
@@ -268,7 +303,6 @@ const ProfileScreen = ({ route }) => {
       else {
         prevLikedPosts.push(postId)
       }
-      console.log(prevLikedPosts);
       return prevLikedPosts;
     });
 
@@ -335,7 +369,8 @@ const ProfileScreen = ({ route }) => {
   };
 
   const openModal = (postId) => {
-    const post = verbatims.find((post) => post.id === postId);
+    let post = verbatims.find((post) => post.id === postId);
+    post = (post===undefined?verbastards.find((post) => post.id === postId):post);
     setSelectedPost(post);
     setCurrComments(Object.values(post.comments === undefined ? [] : post.comments));
     setShowModal(true);
@@ -347,7 +382,6 @@ const ProfileScreen = ({ route }) => {
   };
 
   const renderComment = ({ item }) => {
-    console.log(item);
     if (!item) {
       return null;
     }
@@ -366,11 +400,10 @@ const ProfileScreen = ({ route }) => {
     else {
       groupName = item.groupName;
     }
-
     return (
       <View style={styles.postContainer}>
         <View style={styles.userContainer}>
-          <Image source={item.profilePic} style={styles.profilePic} />
+          <Image source={{uri: item.profilePic}} style={styles.profilePic} />
           <Text style={styles.username}>{item.verbaiterName} Said:</Text>
         </View>
         <Text>{item.timestamp}</Text>
@@ -397,7 +430,6 @@ const ProfileScreen = ({ route }) => {
       </View>
     );
   };
-
 
 /*
 
@@ -449,16 +481,19 @@ const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appsp
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
 
-        <View style={styles.inputContainer}>
-          <TouchableOpacity onPress={addFriendButton} style={styles.closeButton}>
-            <Text style={styles.closeButtonText}>{friendButtonTitle}</Text>
-          </TouchableOpacity>
-        </View>
+        <Text style={styles.text}>{profileUsername}</Text>
+
 
 
         <TouchableOpacity onPress={handleButtonPress} style={styles.imageButton}>
           <Image source={{ uri: profilePicUrl }} style={styles.image} />
         </TouchableOpacity>
+        
+        <View style={styles.inputContainer}>
+          <TouchableOpacity onPress={addFriendButton} style={styles.closeButton}>
+            <Text style={styles.closeButtonText}>{friendButtonTitle}</Text>
+          </TouchableOpacity>
+        </View>
 
         <Text style={styles.text}>Verbatims You Said</Text>
         
@@ -471,39 +506,41 @@ const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appsp
         />
         <Text style={styles.text}>Verbatims You Submitted</Text>
         <FlatList
-          data={verbatims}
+          data={verbastards}
           renderItem={renderDiscussionPost}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContainer}
           style={styles.scrollViewList}
         />
+        
         {selectedPost && (
-            <Modal visible={showModal} animationType="slide" transparent>
-              <View style={styles.modalContainer}>
-              <View style={styles.modalContent}>
-              <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
-                <Text style={styles.closeButtonText}>Close</Text>
-              </TouchableOpacity>
-
-              <Text style={styles.modalPost}>{selectedPost.post}</Text>
-
-              <View style={styles.commentsContainer}>
-                <Text style={styles.commentsHeading}>Comments:</Text>
-                {selectedPost.comments.map((comment, index) => (
-                  <Text key={index} style={styles.commentText}>{comment}</Text>
-                ))}
-              </View>
-              <TextInput
-                style={styles.commentInput}
-                placeholder="Add a comment..."
-                onChangeText={(text) => setCommentText(text)}
-                value={commentText}
-                onSubmitEditing={addComment}
-              />
-            </View>
-            </View>
-          </Modal>
-          )}
+                <Modal visible={showModal} animationType="slide" transparent>
+                  <View style={styles.modalContainer}>
+                  <View style={styles.modalContent}>
+                  <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
+                    <Text style={styles.closeButtonText}>Close</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.modalPost}>{selectedPost.post}</Text>
+                  <Text>Comments:</Text>
+                  <FlatList
+                      data={currComments}
+                      renderItem={renderComment}
+                      keyExtractor={(item, index) => index}
+                      contentContainerStyle={styles.commentsContainer}
+                  />
+                  <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? -120 : null}>
+                  <TextInput
+                    style={styles.commentInput}
+                    placeholder="Add a comment..."
+                    onChangeText={(text) => setCommentText(text)}
+                    value={commentText}
+                    onSubmitEditing={() => addComment(selectedPost.id)}
+                  />
+                  </KeyboardAvoidingView>
+                </View>
+                </View>
+              </Modal>
+              )}
       </ScrollView>
     </View>
   );
@@ -512,17 +549,20 @@ const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appsp
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'flex-start', // Align items to the top
+    justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fff',
   },
   scrollContainer: {
     flexGrow: 1,
-    paddingBottom: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   imageButton: {
-    marginTop: 50, // Add top margin for spacing
-    marginLeft: 50, // Add top margin for spacing
+    marginTop: 0,
+    marginLeft: 0,
+    justifyContent: 'center', // Center the image horizontally
+    alignItems: 'center', // Center the image vertically
   },
   image: {
     width: 200,
@@ -535,7 +575,7 @@ const styles = StyleSheet.create({
     height: 100,
   },
   scrollViewList: {
-    height: 50
+    height: 150
   },
   text: {
     marginTop: 20,

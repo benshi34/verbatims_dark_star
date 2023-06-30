@@ -1,17 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import { getDatabase, ref, get, onValue } from "firebase/database";
+import { getStorage, ref as refStorage, getDownloadURL } from "firebase/storage";
 import { app } from "../Firebase.js";
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import ChatScreen from './ChatScreen.js';
 
 const Stack = createNativeStackNavigator();
+const storage = getStorage();
 
 
 const GroupScreen = ({ navigation }) => {
 
   const [Groups, setGroups] = useState([]);
+  const [Message, setMessage] = useState([]);
+  const [searchText, setSearchText] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [dataArray, setDataArray] = useState([]);
 
   const db = getDatabase(app);
 
@@ -36,7 +42,93 @@ const GroupScreen = ({ navigation }) => {
       }
       fetchGroups();
 
+      const getVerbatims = async () => {
+        try {
+          const dbref = ref(db, 'Verbatims');
+          get(dbref).then((snapshot) => {
+            data = snapshot.val()
+            if (data) {
+              const verbatimsArray = Object.keys(data).map((key) => {
+                return { id: key, ...data[key] };
+              });
+              setMessage(verbatimsArray)
+            }
+          })
+        } catch (error) {
+          console.error('Error fetching groups: ', error);
+        }
+      }
+      getVerbatims(); 
+
+      const fetchUserInfo = async () => {
+        try {
+          const dbref = ref(db, "Users/")
+          onValue(dbref, (snapshot) => {
+            data = snapshot.val()
+            if (data) {
+              const userInfo = Object.keys(data).map(async (key) => {
+                  const userInfo = data[key];
+                  const defaultStorageRef = refStorage(storage, '1.jpg');
+                  const defaultUrl = await getDownloadURL(defaultStorageRef);
+                  const storageRef = refStorage(storage, String(key) + '.jpg');
+                  const url = await getDownloadURL(storageRef).catch((error) => {
+                    console.log(error);
+                  });
+                  return { username: userInfo.username, userId: key, profilePic: url !== undefined ? url : defaultUrl};
+              });
+              Promise.all(userInfo).then(userInfoArr => {
+                setDataArray(userInfoArr);
+              })
+            }
+          })
+        } catch (error) {
+          console.error('Error fetching discussion posts: ', error);
+        }
+      }
+      fetchUserInfo();
+
     }, []);
+
+    const MostRecentMessage = (groupid) => {
+      str1 = "";
+      mostRecent = "";
+      mostRecentId = 0;
+      mes_exist = false;
+      for (let i = 0; i < Message.length; i++) {
+        if (Message[i].group == groupid){
+          mes_exist = true;
+          str1 = Message[i].timestamp;
+          if (str1 > mostRecent){
+            mostRecent = str1;
+            mostRecentId = i;
+        }
+      }
+      }
+      if (mes_exist == true){
+        return Message[mostRecentId].verbaiterName + ": " + Message[mostRecentId].post;
+      }
+      else{
+        return "No new messages"
+      }
+    }
+    
+    const renderResults = ({ item }) => {
+      if (!item) {
+        return null;
+      }
+      return (<View style={styles.item}>
+        <Image source={{uri: item.profilePic}} style={styles.profilePic} />
+        <Text style={styles.usernameText}>{item.username}</Text>
+      </View>);
+    };
+
+    const handleSearch = (text) => {
+      const filteredResults = text ? dataArray.filter((item) => 
+        item.username.toLowerCase().includes(text.toLowerCase())
+      ) : [];
+      setSearchText(text);
+      setSearchResults(filteredResults);
+    };
   
     const renderGroups = ({ item }) => {
       const handleGroupPress = () => {
@@ -47,11 +139,11 @@ const GroupScreen = ({ navigation }) => {
       return (
         <TouchableOpacity style={styles.groupContainer} onPress={handleGroupPress}>
           <View style={styles.leftHalf}>
-            <Image source={item.profilePic} style={styles.profilePic} />
+            <Image source={item.profilePic} style={styles.groupPic} />
           </View>
           <View style={styles.rightHalf}>
             <Text style={styles.username}>{item.name}</Text>
-            <Text style={styles.postText}>{item.message}</Text>
+            <Text style={styles.postText}>{MostRecentMessage(item.id)}</Text>
           </View>
         <Text style={styles.timeStampText}>{item.timestamp}</Text>
         <View style={styles.circle}></View>
@@ -63,6 +155,25 @@ const GroupScreen = ({ navigation }) => {
       return (
         <View style={styles.container}>
           <ScrollView contentContainerStyle={styles.scrollContainer}>
+            <View style = {styles.searchContainer}>
+              <TextInput
+              style={styles.input}
+              placeholder="Search..."
+              onChangeText={handleSearch}
+              value={searchText}
+              placeholderTextColor="#888"
+              />
+
+              {searchText !== '' ? (
+              <FlatList
+              data={searchResults}
+              renderItem={renderResults}
+              keyExtractor={(item) => item}
+              ListEmptyComponent={<Text style={styles.emptyText}>No results found</Text>}
+              />
+              ) : null}
+            </View>
+
             <FlatList
               data={Groups}
               renderItem={renderGroups}
@@ -77,8 +188,8 @@ const GroupScreen = ({ navigation }) => {
 return (
   <View style={styles.container}>
     <Stack.Navigator>
-      <Stack.Screen name="Groups" component={GroupListScreen} />
-      <Stack.Screen name="Chat" component={ChatScreen} />
+      <Stack.Screen options={{headerShown: false}} name="Groups" component={GroupListScreen} />
+      <Stack.Screen options={{headerShown: true}} name="Chat" component={ChatScreen} />
     </Stack.Navigator>
   </View>
 );
@@ -112,7 +223,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
-  profilePic: {
+  groupPic: {
     width: 40,
     height: 40,
     borderRadius: 12,
@@ -179,6 +290,44 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     bottom: 8,
     right: 8,
+  },
+  input: {
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    marginBottom: 16,
+    fontSize: 16,
+    color: '#333',
+    backgroundColor: '#fff',
+  },
+  item: {
+    flexDirection: "row",
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  usernameText: {
+    fontSize: 18,
+    color: '#333',
+  },
+  emptyText: {
+    fontSize: 16,
+    marginTop: 16,
+    textAlign: 'center',
+    color: '#555',
+  },
+  profilePic: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    marginRight: 8,
+  },
+  searchContainer: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: '#f9f9f9',
   },
 });
 

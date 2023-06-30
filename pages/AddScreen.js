@@ -146,8 +146,14 @@ const AddScreen = ({ route }) => {
 
   const dismissKeyboard = () => {
     Keyboard.dismiss(); // Dismiss the keyboard
-    () => setGroupsModalVisible(!groupsModalVisible);
-    () => setGroupsModalVisible(!verbaiterModalVisibleModalVisible);
+  };
+
+  const toggleGroupsModal = () => {
+    setGroupsModalVisible(!groupsModalVisible);
+  };
+
+  const toggleVerbaiterModal = () => {
+    setGroupsModalVisible(!verbaiterModalVisible);
   };
 
   const handleGroupSelection = (itemValue) => {
@@ -187,7 +193,7 @@ const AddScreen = ({ route }) => {
   }, []);
 
   return (
-    <TouchableWithoutFeedback onPress={dismissKeyboard}>
+    <TouchableWithoutFeedback onPress={dismissKeyboard && toggleGroupsModal && toggleVerbaiterModal}>
       <View style={styles.generalContainer}>
 
         <Modal

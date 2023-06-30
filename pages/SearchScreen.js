@@ -3,6 +3,9 @@ import { View, TextInput, FlatList, Text, StyleSheet, Image } from 'react-native
 import { getDatabase, ref, get, child, onValue, update } from "firebase/database";
 import { getStorage, ref as refStorage, getDownloadURL } from "firebase/storage";
 import { app } from "../Firebase.js";
+import { TouchableOpacity } from 'react-native-gesture-handler';
+import { useNavigation } from '@react-navigation/native';
+
 
 const db = getDatabase(app);
 const storage = getStorage();
@@ -30,7 +33,8 @@ const SearchScreen = () => {
     'Strawberry',
     'Watermelon',
   ];*/
-
+  const navigation = useNavigation();
+  
   useEffect(() => {
     // Simulated data for discussion posts
     const fetchDiscussionPosts = async () => {
@@ -66,11 +70,19 @@ const SearchScreen = () => {
     if (!item) {
       return null;
     }
-    return (<View style={styles.item}>
-      <Image source={{uri: item.profilePic}} style={styles.profilePic} />
-      <Text style={styles.usernameText}>{item.username}</Text>
-    </View>);
+    console.log(item);
+    return (
+      <TouchableOpacity onPress={() => handleProfilePress(item.userId)} style={styles.item}>
+        <Image source={{uri: item.profilePic}} style={styles.profilePic} />
+        <Text style={styles.usernameText}>{item.username}</Text>
+      </TouchableOpacity>
+      );
   };
+  
+  const handleProfilePress = (user) => {
+    let value = user
+    navigation.navigate('UserProfile', { value });
+  }
 
   const handleSearch = (text) => {
     const filteredResults = text ? dataArray.filter((item) => 

@@ -16,6 +16,7 @@ import FirebaseTest from "./pages/FirebaseTest.js";
 import AddScreen from "./pages/AddScreen.js";
 import ChatScreen from "./pages/ChatScreen.js";
 import SearchScreen from "./pages/SearchScreen.js";
+import { createStackNavigator } from '@react-navigation/stack';
 
 const Tab = createBottomTabNavigator();
 
@@ -93,6 +94,14 @@ export default function App() {
     );
   }
 
+  const Stack = createStackNavigator();
+  const SearchStack = () => (
+    <Stack.Navigator>
+      <Stack.Screen name="Search" component={SearchScreen} />
+      <Stack.Screen name="UserProfile" component={ProfileScreen} />
+    </Stack.Navigator>
+  );  
+
   return (
     <NavigationContainer>
       <Tab.Navigator>
@@ -122,7 +131,10 @@ export default function App() {
           component={AddScreen}
           initialParams={{ value: userID }}
         />
-        <Tab.Screen name="Search Screen" component={SearchScreen} />
+        <Tab.Screen 
+          name="Search Screen"
+          options={{ headerShown: false }}
+          component={SearchStack}/>
       </Tab.Navigator>
     </NavigationContainer>
   );

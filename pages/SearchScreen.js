@@ -10,7 +10,8 @@ import { useNavigation } from '@react-navigation/native';
 const db = getDatabase(app);
 const storage = getStorage();
 
-const SearchScreen = () => {
+const SearchScreen = ({ route }) => {
+  const { curUserId } = route.params;
   const [searchText, setSearchText] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [dataArray, setDataArray] = useState([]);
@@ -80,17 +81,20 @@ const SearchScreen = () => {
   };
   
   const handleProfilePress = (user) => {
-    let value = user
-    navigation.navigate('UserProfile', { value });
+    navigation.navigate('UserProfile', {userId: curUserId, profileId: user });
   }
 
   const handleSearch = (text) => {
-    const filteredResults = text ? dataArray.filter((item) => 
-      item.username.toLowerCase().includes(text.toLowerCase())
-    ) : [];
+    const filteredResults = text ? dataArray.filter((item) => {
+      if (item.username) {
+        return item.username.toLowerCase().includes(text.toLowerCase());
+      }
+      return false;
+    }) : [];
     setSearchText(text);
     setSearchResults(filteredResults);
   };
+  
 
   return (
     <View style={styles.container}>

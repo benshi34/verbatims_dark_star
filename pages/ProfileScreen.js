@@ -5,6 +5,7 @@ import { initializeApp } from "firebase/app";
 import { getDatabase, ref, get, child, onValue, update, remove, push } from "firebase/database";
 import { app } from "../Firebase.js";
 import { getStorage, ref as refStorage, uploadBytes, putFile, getMetadata, getDownloadURL } from "firebase/storage";
+import { userId } from "./HomeScreen.js";
 
 
 const storage = getStorage();
@@ -23,20 +24,17 @@ const ProfileScreen = ({ route }) => {
   const [commentText, setCommentText] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [metadata, setMetadata] = useState(null);
-  const [profileId, setProfileId] = useState(0);
   const [friendButtonTitle, setFriendButtonTitle] = useState('');
   const [profilePicUrl,setProfilePicUrl] = useState('');
   const [currComments, setCurrComments] = useState([]);
   const [profileUsername, setProfileUsername] = useState('');
+  const [showAllVerbatims, setShowAllVerbatims] = useState(false);
+  const [showAllVerbastards, setShowAllVerbastards] = useState(false);
+  const { userId, profileId } = route.params;
   //const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appspot.com/o/1.jpg?alt=media&token=11ea9825-a4e2-4a7b-97c1-c4ad1b1eaae2';  
 
-  
-  const { value } = route.params;
 
   const db = getDatabase(app);
-  const userId = value;
-
-  const storageRef = refStorage(storage, userId+'.jpg');
 
   const defaultRef = refStorage(storage, '1.jpg');
 
@@ -54,7 +52,7 @@ const ProfileScreen = ({ route }) => {
   const downloadUrl = async () => {
     const defaultStorageRef = refStorage(storage, '1.jpg');
     const defaultUrl = await getDownloadURL(defaultStorageRef);
-    const storageRef = refStorage(storage, String(userId) + '.jpg');
+    const storageRef = refStorage(storage, String(profileId) + '.jpg');
     const url = await getDownloadURL(storageRef).catch((error) => {
       console.log(error);
     });
@@ -86,7 +84,7 @@ const ProfileScreen = ({ route }) => {
   const uriToFile = async (uri) => {
     const response = await fetch(uri);
     const blob = await response.blob();
-    const filename = uri.substring(uri.lastIndexOf('/') + userId);
+    const filename = uri.substring(uri.lastIndexOf('/') + profileId);
 
     return new File([blob], filename, { type: blob.type });
   };
@@ -95,7 +93,6 @@ const ProfileScreen = ({ route }) => {
   const addFriendButton = () => {
     //console.log("1");
     const dbref = ref(db, 'Users/' + userId + "/friends");
-    const friendToAdd = userId;
     get(dbref).then((snapshot) => {
       if (snapshot.exists()) {
         data=snapshot.val();
@@ -107,7 +104,7 @@ const ProfileScreen = ({ route }) => {
         let isFriend = false;
         let idFound = -1;
         verbatimsArray.forEach((friend) => {
-          if (friend.value === friendToAdd) {
+          if (friend.value === profileId) {
             isFriend=true;
             idFound=friend.id;
           }
@@ -124,7 +121,7 @@ const ProfileScreen = ({ route }) => {
           
           const newPostKey = push(child(ref(db), 'Users/' + userId + "/friends")).key;
           const updates = {};
-          updates["/"+newPostKey] = friendToAdd;
+          updates["/"+newPostKey] = profileId;
           update(ref(db, 'Users/' + userId + "/friends"), updates);
         }
       
@@ -132,7 +129,7 @@ const ProfileScreen = ({ route }) => {
         //console.log("5");
         const updates = {};
         const newPostKey = push(child(ref(db), 'Users/' + userId + "/friends")).key;
-        updates["/"+newPostKey] = friendToAdd;
+        updates["/"+newPostKey] = profileId;
         update(ref(db, 'Users/' + userId + "/friends"), updates);
       }
     }).catch((error) => {
@@ -166,14 +163,14 @@ const ProfileScreen = ({ route }) => {
               return { ...item, profilePic: url === undefined ? defaultUrl : url};
             })
             Promise.all(promises).then(verbatimsArray => {
-              const mapC = verbatimsArray.filter((item) => item.verbaiter === userId);
+              const mapC = verbatimsArray.filter((item) => item.verbaiter === profileId);
               setVerbatims(mapC);
-              const mapB = verbatimsArray.filter((item) => item.verbastard === userId);
+              const mapB = verbatimsArray.filter((item) => item.verbastard === profileId);
               setVerbastards(mapB);
             })
           }
         })
-        const userRef = ref(db, "Users/" + userId);
+        const userRef = ref(db, "Users/" + profileId);
         onValue(userRef, (snapshot) => {
           data = snapshot.val();
           if (data) {
@@ -215,7 +212,6 @@ const ProfileScreen = ({ route }) => {
     const titleFriendButton = async () => {
       //console.log("1");
       const dbref = ref(db, 'Users/' + userId + "/friends");
-      const friendToAdd = userId;
       onValue(dbref, (snapshot) => {
         if (snapshot.exists()) {
           data=snapshot.val();
@@ -227,7 +223,7 @@ const ProfileScreen = ({ route }) => {
           let isFriend = false;
           let idFound = -1;
           verbatimsArray.forEach((friend) => {
-            if (friend.value === friendToAdd) {
+            if (friend.value === profileId) {
               isFriend=true;
               idFound=friend.id;
             }
@@ -256,8 +252,7 @@ const ProfileScreen = ({ route }) => {
 
     const findUsername = async () => {
       //console.log("1");
-      const dbref = ref(db, 'Users/' + userId);
-      const friendToAdd = userId;
+      const dbref = ref(db, 'Users/' + profileId);
       onValue(dbref, (snapshot) => {
         if (snapshot.exists()) {
           setProfileUsername(snapshot.val().username);
@@ -310,9 +305,9 @@ const ProfileScreen = ({ route }) => {
       post = snapshot.val();
       if (post) {
         const likedUsers = post.likes || [];
-        const index = likedUsers.indexOf(userId);
+        const index = likedUsers.indexOf(profileId);
         if (index === -1) {
-          likedUsers.push(userId);
+          likedUsers.push(profileId);
         } else {
           likedUsers.splice(index, 1);
         }
@@ -325,7 +320,7 @@ const ProfileScreen = ({ route }) => {
       console.error('Error fetching verbatim: ', error);
     })
 
-    const userRef = ref(db, "Users/" + userId)
+    const userRef = ref(db, "Users/" + profileId)
 
     get(userRef).then((snapshot) => {
       user = snapshot.val();
@@ -339,7 +334,7 @@ const ProfileScreen = ({ route }) => {
         }
 
         const updates = {};
-        updates['Users/' + userId + '/likedverbatims'] = likedPosts;
+        updates['Users/' + profileId + '/likedverbatims'] = likedPosts;
         update(ref(db), updates);
       }
     }).catch((error) => {
@@ -358,7 +353,7 @@ const ProfileScreen = ({ route }) => {
       const newCommentsRef = push(commentsRef);
       set(newCommentsRef, {
         comment: commentText,
-        user: userId,
+        user: profileId,
         username: username
       });
       onValue(newCommentsRef, (snapshot) => {
@@ -477,10 +472,18 @@ const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appsp
             onChangeText={setFriendName}
             value={friendName}
           />*/
+
+  const toggleShowVerbatims = () => {
+    setShowAllVerbatims(!showAllVerbatims);
+  };
+
+  const toggleShowVerbastards = () => {
+    setShowAllVerbastards(!showAllVerbastards);
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-
         <Text style={styles.text}>{profileUsername}</Text>
 
 
@@ -488,30 +491,38 @@ const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appsp
         <TouchableOpacity onPress={handleButtonPress} style={styles.imageButton}>
           <Image source={{ uri: profilePicUrl }} style={styles.image} />
         </TouchableOpacity>
+        {userId!==profileId && (
+          <View style={styles.inputContainer}>
+            <TouchableOpacity onPress={addFriendButton} style={styles.closeButton}>
+              <Text style={styles.closeButtonText}>{friendButtonTitle}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
         
-        <View style={styles.inputContainer}>
-          <TouchableOpacity onPress={addFriendButton} style={styles.closeButton}>
-            <Text style={styles.closeButtonText}>{friendButtonTitle}</Text>
-          </TouchableOpacity>
-        </View>
 
         <Text style={styles.text}>Verbatims You Said</Text>
         
         <FlatList
-          data={verbatims}
+          data={showAllVerbatims ? verbatims : verbatims.slice(0, 1)}
           renderItem={renderDiscussionPost}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContainer}
           style={styles.scrollViewList}
         />
+        {verbatims.length > 1 && 
+          <Button title={showAllVerbatims ? 'Show less' : 'Show more'} onPress={toggleShowVerbatims} />}
+
+
         <Text style={styles.text}>Verbatims You Submitted</Text>
         <FlatList
-          data={verbastards}
+          data={showAllVerbastards ? verbastards : verbastards.slice(0, 1)}
           renderItem={renderDiscussionPost}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContainer}
           style={styles.scrollViewList}
         />
+        {verbastards.length > 1 && 
+          <Button title={showAllVerbastards ? 'Show less' : 'Show more'} onPress={toggleShowVerbastards} />}
         
         {selectedPost && (
                 <Modal visible={showModal} animationType="slide" transparent>
@@ -541,7 +552,7 @@ const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appsp
                 </View>
               </Modal>
               )}
-      </ScrollView>
+        </ScrollView>
     </View>
   );
 };
@@ -575,12 +586,13 @@ const styles = StyleSheet.create({
     height: 100,
   },
   scrollViewList: {
-    height: 150
+    width: 300,
   },
   text: {
     marginTop: 20,
     fontSize: 18,
     fontWeight: 'bold',
+    textAlign: 'center',
   },
   header: {
     fontSize: 24,

@@ -10,6 +10,7 @@ import {
   Image,
   Modal,
   Pressable,
+  ScrollView,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import ButtonContainer from "./ButtonContainer.js";
@@ -25,7 +26,6 @@ import {
   push,
   onValue,
 } from "firebase/database";
-import { ScrollView } from "react-native-gesture-handler";
 
 const db = getDatabase(app);
 
@@ -34,6 +34,7 @@ const AddScreen = ({ route }) => {
   const [users, setUsers] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(""); // Store the selected group
   const [sampledGroups, setSampledGroups] = useState([]);
+  const [sampledUsers, setSampledUsers] = useState([]);
   const [groups, setGroups] = useState([]); // Store the groups
   const [selectedVerbaiter, setSelectedVerbaiter] = useState(""); // Store the selected verbaiter
   const [verbaiterModalVisible, setVerbaiterModalVisible] = useState(false);
@@ -73,7 +74,16 @@ const AddScreen = ({ route }) => {
           id,
           ...user,
         }));
+
         setUsers(usersArray);
+
+        if (usersArray.length <= 5) {
+          setSampledUsers(usersArray);
+        } else {
+          const shuffledUsers = usersArray.sort(() => 0.5 - Math.random());
+          const sampledUsers = shuffledUsers.slice(0, 5);
+          setSampledUsers(sampledUsers);
+        }
       }
     });
   };
@@ -206,11 +216,24 @@ const AddScreen = ({ route }) => {
           }}>
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
-              <Text style={styles.modalText}>Hello World!</Text>
+              <View style={styles.smallerRectangle}>
+                <Text style={styles.modalText}>Choose other contact</Text>
+              </View>
+              <ScrollView contentContainerStyle={styles.scrollContainer}>
+              {users.map((user, index) => (
+                <TouchableOpacity style={styles.buttonContainer} key={index}>
+                  <Image
+                    source={require("../assets/kharn.jpg")}
+                    style={styles.image}
+                  />
+                  <Text style={styles.buttonText}>{user.username}</Text>
+                </TouchableOpacity>
+              ))}
+              </ScrollView>
               <Pressable
                 style={[styles.button, styles.buttonClose]}
                 onPress={() => setVerbaiterModalVisible(!verbaiterModalVisible)}>
-                <Text style={styles.textStyle}>Hide Modal</Text>
+                <Text style={styles.textStyle}>Close</Text>
               </Pressable>
             </View>
           </View>
@@ -226,11 +249,24 @@ const AddScreen = ({ route }) => {
           }}>
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
-              <Text style={styles.modalText}>Hello World!</Text>
+              <View style={styles.smallerRectangle}>
+                <Text style={styles.modalText}>Choose other contact</Text>
+              </View>
+              <ScrollView contentContainerStyle={styles.scrollContainer}>
+              {groups.map((group, index) => (
+                <TouchableOpacity style={styles.buttonContainer} key={index}>
+                  <Image
+                    source={require("../assets/kharn.jpg")}
+                    style={styles.image}
+                  />
+                  <Text style={styles.buttonText}>{group.name}</Text>
+                </TouchableOpacity>
+              ))}
+              </ScrollView>
               <Pressable
                 style={[styles.button, styles.buttonClose]}
                 onPress={() => setGroupsModalVisible(!groupsModalVisible)}>
-                <Text style={styles.textStyle}>Hide Modal</Text>
+                <Text style={styles.textStyle}>Close</Text>
               </Pressable>
             </View>
           </View>
@@ -246,13 +282,13 @@ const AddScreen = ({ route }) => {
             <Text style={styles.subText}>Suggested Contacts</Text>
 
             <View style={styles.innerContactsContainer}>
-              {sampledGroups.map((group, index) => (
+              {sampledUsers.map((user, index) => (
                 <TouchableOpacity style={styles.buttonContainer} key={index}>
                   <Image
                     source={require("../assets/kharn.jpg")}
                     style={styles.image}
                   />
-                  <Text style={styles.buttonText}>{group.name}</Text>
+                  <Text style={styles.buttonText}>{user.username}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -540,6 +576,20 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  smallerRectangle: {
+    bottom: 0,
+    width: "100%",
+    height: 50,
+    backgroundColor: "#FFFFFF",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
+    elevation: 5,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 0,
+  },
   verbatimText: {
     fontSize: 26,
     color: "white",
@@ -595,6 +645,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 10,
     elevation: 2,
+    paddingBottom: 20,
   },
   buttonOpen: {
     backgroundColor: '#F194FF',
@@ -608,8 +659,18 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   modalText: {
-    marginBottom: 15,
     textAlign: 'center',
+    color: '#375FEA',
+    fontSize: 26,
+    fontWeight: "bold",
+    /*
+    marginTop: 63,
+    marginRight: 185,
+    */
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    paddingBottom: 10,
   },
 });
 

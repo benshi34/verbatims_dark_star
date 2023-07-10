@@ -509,7 +509,7 @@ const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appsp
           contentContainerStyle={styles.listContainer}
           style={styles.scrollViewList}
         />
-        {verbatims.length !== 1 && 
+        {verbatims.length > 1 && 
           <Button title={showAllVerbatims ? 'Show less' : 'Show more'} onPress={toggleShowVerbatims} />}
 
 
@@ -521,7 +521,8 @@ const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appsp
           contentContainerStyle={styles.listContainer}
           style={styles.scrollViewList}
         />
-        <Button title={showAllVerbastards ? 'Show less' : 'Show more'} onPress={toggleShowVerbastards} />
+        {verbastards.length > 1 && 
+          <Button title={showAllVerbastards ? 'Show less' : 'Show more'} onPress={toggleShowVerbastards} />}
         
         {selectedPost && (
                 <Modal visible={showModal} animationType="slide" transparent>

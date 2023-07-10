@@ -97,8 +97,8 @@ export default function App() {
   const Stack = createStackNavigator();
   const SearchStack = () => (
     <Stack.Navigator>
-      <Stack.Screen name="Search" component={SearchScreen} />
-      <Stack.Screen name="UserProfile" component={ProfileScreen} />
+      <Stack.Screen name="Search" component={SearchScreen} initialParams={{ curUserId: userID }}/>
+      <Stack.Screen name="UserProfile" component={ProfileScreen }  />
     </Stack.Navigator>
   );
 

@@ -28,6 +28,8 @@ const ProfileScreen = ({ route }) => {
   const [profilePicUrl,setProfilePicUrl] = useState('');
   const [currComments, setCurrComments] = useState([]);
   const [profileUsername, setProfileUsername] = useState('');
+  const [showAllVerbatims, setShowAllVerbatims] = useState(false);
+  const [showAllVerbastards, setShowAllVerbastards] = useState(false);
   const { userId, profileId } = route.params;
   //const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appspot.com/o/1.jpg?alt=media&token=11ea9825-a4e2-4a7b-97c1-c4ad1b1eaae2';  
 
@@ -470,10 +472,18 @@ const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appsp
             onChangeText={setFriendName}
             value={friendName}
           />*/
+
+  const toggleShowVerbatims = () => {
+    setShowAllVerbatims(!showAllVerbatims);
+  };
+
+  const toggleShowVerbastards = () => {
+    setShowAllVerbastards(!showAllVerbastards);
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-
         <Text style={styles.text}>{profileUsername}</Text>
 
 
@@ -493,20 +503,25 @@ const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appsp
         <Text style={styles.text}>Verbatims You Said</Text>
         
         <FlatList
-          data={verbatims}
+          data={showAllVerbatims ? verbatims : verbatims.slice(0, 1)}
           renderItem={renderDiscussionPost}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContainer}
           style={styles.scrollViewList}
         />
+        {verbatims.length !== 1 && 
+          <Button title={showAllVerbatims ? 'Show less' : 'Show more'} onPress={toggleShowVerbatims} />}
+
+
         <Text style={styles.text}>Verbatims You Submitted</Text>
         <FlatList
-          data={verbastards}
+          data={showAllVerbastards ? verbastards : verbastards.slice(0, 1)}
           renderItem={renderDiscussionPost}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContainer}
           style={styles.scrollViewList}
         />
+        <Button title={showAllVerbastards ? 'Show less' : 'Show more'} onPress={toggleShowVerbastards} />
         
         {selectedPost && (
                 <Modal visible={showModal} animationType="slide" transparent>
@@ -536,7 +551,7 @@ const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appsp
                 </View>
               </Modal>
               )}
-      </ScrollView>
+        </ScrollView>
     </View>
   );
 };
@@ -570,7 +585,7 @@ const styles = StyleSheet.create({
     height: 100,
   },
   scrollViewList: {
-    height: 150
+    width: 300,
   },
   text: {
     marginTop: 20,

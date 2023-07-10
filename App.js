@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, Image } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
 
 import MainNavigator from "./pages/LoginScreen.js";
@@ -16,14 +16,14 @@ import FirebaseTest from "./pages/FirebaseTest.js";
 import AddScreen from "./pages/AddScreen.js";
 import ChatScreen from "./pages/ChatScreen.js";
 import SearchScreen from "./pages/SearchScreen.js";
-import { createStackNavigator } from '@react-navigation/stack';
+import { createStackNavigator } from "@react-navigation/stack";
 
 const Tab = createBottomTabNavigator();
 
 export default function App() {
   const [isLoggedIn, setLoggedIn] = React.useState(false);
   const [isLoading, setLoading] = React.useState(false);
-  const [userID, setUserID] = React.useState('');
+  const [userID, setUserID] = React.useState("");
 
   React.useEffect(() => {
     const checkAuthentication = async () => {
@@ -33,7 +33,7 @@ export default function App() {
         const loggedIn = await AsyncStorage.getItem("loggedIn");
         setUserID(userId);
         // Update the authentication status based on the retrieved data
-        
+
         console.log(">>>>>> CHECK AUTH >>>>>>");
         if (userId && loggedIn) {
           console.log("USER ID: ", userId);
@@ -53,7 +53,7 @@ export default function App() {
 
   const handleLogin = async (userId, loggedIn) => {
     try {
-      console.log(">>>>>HANDLE LOGIN USER ID: ", userID)
+      console.log(">>>>>HANDLE LOGIN USER ID: ", userID);
       // Save the user ID and login information to AsyncStorage
       await AsyncStorage.setItem("userId", userId);
       await AsyncStorage.setItem("loggedIn", loggedIn);
@@ -100,41 +100,119 @@ export default function App() {
       <Stack.Screen name="Search" component={SearchScreen} />
       <Stack.Screen name="UserProfile" component={ProfileScreen} />
     </Stack.Navigator>
-  );  
+  );
 
   return (
     <NavigationContainer>
-      <Tab.Navigator>
+      <Tab.Navigator
+        screenOptions={{
+          tabBarInactiveTintColor: "black", // Set the inactive tab text color here
+          tabBarActiveTintColor: "#3E63E4", // Set the active tab text color here
+        }}
+      >
         <Tab.Screen
           name="Home"
           component={HomeScreen}
           initialParams={{ value: userID }}
-        />
-        <Tab.Screen
-          name="Profile"
-          component={ProfileScreen}
-          initialParams={{ value: userID }}
-        />
-        <Tab.Screen
-          name="Settings"
-          component={() => <SettingScreen onLogout={handleLogout} />}
-          initialParams={{ value: userID }}
+          options={{
+            tabBarIcon: ({ focused, color, size }) => (
+              <Image
+                source={
+                  focused
+                    ? require("./assets/home-blue.png")
+                    : require("./assets/home.png")
+                } // Provide the path to your image file
+                style={styles.bottomIcon} // Adjust the width and height of the image based on the size parameter
+              />
+            ),
+          }}
         />
         <Tab.Screen
           name="Groups"
           component={GroupScreen}
           initialParams={{ value: userID }}
+          options={{
+            tabBarIcon: ({ focused, color, size }) => (
+              <Image
+                source={
+                  focused
+                    ? require("./assets/groups-blue.png")
+                    : require("./assets/groups.png")
+                } // Provide the path to your image file
+                style={styles.bottomIcon} // Adjust the width and height of the image based on the size parameter
+              />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Profile"
+          component={ProfileScreen}
+          initialParams={{ value: userID }}
+          options={{
+            tabBarIcon: ({ focused, color, size }) => (
+              <Image
+                source={
+                  focused
+                    ? require("./assets/profile-blue.png")
+                    : require("./assets/profile.png")
+                } // Provide the path to your image file
+                style={styles.bottomIcon} // Adjust the width and height of the image based on the size parameter
+              />
+            ),
+          }}
         />
         <Tab.Screen
           name="Add Verbatim"
-          options={{ headerShown: false }}
           component={AddScreen}
           initialParams={{ value: userID }}
+          options={{
+            headerShown: false,
+            tabBarIcon: ({ focused, color, size }) => (
+              <Image
+                source={
+                  focused
+                    ? require("./assets/add-blue.png")
+                    : require("./assets/add.png")
+                } // Provide the path to your image file
+                style={styles.bottomIcon} // Adjust the width and height of the image based on the size parameter
+              />
+            ),
+          }}
         />
-        <Tab.Screen 
-          name="Search Screen"
-          options={{ headerShown: false }}
-          component={SearchStack}/>
+        <Tab.Screen
+          name="Search"
+          component={SearchStack}
+          options={{
+            headerShown: false,
+            tabBarIcon: ({ focused, color, size }) => (
+              <Image
+                source={
+                  focused
+                    ? require("./assets/search-blue.png")
+                    : require("./assets/search.png")
+                } // Provide the path to your image file
+                style={styles.bottomIcon} // Adjust the width and height of the image based on the size parameter
+              />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Settings"
+          component={() => <SettingScreen onLogout={handleLogout} />}
+          initialParams={{ value: userID }}
+          options={{
+            tabBarIcon: ({ focused, color, size }) => (
+              <Image
+                source={
+                  focused
+                    ? require("./assets/settings-blue.png")
+                    : require("./assets/settings.png")
+                } // Provide the path to your image file
+                style={styles.bottomIcon} // Adjust the width and height of the image based on the size parameter
+              />
+            ),
+          }}
+        />
       </Tab.Navigator>
     </NavigationContainer>
   );
@@ -172,5 +250,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  bottomIcon: {
+    width: 25,
+    height: 25,
+    marginTop: 5,
   },
 });

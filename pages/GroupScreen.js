@@ -3,7 +3,7 @@ import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, ScrollView, 
 import { getDatabase, ref, get, onValue } from "firebase/database";
 import { getStorage, ref as refStorage, getDownloadURL } from "firebase/storage";
 import { app } from "../Firebase.js";
-import { NavigationContainer } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import ChatScreen from './ChatScreen.js';
 
@@ -11,8 +11,8 @@ const Stack = createNativeStackNavigator();
 const storage = getStorage();
 
 
-const GroupScreen = ({ navigation }) => {
-
+const GroupScreen = ({ route }) => {
+  const { curUserId } = route.params;
   const [Groups, setGroups] = useState([]);
   const [Message, setMessage] = useState([]);
   const [searchText, setSearchText] = useState('');
@@ -21,6 +21,8 @@ const GroupScreen = ({ navigation }) => {
   const [isPressed, setIsPressed] = useState(false); //to change color
 
   const db = getDatabase(app);
+  const navigation = useNavigation();
+  const userId = curUserId;
 
   useEffect(() => {
     // Simulated data for discussion posts
@@ -102,13 +104,13 @@ const GroupScreen = ({ navigation }) => {
       }
       return (<View style={styles.item}>
         <Image source={{uri: item.profilePic}} style={styles.profilePic} />
-        <Text style={styles.usernameText}>{item.username}</Text>
+        <Text style={styles.usernameText}>{item.name}</Text>
       </View>);
     };
 
     const handleSearch = (text) => {
-      const filteredResults = text ? dataArray.filter((item) => 
-        item.username.toLowerCase().includes(text.toLowerCase())
+      const filteredResults = text ? Groups.filter((item) => 
+        item.name.toLowerCase().includes(text.toLowerCase())
       ) : [];
       setSearchText(text);
       setSearchResults(filteredResults);
@@ -117,13 +119,11 @@ const GroupScreen = ({ navigation }) => {
     const renderGroups = ({ item }) => {
       const handleGroupPress = () => {
         // Navigate to the chat window screen
-        navigation.navigate('Groups', { screen: 'Chat', params: {id: item.id}});
-        // change color
-        setIsPressed(!isPressed);
+        navigation.navigate('Chat', { id: item.id });
       };
 
-      const boxStyle = isPressed ? styles.blueCircle : styles.greyCircle;
-      const timeStyle = isPressed ? styles.timeStampTextBlue : styles.timeStampTextGrey;
+      const boxStyle = styles.blueCircle;
+      const timeStyle = styles.timeStampTextBlue;
   
       return (
         <TouchableOpacity style={styles.groupContainer} onPress={handleGroupPress}>
@@ -148,19 +148,19 @@ const GroupScreen = ({ navigation }) => {
           <ScrollView contentContainerStyle={styles.scrollContainer}>
             <View style = {styles.searchContainer}>
               <TextInput
-              style={styles.input}
-              placeholder="Search..."
-              onChangeText={handleSearch}
-              value={searchText}
-              placeholderTextColor="#888"
+                style={styles.input}
+                placeholder="Search..."
+                onChangeText={handleSearch}
+                value={searchText}
+                placeholderTextColor="#888"
               />
 
               {searchText !== '' ? (
               <FlatList
-              data={searchResults}
-              renderItem={renderResults}
-              keyExtractor={(item) => item}
-              ListEmptyComponent={<Text style={styles.emptyText}>No results found</Text>}
+                data={searchResults}
+                renderItem={renderResults}
+                keyExtractor={(item) => item}
+                ListEmptyComponent={<Text style={styles.emptyText}>No results found</Text>}
               />
               ) : null}
             </View>

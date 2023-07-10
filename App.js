@@ -12,7 +12,6 @@ import SettingScreen from "./pages/SettingScreen.js";
 import ProfileScreen from "./pages/ProfileScreen.js";
 import HomeScreen from "./pages/HomeScreen.js";
 import GroupScreen from "./pages/GroupScreen.js";
-import FirebaseTest from "./pages/FirebaseTest.js";
 import AddScreen from "./pages/AddScreen.js";
 import ChatScreen from "./pages/ChatScreen.js";
 import SearchScreen from "./pages/SearchScreen.js";
@@ -95,10 +94,19 @@ export default function App() {
   }
 
   const Stack = createStackNavigator();
+  const GroupStack = () => {
+    return (
+      <Stack.Navigator>
+        <Stack.Screen name="Groups" component={GroupScreen} initialParams={{ curUserId: userID }}/>
+        <Stack.Screen name="Chat" component={ChatScreen}/>
+      </Stack.Navigator>
+    );
+  };
+
   const SearchStack = () => (
     <Stack.Navigator>
       <Stack.Screen name="Search" component={SearchScreen} initialParams={{ curUserId: userID }}/>
-      <Stack.Screen name="UserProfile" component={ProfileScreen }  />
+      <Stack.Screen name="UserProfile" component={ProfileScreen}  />
     </Stack.Navigator>
   );
 
@@ -129,9 +137,9 @@ export default function App() {
         />
         <Tab.Screen
           name="Groups"
-          component={GroupScreen}
-          initialParams={{ value: userID }}
+          component={GroupStack}
           options={{
+            headerShown: false,
             tabBarIcon: ({ focused, color, size }) => (
               <Image
                 source={

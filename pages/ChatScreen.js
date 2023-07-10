@@ -1,19 +1,21 @@
 import React, { useEffect} from 'react';
 import { getDatabase, ref, get, onValue } from "firebase/database";
+import { getStorage, ref as refStorage, getDownloadURL } from "firebase/storage";
 import { app } from "../Firebase.js";
 import { View, Text, TextInput, FlatList, StyleSheet, Image, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 
 const db = getDatabase(app);
+const storage = getStorage();
 
 const ChatScreen = ({ route, navigation }) => {
-  const [verbatims, setVerbatims] = React.useState([
-    //{ id: '1', sender: 'John', message: 'Hello!' },
-    //{ id: '2', sender: 'Jane', message: 'Hi there!' },
-    //{ id: '3', sender: 'Jim', message: 'How are you?' },
-  ]);
-  const [messages, setMessages] = React.useState([]);
-  const [currID, setCurrID] = React.useState(messages.length);
-  const [inputMessage, setInputMessage] = React.useState('');
+  const [verbatims, setVerbatims] = React.useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [likedPosts, setLikedPosts] = useState([]);
+  const [username, setUsername] = useState('');
+  const [selectedPost, setSelectedPost] = useState(null);
+  // const [messages, setMessages] = React.useState([]);
+  // const [currID, setCurrID] = React.useState(messages.length);
+  // const [inputMessage, setInputMessage] = React.useState('');
 
   const fetchChatMessages = async (groupID) => {
     try {
@@ -72,18 +74,18 @@ const ChatScreen = ({ route, navigation }) => {
     );
     };
 
-  const sendMessage = () => {
-    const newMessage = { id: String(currID + 1), sender: 'You', message: inputMessage };
-    setMessages([newMessage, ...messages]);
-    setInputMessage('');
-    setCurrID(currID + 1);
-  };
+  // const sendMessage = () => {
+  //   const newMessage = { id: String(currID + 1), sender: 'You', message: inputMessage };
+  //   setMessages([newMessage, ...messages]);
+  //   setInputMessage('');
+  //   setCurrID(currID + 1);
+  // };
 
-  const handleInputSubmit = () => {
-    if (inputMessage.trim() !== '') {
-      sendMessage();
-    }
-  };
+  // const handleInputSubmit = () => {
+  //   if (inputMessage.trim() !== '') {
+  //     sendMessage();
+  //   }
+  // };
 
   useEffect(() => {
     const groupID = route.params.id;
@@ -99,7 +101,7 @@ const ChatScreen = ({ route, navigation }) => {
         contentContainerStyle={styles.chatContainer}
         inverted
       />
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'position' : null} keyboardVerticalOffset={Platform.OS === 'ios' ? -120 : null}>
+      {/* <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'position' : null} keyboardVerticalOffset={Platform.OS === 'ios' ? -120 : null}>
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
@@ -109,7 +111,7 @@ const ChatScreen = ({ route, navigation }) => {
             onSubmitEditing={handleInputSubmit}
           />
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardAvoidingView> */}
     </KeyboardAvoidingView>
   );
 };

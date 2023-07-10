@@ -18,6 +18,7 @@ const GroupScreen = ({ navigation }) => {
   const [searchText, setSearchText] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [dataArray, setDataArray] = useState([]);
+  const [isPressed, setIsPressed] = useState(false); //to change color
 
   const db = getDatabase(app);
 
@@ -106,13 +107,23 @@ const GroupScreen = ({ navigation }) => {
     };
 
     const handleSearch = (text) => {
+      const filteredResults = text ? dataArray.filter((item) => 
+        item.username.toLowerCase().includes(text.toLowerCase())
+      ) : [];
+      setSearchText(text);
+      setSearchResults(filteredResults);
     };
   
     const renderGroups = ({ item }) => {
       const handleGroupPress = () => {
         // Navigate to the chat window screen
         navigation.navigate('Groups', { screen: 'Chat', params: {id: item.id}});
+        // change color
+        setIsPressed(!isPressed);
       };
+
+      const boxStyle = isPressed ? styles.blueCircle : styles.greyCircle;
+      const timeStyle = isPressed ? styles.timeStampTextBlue : styles.timeStampTextGrey;
   
       return (
         <TouchableOpacity style={styles.groupContainer} onPress={handleGroupPress}>
@@ -123,8 +134,10 @@ const GroupScreen = ({ navigation }) => {
             <Text style={styles.username}>{item.name}</Text>
             <Text style={styles.postText}>{MostRecentMessage(item.id)}</Text>
           </View>
-        <Text style={styles.timeStampText}>{item.timestamp}</Text>
-        <View style={styles.circle}></View>
+        <Text style={[styles.box, timeStyle]}>{item.timestamp}</Text>
+        <View style={[styles.box, boxStyle]}>
+        <Text style={styles.arrowText}>➤</Text>
+        </View>
         </TouchableOpacity>
       );
     };
@@ -202,10 +215,11 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   groupPic: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     marginRight: 8,
+    top: 8
   },
   postTextContainer: {
     flex: 1,
@@ -216,7 +230,8 @@ const styles = StyleSheet.create({
   },
   postText: {
     fontSize: 14,
-    color: 'grey'
+    color: 'grey',
+    top: 8,
   },
   groupContainer: {
     flex: 1,
@@ -236,6 +251,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column', // Arrange children in a row
     flex: 4, // Take half of the available space
     //backgroundColor: '#F5F5F5', // Customize the right half's background color
+    
   },
   scrollContainer: {
     paddingBottom: 16,
@@ -249,7 +265,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: '#f5f5f5',
   },
-  timeStampText: {
+  timeStampTextBlue: {
     position: 'absolute',
     top: 8,
     right: 8,
@@ -258,16 +274,45 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: 'blue',
   },
-  circle: {
+  timeStampTextGrey: {
     position: 'absolute',
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: 'blue', // Set the desired background color for the circle
+    top: 8,
+    right: 8,
     paddingHorizontal: 12,
     paddingVertical: 6,
+    fontSize: 14,
+    color: 'grey',
+  },
+  blueCircle: {
+    position: 'absolute',
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: 'blue', // Set the desired background color for the circle
+    paddingHorizontal: 0,
+    paddingVertical: 0,
     bottom: 8,
-    right: 8,
+    right: 20, 
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  greyCircle: {
+    position: 'absolute',
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: 'grey', // Set the desired background color for the circle
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+    bottom: 8,
+    right: 20, 
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  arrowText: {
+    fontSize: 15,
+    color: 'white',
+    fontWeight: 'bold',
   },
   input: {
     height: 40,
@@ -304,8 +349,8 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     flex: 1,
-    padding: 16,
-    backgroundColor: '#f9f9f9',
+    //padding: 1,
+    //backgroundColor: '#f9f9f9',
   },
 });
 

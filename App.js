@@ -97,8 +97,8 @@ export default function App() {
   const Stack = createStackNavigator();
   const SearchStack = () => (
     <Stack.Navigator>
-      <Stack.Screen name="Search" component={SearchScreen} />
-      <Stack.Screen name="UserProfile" component={ProfileScreen} />
+      <Stack.Screen name="Search" component={SearchScreen} initialParams={{ curUserId: userID }}/>
+      <Stack.Screen name="UserProfile" component={ProfileScreen }  />
     </Stack.Navigator>
   );  
 
@@ -113,7 +113,7 @@ export default function App() {
         <Tab.Screen
           name="Profile"
           component={ProfileScreen}
-          initialParams={{ value: userID }}
+          initialParams={{ userId: userID, profileId: userID }}
         />
         <Tab.Screen
           name="Settings"
@@ -134,7 +134,9 @@ export default function App() {
         <Tab.Screen 
           name="Search Screen"
           options={{ headerShown: false }}
-          component={SearchStack}/>
+          component={SearchStack}
+          initialParams={{ curUserId: userID }}
+        />
       </Tab.Navigator>
     </NavigationContainer>
   );

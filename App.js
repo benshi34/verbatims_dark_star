@@ -15,6 +15,7 @@ import GroupScreen from "./pages/GroupScreen.js";
 import AddScreen from "./pages/AddScreen.js";
 import ChatScreen from "./pages/ChatScreen.js";
 import SearchScreen from "./pages/SearchScreen.js";
+import FriendScreen from "./pages/FriendScreen.js";
 import { createStackNavigator } from "@react-navigation/stack";
 
 const Tab = createBottomTabNavigator();
@@ -106,9 +107,16 @@ export default function App() {
   const SearchStack = () => (
     <Stack.Navigator>
       <Stack.Screen name="Search" component={SearchScreen} initialParams={{ curUserId: userID }}/>
-      <Stack.Screen name="UserProfile" component={ProfileScreen}  />
+      <Stack.Screen name="UserProfile" component={ProfileScreen} />
     </Stack.Navigator>
   );
+
+  const ProfileStack = () => (
+    <Stack.Navigator>
+      <Stack.Screen name="Profile" component={ProfileScreen} initialParams={{ userId: userID, profileId: userID }}/>
+      <Stack.Screen name="Friends" component={FriendScreen}  />
+    </Stack.Navigator>
+  )
 
   return (
     <NavigationContainer>
@@ -154,9 +162,9 @@ export default function App() {
         />
         <Tab.Screen
           name="Profile"
-          component={ProfileScreen}
-          initialParams={{ value: userID }}
+          component={ProfileStack}
           options={{
+            headerShown: false,
             tabBarIcon: ({ focused, color, size }) => (
               <Image
                 source={

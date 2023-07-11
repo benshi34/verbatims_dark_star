@@ -216,14 +216,12 @@ const HomeScreen = ({ route }) => {
         <View style={styles.container}>
           <TouchableWithoutFeedback onPress={dismissKeyboard}>
             <Text style={styles.header}>Verbatims</Text>
-              <ScrollView contentContainerStyle={styles.scrollContainer}>
-                <FlatList
-                data={verbatims}
-                renderItem={renderDiscussionPost}
-                keyExtractor={(item) => item.id}
-                contentContainerStyle={styles.listContainer}
-                />
-              </ScrollView>
+              <FlatList
+              data={verbatims}
+              renderItem={renderDiscussionPost}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.listContainer}
+              />
               {selectedPost && (
                 <Modal visible={showModal} animationType="slide" transparent>
                   <View style={styles.modalContainer}>

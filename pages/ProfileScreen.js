@@ -386,7 +386,7 @@ const ProfileScreen = ({ route }) => {
   };
 
   const displayFriends = () => {
-    navigation.navigate('Friends', {userId: userId});
+    navigation.navigate('Friends', {userId: userId, profileId: profileId});
   }
 
   const renderDiscussionPost = ({ item }) => {
@@ -496,7 +496,7 @@ const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appsp
         </TouchableOpacity>
         <View style={styles.inputContainer}>
         <TouchableOpacity onPress={displayFriends} style={styles.closeButton}>
-            <Text style={styles.closeButtonText}>Friend Requests</Text>
+            <Text style={styles.closeButtonText}>Friends</Text>
         </TouchableOpacity>
         {userId!==profileId && (
             <TouchableOpacity onPress={addFriendButton} style={styles.closeButton}>

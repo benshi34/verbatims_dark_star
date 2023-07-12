@@ -5,8 +5,7 @@ import { initializeApp } from "firebase/app";
 import { getDatabase, ref, get, child, onValue, update, remove, push } from "firebase/database";
 import { app } from "../Firebase.js";
 import { getStorage, ref as refStorage, uploadBytes, putFile, getMetadata, getDownloadURL } from "firebase/storage";
-import { userId } from "./HomeScreen.js";
-
+import { useNavigation } from '@react-navigation/native';
 
 const storage = getStorage();
 const metadata = {
@@ -33,10 +32,10 @@ const ProfileScreen = ({ route }) => {
   const { userId, profileId } = route.params;
   //const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appspot.com/o/1.jpg?alt=media&token=11ea9825-a4e2-4a7b-97c1-c4ad1b1eaae2';  
 
-
   const db = getDatabase(app);
 
   const defaultRef = refStorage(storage, '1.jpg');
+  const navigation = useNavigation();
 
   const toggleImageVisibility = () => {
     setShowImage(!showImage);
@@ -386,6 +385,10 @@ const ProfileScreen = ({ route }) => {
     </View>);
   };
 
+  const displayFriends = () => {
+    navigation.navigate('Friends', {userId: userId, profileId: profileId});
+  }
+
   const renderDiscussionPost = ({ item }) => {
     let isLiked = likedPosts.includes(item.id);
     let groupName = null;
@@ -491,13 +494,16 @@ const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appsp
         <TouchableOpacity onPress={handleButtonPress} style={styles.imageButton}>
           <Image source={{ uri: profilePicUrl }} style={styles.image} />
         </TouchableOpacity>
+        <View style={styles.inputContainer}>
+        <TouchableOpacity onPress={displayFriends} style={styles.closeButton}>
+            <Text style={styles.closeButtonText}>Friends</Text>
+        </TouchableOpacity>
         {userId!==profileId && (
-          <View style={styles.inputContainer}>
             <TouchableOpacity onPress={addFriendButton} style={styles.closeButton}>
               <Text style={styles.closeButtonText}>{friendButtonTitle}</Text>
             </TouchableOpacity>
-          </View>
         )}
+        </View>
         
 
         <Text style={styles.text}>Verbatims You Said</Text>
@@ -737,6 +743,14 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#ccc',
     paddingTop: 16,
+  },
+  belowProfileContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginBottom: 16,
   },
   inputContainer: {
     flexDirection: 'row',

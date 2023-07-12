@@ -15,25 +15,6 @@ const SearchScreen = ({ route }) => {
   const [searchText, setSearchText] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [dataArray, setDataArray] = useState([]);
-  /*const dataArray = [
-    'Apple',
-    'Banana',
-    'Cherry',
-    'Durian',
-    'Elderberry',
-    'Fig',
-    'Grapes',
-    'Honeydew',
-    'Kiwi',
-    'Lemon',
-    'Mango',
-    'Orange',
-    'Peach',
-    'Quince',
-    'Raspberry',
-    'Strawberry',
-    'Watermelon',
-  ];*/
   const navigation = useNavigation();
   
   useEffect(() => {
@@ -105,7 +86,6 @@ const SearchScreen = ({ route }) => {
         value={searchText}
         placeholderTextColor="#888"
       />
-
       {searchText !== '' ? (
         <FlatList
           data={searchResults}

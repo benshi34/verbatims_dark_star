@@ -115,6 +115,7 @@ export default function App() {
     <Stack.Navigator>
       <Stack.Screen name="Profile" component={ProfileScreen} initialParams={{ userId: userID, profileId: userID }}/>
       <Stack.Screen name="Friends" component={FriendScreen}  />
+      <Stack.Screen name="UserProfile" component={ProfileScreen} />
     </Stack.Navigator>
   )
 

@@ -4,12 +4,8 @@ import { getDatabase, ref, get, onValue } from "firebase/database";
 import { getStorage, ref as refStorage, getDownloadURL } from "firebase/storage";
 import { app } from "../Firebase.js";
 import { useNavigation } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import ChatScreen from './ChatScreen.js';
 
-const Stack = createNativeStackNavigator();
 const storage = getStorage();
-
 
 const GroupScreen = ({ route }) => {
   const { curUserId } = route.params;
@@ -142,49 +138,38 @@ const GroupScreen = ({ route }) => {
       );
     };
 
-    const GroupListScreen = () => {
-      return (
-        <View style={styles.container}>
-          <ScrollView contentContainerStyle={styles.scrollContainer}>
-            <View style = {styles.searchContainer}>
-              <TextInput
-                style={styles.input}
-                placeholder="Search..."
-                onChangeText={handleSearch}
-                value={searchText}
-                placeholderTextColor="#888"
-              />
-
-              {searchText !== '' ? (
-              <FlatList
-                data={searchResults}
-                renderItem={renderResults}
-                keyExtractor={(item) => item}
-                ListEmptyComponent={<Text style={styles.emptyText}>No results found</Text>}
-              />
-              ) : null}
-            </View>
-
-            <FlatList
-              data={Groups}
-              renderItem={renderGroups}
-              keyExtractor={(item) => item.id.toString()}
-              contentContainerStyle={styles.listContainer}
+    return (
+      <View style={styles.container}>
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+          <View style = {styles.searchContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Search..."
+              onChangeText={handleSearch}
+              value={searchText}
+              placeholderTextColor="#888"
             />
-          </ScrollView>
-        </View>
-      )
-    };
 
-return (
-  <View style={styles.container}>
-    <Stack.Navigator>
-      <Stack.Screen options={{headerShown: false}} name="Groups" component={GroupListScreen} />
-      <Stack.Screen options={{headerShown: true}} name="Chat" component={ChatScreen} />
-    </Stack.Navigator>
-  </View>
-);
-  };
+            {searchText !== '' ? (
+            <FlatList
+              data={searchResults}
+              renderItem={renderResults}
+              keyExtractor={(item) => item}
+              ListEmptyComponent={<Text style={styles.emptyText}>No results found</Text>}
+            />
+            ) : null}
+          </View>
+
+          <FlatList
+            data={Groups}
+            renderItem={renderGroups}
+            keyExtractor={(item) => item.id.toString()}
+            contentContainerStyle={styles.listContainer}
+          />
+        </ScrollView>
+      </View>
+    )
+};
 
 const styles = StyleSheet.create({
   container: {

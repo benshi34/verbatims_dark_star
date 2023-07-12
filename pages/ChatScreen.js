@@ -9,10 +9,10 @@ const storage = getStorage();
 
 const ChatScreen = ({ route, navigation }) => {
   const [verbatims, setVerbatims] = React.useState([]);
-  const [showModal, setShowModal] = useState(false);
-  const [likedPosts, setLikedPosts] = useState([]);
-  const [username, setUsername] = useState('');
-  const [selectedPost, setSelectedPost] = useState(null);
+  const [showModal, setShowModal] = React.useState(false);
+  const [likedPosts, setLikedPosts] = React.useState([]);
+  const [username, setUsername] = React.useState('');
+  const [selectedPost, setSelectedPost] = React.useState(null);
   // const [messages, setMessages] = React.useState([]);
   // const [currID, setCurrID] = React.useState(messages.length);
   // const [inputMessage, setInputMessage] = React.useState('');

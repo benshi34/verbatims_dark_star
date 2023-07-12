@@ -495,14 +495,14 @@ const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appsp
           <Image source={{ uri: profilePicUrl }} style={styles.image} />
         </TouchableOpacity>
         <View style={styles.inputContainer}>
-        <TouchableOpacity onPress={displayFriends} style={styles.closeButton}>
-            <Text style={styles.closeButtonText}>Friends</Text>
-        </TouchableOpacity>
-        {userId!==profileId && (
-            <TouchableOpacity onPress={addFriendButton} style={styles.closeButton}>
-              <Text style={styles.closeButtonText}>{friendButtonTitle}</Text>
-            </TouchableOpacity>
-        )}
+          <TouchableOpacity onPress={displayFriends} style={styles.belowProfileButton}>
+              <Text style={styles.closeButtonText}>Friends</Text>
+          </TouchableOpacity>
+          {userId!==profileId && (
+              <TouchableOpacity onPress={addFriendButton} style={styles.belowProfileButton}>
+                <Text style={styles.closeButtonText}>{friendButtonTitle}</Text>
+              </TouchableOpacity>
+          )}
         </View>
         
 
@@ -688,6 +688,12 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: '#e1e1e1',
   },
+  belowProfileButton: {
+    backgroundColor: '#ddd',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
   closeButton: {
     alignSelf: 'flex-end',
     backgroundColor: '#ddd',
@@ -753,7 +759,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   inputContainer: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 16,

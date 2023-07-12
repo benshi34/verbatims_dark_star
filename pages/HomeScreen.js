@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, ScrollView, TextInput, Modal, Keyboard, KeyboardAvoidingView} from 'react-native';
+import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, ScrollView, TextInput, Modal, Keyboard, KeyboardAvoidingView, Pressable, } from 'react-native';
 import { getDatabase, ref, get, set, onValue, update, push } from "firebase/database";
 import { app } from "../Firebase.js";
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
@@ -133,7 +133,7 @@ const HomeScreen = ({ route }) => {
       if (commentText.trim()) {
         // setVerbatims((prevPosts) =>
         //   prevPosts.map((post) =>
-        //     post.id === selectedPost.id ? { ...post, comments: [...post.comments, commentText] } : post
+        //     post.id === selectedPost.id ? { ...post, f [...post.comments, commentText] } : post
         //   )
         // );
         const commentsRef = ref(db, "Verbatims/" + postId + "/comments");
@@ -167,7 +167,7 @@ const HomeScreen = ({ route }) => {
         return null;
       }
       return (<View>
-        <Text style={styles.commentText}>{item.username}</Text>
+        <Text style={styles.commentUser}>{item.username}</Text>
         <Text style={styles.commentText}>{item.comment}</Text>
       </View>);
     };
@@ -225,32 +225,39 @@ const HomeScreen = ({ route }) => {
                 />
               </ScrollView>
               {selectedPost && (
-                <Modal visible={showModal} animationType="slide" transparent>
-                  <View style={styles.modalContainer}>
-                  <View style={styles.modalContent}>
-                  <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
-                    <Text style={styles.closeButtonText}>Close</Text>
-                  </TouchableOpacity>
-                  <Text style={styles.modalPost}>{selectedPost.post}</Text>
-                  <Text>Comments:</Text>
-                  <FlatList
-                      data={currComments}
-                      renderItem={renderComment}
-                      keyExtractor={(item, index) => index}
-                      contentContainerStyle={styles.commentsContainer}
-                  />
-                  <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? -120 : null}>
-                  <TextInput
-                    style={styles.commentInput}
-                    placeholder="Add a comment..."
-                    onChangeText={(text) => setCommentText(text)}
-                    value={commentText}
-                    onSubmitEditing={() => addComment(selectedPost.id)}
-                  />
-                  </KeyboardAvoidingView>
-                </View>
-                </View>
-              </Modal>
+                
+                  <Modal 
+                    visible={showModal} 
+                    animationType="slide" 
+                    transparent
+                  >
+                      <Pressable 
+                        onPress={(event) => event.target == event.currentTarget && setShowModal(false)}
+                        style={styles.modalContainer}
+                      >
+                      <View style={styles.modalContent}>
+                        <View style={styles.commentsHeading}>
+                          <Text style={styles.commentsHeadingText}>x Comments</Text>
+                        </View>
+                        <FlatList
+                            data={currComments}
+                            renderItem={renderComment}
+                            keyExtractor={(item, index) => index}
+                            contentContainerStyle={styles.commentsContainer}
+                        />
+                        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? -120 : null}>
+                          <TextInput
+                            style={styles.commentInput}
+                            placeholder="Add a comment..."
+                            onChangeText={(text) => setCommentText(text)}
+                            value={commentText}
+                            onSubmitEditing={() => addComment(selectedPost.id)}
+                          />
+                        </KeyboardAvoidingView>
+                    </View>
+                    </Pressable>
+                </Modal>
+              
               )}
       </TouchableWithoutFeedback>
       </View>
@@ -359,8 +366,13 @@ const styles = StyleSheet.create({
       color: '#333',
     },
     commentsHeading: {
-      paddingHorizontal: 12,
-      paddingVertical: 12,
+      alignItems: 'center',
+      paddingBottom: 0,
+    },
+    commentsHeadingText: {
+      fontFamily: 'Gotham',
+      fontWeight: 'bold',
+      fontSize: 12, 
     },
     commentInput: {
       borderWidth: 1,
@@ -375,10 +387,20 @@ const styles = StyleSheet.create({
     comment: {
       marginBottom: 8,
     },
+    commentUser: {
+      flexDirection: 'row',
+      marginBottom: 3,
+      alignItems: 'center',
+      fontWeight: 'bold',
+      fontSize: 10, 
+    },
     commentText: {
       flexDirection: 'row',
       marginBottom: 12,
       alignItems: 'center',
+      fontSize: 10,
+      fontWeight: 'bold', 
+      color: '#AFAFAF'
     },
     commentButtonText: {
       fontSize: 14,
@@ -391,17 +413,18 @@ const styles = StyleSheet.create({
     },
     modalContent: {
       backgroundColor: '#fff',
-      borderRadius: 8,
+      borderRadius: 31,
       width: '100%',
-      height: '70%',
+      height: '60%',
       paddingHorizontal: 16,
       paddingTop: 16,
+      borderColor: '#000000',
+      borderWidth: 1,
     },
     commentsContainer: {
       marginTop: 16,
-      borderTopWidth: 1,
       borderTopColor: '#ccc',
-      paddingTop: 16,
+      paddingTop: 16, 
     },
   });
 

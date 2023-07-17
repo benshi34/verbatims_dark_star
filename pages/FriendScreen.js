@@ -10,16 +10,19 @@ const storage = getStorage();
 const FriendScreen = ({ route }) => {
     const { userId, profileId } = route.params;
     const [friends, setFriends] = React.useState([]);
+    const [friendsAdded, setFriendsAdded] = React.useState([]);
     const [friendRequests, setFriendRequests] = React.useState([]);
 
     const db = getDatabase(app);
     const navigation = useNavigation();
     
+
+
     useEffect(() => {
       // Simulated data for discussion posts
         const fetchFriends = async () => {
           try {
-            const dbref = ref(db, `Users/${userId}/friends`)
+            const dbref = ref(db, `Users/${profileId}/friends`)
             onValue(dbref, (snapshot) => {
               data = snapshot.val();
               if (data) {
@@ -35,7 +38,10 @@ const FriendScreen = ({ route }) => {
                   });
                   const friendNameSnapshot = await get(ref(db, `Users/${item.friendId}/username`));
                   const friendName = friendNameSnapshot.val();
-                  return { ...item, profilePic: url === undefined ? defaultUrl : url, friendName: friendName};
+                  //return { ...item, profilePic: url === undefined ? defaultUrl : url, friendName: friendName};
+                  //const friendStatus = await titleFriendButton(item);
+                  const friendStatus = await titleFriendButton(item);
+                  return { ...item, profilePic: url === undefined ? defaultUrl : url, friendName: friendName, isFriend: friendStatus};
                 })
                 Promise.all(promises).then(friendsArray => {
                   setFriends(friendsArray);
@@ -50,7 +56,7 @@ const FriendScreen = ({ route }) => {
 
         const fetchFriendRequests = async () => {
           try {
-            const dbref = ref(db, `Users/${userId}/friendrequests`)
+            const dbref = ref(db, `Users/${profileId}/friendrequests`)
             onValue(dbref, (snapshot) => {
               data = snapshot.val();
               if (data) {
@@ -64,9 +70,11 @@ const FriendScreen = ({ route }) => {
                   const url = await getDownloadURL(storageRef).catch((error) => {
                     console.log(error);
                   });
+                  
                   const friendReqSnapshot = await get(ref(db, `Users/${item.friendId}/username`));
                   const friendReq = friendReqSnapshot.val();
-                  return { ...item, profilePic: url === undefined ? defaultUrl : url, friendName: friendReq};
+                  const friendStatus = await titleFriendButton(item);
+                  return { ...item, profilePic: url === undefined ? defaultUrl : url, friendName: friendReq, isFriend: friendStatus};
                 })
                 Promise.all(promises).then(friendsArray => {
                   setFriendRequests(friendsArray);
@@ -82,12 +90,47 @@ const FriendScreen = ({ route }) => {
         }
         fetchFriendRequests();
       }, []);
+
+      
+
+
+    const titleFriendButton = (item) => {
+      return new Promise((resolve, reject) => {
+        const dbref = ref(db, 'Users/' + userId + "/friends");
+        onValue(dbref, (snapshot) => {
+          if (snapshot.exists()) {
+            data = snapshot.val();
+            let verbatimsArray = Object.keys(data).map((key) => {
+              return { id: key, value: data[key] };
+            });
+    
+            let isFriend = false;
+            let idFound = -1;
+            verbatimsArray.forEach((friend) => {
+              if (friend.value === item.friendId) {
+                isFriend = true;
+                idFound = friend.id;
+              }
+            });
+    
+            if (isFriend) {
+              resolve("Friend");
+            } else {
+              resolve("Not Friend");
+            }
+          } else {
+            resolve("Not Friend");
+          }
+        }).catch((error) => {
+          reject(error);
+        });
+      });
+    };
     
 
     const handleProfilePress = (friendId) => {
       navigation.navigate('UserProfile', {userId: userId, profileId: friendId });
     }
-
     const acceptRequest = (friend) => {
       if (friend !== undefined) {
         declineRequest(friend);
@@ -114,12 +157,14 @@ const FriendScreen = ({ route }) => {
     }
 
     const renderFriendItem = ({ item }) => {
-        return (
-            <TouchableOpacity onPress={() => handleProfilePress(item.friendId)} style={styles.friendItemContainer}>
-              <Image source={{uri: item.profilePic}} style={styles.friendAvatar} />
-              <Text style={styles.friendName}>{item.friendName}</Text>
-            </TouchableOpacity>
-        );
+
+
+      return (
+          <TouchableOpacity onPress={() => handleProfilePress(item.friendId)} style={styles.friendItemContainer}>
+            <Image source={{uri: item.profilePic}} style={styles.friendAvatar} />
+            <Text style={styles.friendName}>{item.friendName}  {item.isFriend}</Text>
+          </TouchableOpacity>
+      );
     };
     
     const renderFriendRequestItem = ({ item }) => {

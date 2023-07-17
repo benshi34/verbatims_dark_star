@@ -135,8 +135,14 @@ const FriendScreen = ({ route }) => {
       if (friend !== undefined) {
         declineRequest(friend);
         const newRef = ref(db, `Users/${userId}/friends`);
+        const friendRef = ref(db, `Users/${friend.friendId}/friends`);
         const newReqRef = push(newRef);
         set(newReqRef, friend.friendId).then(() => {
+          console.log("New item added successfully.")
+        }).catch((error) => {
+          console.log("New item could not be added: " + error.message)
+        });
+        set(friendRef, userId).then(() => {
           console.log("New item added successfully.")
         }).catch((error) => {
           console.log("New item could not be added: " + error.message)

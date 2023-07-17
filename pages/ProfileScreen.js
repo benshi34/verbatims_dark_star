@@ -34,24 +34,13 @@ const ProfileScreen = ({ route }) => {
 
   const db = getDatabase(app);
 
-  const defaultRef = refStorage(storage, '1.jpg');
   const navigation = useNavigation();
-
-  const toggleImageVisibility = () => {
-    setShowImage(!showImage);
-    setButtonText(showImage ? 'Show More' : 'Show Less');
-  };
-
-  const toggleSubmittedImageVisibility = () => {
-    setSubmittedShowImage(!submittedShowImage);
-    setSubmittedButtonText(submittedShowImage ? 'Show More' : 'Show Less');
-  };
 
   
   const downloadUrl = async () => {
-    const defaultStorageRef = refStorage(storage, '1.jpg');
+    const defaultStorageRef = await refStorage(storage, '1.jpg');
     const defaultUrl = await getDownloadURL(defaultStorageRef);
-    const storageRef = refStorage(storage, String(profileId) + '.jpg');
+    const storageRef = await refStorage(storage, String(profileId) + '.jpg');
     const url = await getDownloadURL(storageRef).catch((error) => {
       console.log(error);
     });
@@ -63,6 +52,7 @@ const ProfileScreen = ({ route }) => {
       const result = await ImagePicker.launchImageLibraryAsync();
       if (!result.cancelled) {
         const file = await uriToFile(result.uri);
+        const storageRef = await refStorage(storage, userId+'.jpg');
         const uploadTask = uploadBytes(storageRef, file, metadata);
         uploadTask
         .then((snapshot) => {
@@ -89,10 +79,11 @@ const ProfileScreen = ({ route }) => {
   };
 
 
-  const addFriendButton = () => {
+  const addFriendButton = async () => {
     //console.log("1");
+    let removed = false;
     const dbref = ref(db, 'Users/' + userId + "/friends");
-    get(dbref).then((snapshot) => {
+    await get(dbref).then((snapshot) => {
       if (snapshot.exists()) {
         data=snapshot.val();
         //console.log("2");
@@ -115,26 +106,79 @@ const ProfileScreen = ({ route }) => {
         if (isFriend) {
           //console.log("3");
           remove(ref(db, 'Users/' + userId + "/friends/"+idFound));
+          removed=true;
         } else {
           //console.log("4");
           
-          const newPostKey = push(child(ref(db), 'Users/' + userId + "/friends")).key;
+          /*const newPostKey = push(child(ref(db), 'Users/' + userId + "/friends")).key;
           const updates = {};
           updates["/"+newPostKey] = profileId;
-          update(ref(db, 'Users/' + userId + "/friends"), updates);
+          update(ref(db, 'Users/' + userId + "/friends"), updates);*/
         }
       
       } else {
         //console.log("5");
-        const updates = {};
+        /*const updates = {};
         const newPostKey = push(child(ref(db), 'Users/' + userId + "/friends")).key;
         updates["/"+newPostKey] = profileId;
-        update(ref(db, 'Users/' + userId + "/friends"), updates);
+        update(ref(db, 'Users/' + userId + "/friends"), updates);*/
       }
     }).catch((error) => {
       //console.log("6");
       console.error(error);
     });
+
+
+
+    console.log("hi" + remove);
+
+
+    if(!removed){
+      const dbrefReq = ref(db, 'Users/' + userId + "/friendrequests");
+      get(dbrefReq).then((snapshot) => {
+        if (snapshot.exists()) {
+          data=snapshot.val();
+          //console.log("2");
+          let verbatimsArray = Object.keys(data).map((key) => {
+            return { id: key, value:data[key] };
+          });
+  
+          let isFriend = false;
+          let idFound = -1;
+          verbatimsArray.forEach((friend) => {
+            if (friend.value === profileId) {
+              isFriend=true;
+              idFound=friend.id;
+            }
+          });
+  
+          //const isFriend = verbatimsArray.some((friend) => friend.id === userId);
+          
+  
+          if (isFriend) {
+            //console.log("3");
+            remove(ref(db, 'Users/' + userId + "/friendrequests/"+idFound));
+          } else {
+            //console.log("4");
+            
+            const newPostKey = push(child(ref(db), 'Users/' + userId + "/friendrequests")).key;
+            const updates = {};
+            updates["/"+newPostKey] = profileId;
+            update(ref(db, 'Users/' + userId + "/friendrequests"), updates);
+          }
+        
+        } else {
+          //console.log("5");
+          const updates = {};
+          const newPostKey = push(child(ref(db), 'Users/' + userId + "/friendrequests")).key;
+          updates["/"+newPostKey] = profileId;
+          update(ref(db, 'Users/' + userId + "/friendrequests"), updates);
+        }
+      }).catch((error) => {
+        //console.log("6");
+        console.error(error);
+      });
+    }
   }
 
 
@@ -489,11 +533,18 @@ const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appsp
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <Text style={styles.text}>{profileUsername}</Text>
 
+        {userId!==profileId && (
+          <View style={styles.imageButton}>
+            <Image source={{ uri: profilePicUrl }} style={styles.image} />
+          </View>
+        )}
+        
+        {userId===profileId && (
+          <TouchableOpacity onPress={handleButtonPress} style={styles.imageButton}>
+            <Image source={{ uri: profilePicUrl }} style={styles.image} />
+          </TouchableOpacity>
+        )}
 
-
-        <TouchableOpacity onPress={handleButtonPress} style={styles.imageButton}>
-          <Image source={{ uri: profilePicUrl }} style={styles.image} />
-        </TouchableOpacity>
         <View style={styles.inputContainer}>
           <TouchableOpacity onPress={displayFriends} style={styles.belowProfileButton}>
               <Text style={styles.closeButtonText}>Friends</Text>
@@ -592,7 +643,7 @@ const styles = StyleSheet.create({
     height: 100,
   },
   scrollViewList: {
-    width: 300,
+    width: 320,
   },
   text: {
     marginTop: 20,

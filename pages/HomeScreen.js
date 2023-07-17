@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, ScrollView, TextInput, Modal, Keyboard, KeyboardAvoidingView, Pressable, } from 'react-native';
+import { Svg, SvgUri, Path } from 'react-native-svg';
 import { getDatabase, ref, get, set, onValue, update, push } from "firebase/database";
 import { app } from "../Firebase.js";
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { getStorage, ref as refStorage, getDownloadURL } from "firebase/storage";
+
 
 const HomeScreen = ({ route }) => {
     const [verbatims, setVerbatims] = useState([]);
@@ -166,11 +168,37 @@ const HomeScreen = ({ route }) => {
       if (!item) {
         return null;
       }
-      return (<View>
-        <Text style={styles.commentUser}>{item.username}</Text>
-        <Text style={styles.commentText}>{item.comment}</Text>
-      </View>);
+      return (
+        <View>
+          <Image source={{uri: item.profilePic}} style={styles.profilePic} />
+          <Text style={styles.commentUser}>{item.username}</Text>
+          <Text style={styles.commentText}>{item.comment}</Text>
+        </View>
+      );
     };
+
+    /*
+    const SvgLikeButton = ({ onPress }) => {
+      return (
+        <TouchableOpacity onPress={onPress}>
+          <Svg xmlns="http://www.w3.org/2000/svg" width="14" height="13" viewBox="0 0 14 13" fill="none">
+            <Path 
+              d="M13.6613 2.66409C13.4441 2.14276 13.1309 1.67033 12.7392 1.27326C12.3472 0.875002 11.8851 0.558512 11.3779 0.341001C10.852 0.114559 10.288 
+                -0.0013468 9.71847 1.18067e-05C8.91954 1.18067e-05 8.14005 0.226778 7.46266 0.655113C7.3006 0.757578 7.14665 0.870121 7.0008 0.992743C6.85495 0.870121 
+                6.701 0.757578 6.53894 0.655113C5.86155 0.226778 5.08206 1.18067e-05 4.28313 1.18067e-05C3.70783 1.18067e-05 3.15036 0.114235 2.62368 0.341001C2.11483 
+                0.559368 1.65621 0.873481 1.26241 1.27326C0.870233 1.66989 0.556949 2.14242 0.340317 2.66409C0.115059 3.20665 0 3.7828 0 4.37575C0 4.93511 0.110198 5.51798 
+                0.328973 6.11093C0.512096 6.60646 0.774626 7.12046 1.11008 7.6395C1.64162 8.4609 2.37249 9.31757 3.28 10.186C4.78388 11.6255 6.27317 12.62 6.33637 12.6603L6.72045 
+                12.9156C6.8906 13.0281 7.10938 13.0281 7.27954 12.9156L7.66361 12.6603C7.72681 12.6183 9.21448 11.6255 10.72 10.186C11.6275 9.31757 12.3584 8.4609 12.8899 7.6395C13.2254 
+                7.12046 13.4895 6.60646 13.671 6.11093C13.8898 5.51798 14 4.93511 14 4.37575C14.0016 3.7828 13.8865 3.20665 13.6613 2.66409ZM7.0008 11.5869C7.0008 11.5869 1.23162 7.75541 
+                1.23162 4.37575C1.23162 2.66409 2.59775 1.27662 4.28313 1.27662C5.46776 1.27662 6.49519 1.96196 7.0008 2.96309C7.50641 1.96196 8.53385 1.27662 9.71847 1.27662C11.4039 1.27662 
+                12.77 2.66409 12.77 4.37575C12.77 7.75541 7.0008 11.5869 7.0008 11.5869Z" 
+              fill="#AFAFAF"
+            />
+          </Svg>
+        </TouchableOpacity>
+      );
+    };
+    */
 
     const renderDiscussionPost = ({ item }) => {
       let isLiked = likedPosts.includes(item.id);
@@ -186,12 +214,13 @@ const HomeScreen = ({ route }) => {
           <View style={styles.userContainer}>
             <Image source={{uri: item.profilePic}} style={styles.profilePic} />
             <Text style={styles.username}>{item.verbaiterName} Said:</Text>
+            <Text style={styles.timestamp}>{item.timestamp}</Text>
           </View>
-          <Text>{item.timestamp}</Text>
-          <Text>Submitted by: {item.verbastardName} | {groupName}</Text>
+          
           <View style={styles.postTextContainer}>
-            <Text style={styles.postText}>{item.post}</Text>
+            <Text style={styles.postText}>"{item.post}"</Text>
           </View>
+          <Text style={styles.submittedText}>Submitted by: {item.verbastardName} | {groupName}</Text>
           <TouchableOpacity
             style={[styles.favoriteButton, item.isFavorite && styles.favoriteButtonActive]}
             onPress={() => toggleFavorite(item.id)}
@@ -215,12 +244,14 @@ const HomeScreen = ({ route }) => {
     return (
         <View style={styles.container}>
           <TouchableWithoutFeedback onPress={dismissKeyboard}>
-            <Text style={styles.header}>Verbatims</Text>
+            <View style={styles.headerView}>
+              <Text style={styles.header}>Verbatims</Text>
+            </View>
               <FlatList
-              data={verbatims}
-              renderItem={renderDiscussionPost}
-              keyExtractor={(item) => item.id}
-              contentContainerStyle={styles.listContainer}
+                data={verbatims}
+                renderItem={renderDiscussionPost}
+                keyExtractor={(item) => item.id}
+                contentContainerStyle={styles.listContainer}
               />
               {selectedPost && (
                 
@@ -229,31 +260,40 @@ const HomeScreen = ({ route }) => {
                     animationType="slide" 
                     transparent
                   >
-                      <Pressable 
-                        onPress={(event) => event.target == event.currentTarget && setShowModal(false)}
-                        style={styles.modalContainer}
-                      >
-                      <View style={styles.modalContent}>
-                        <View style={styles.commentsHeading}>
-                          <Text style={styles.commentsHeadingText}>x Comments</Text>
-                        </View>
-                        <FlatList
+                    <Pressable 
+                      onPress={(event) => event.target == event.currentTarget && setShowModal(false)}
+                      style={styles.modalContainer}
+                    >
+                    <View style={styles.modalContent}>
+                      <View style={styles.commentsHeading}>
+                        <Text style={styles.commentsHeadingText}>Comments</Text>
+                      </View>
+                      
+                         <FlatList
                             data={currComments}
                             renderItem={renderComment}
                             keyExtractor={(item, index) => index}
                             contentContainerStyle={styles.commentsContainer}
+                            style={styles.commentsBody}
                         />
-                        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? -120 : null}>
-                          <TextInput
-                            style={styles.commentInput}
-                            placeholder="Add a comment..."
-                            onChangeText={(text) => setCommentText(text)}
-                            value={commentText}
-                            onSubmitEditing={() => addComment(selectedPost.id)}
-                          />
-                        </KeyboardAvoidingView>
-                    </View>
-                    </Pressable>
+
+                        <KeyboardAvoidingView
+                          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                          style={styles.commentInputRect}
+                        >
+                        <View style={styles.textboxRec}>
+                         <TextInput
+                          style={styles.commentInput}
+                          placeholder="Add a comment..."
+                          placeholderTextColor="#616060"
+                          onChangeText={(text) => setCommentText(text)}
+                          value={commentText}
+                          onSubmitEditing={() => addComment(selectedPost.id)}
+                        />
+                        </View>
+                    </KeyboardAvoidingView>
+                  </View>
+                  </Pressable>
                 </Modal>
               
               )}
@@ -267,21 +307,27 @@ const styles = StyleSheet.create({
       flex: 1,
       padding: 16,
       backgroundColor: '#fff',
-      paddingTop: 40,
+      paddingTop: 45,
+    },
+    headerView: {
+      alignItems: 'center',
     },
     header: {
-      fontSize: 24,
-      fontWeight: 'bold',
+      fontSize: 39,
+      fontWeight: 400,
       marginBottom: 16,
+      marginTop: 16,
+      color: '#617FE8',
     },
     listContainer: {
       paddingBottom: 16,
+      position: 'relative',
     },
     postContainer: {
       backgroundColor: '#f5f5f5',
       padding: 16,
       marginBottom: 16,
-      borderRadius: 8,
+      borderRadius: 17,
       flexDirection: 'column',
       alignItems: 'flex-start',
       position: 'relative',
@@ -291,6 +337,17 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       marginBottom: 8,
     },
+    timestamp: {
+      color: '#9A9A9A',
+      fontSize: 8, 
+      fontStyle: 'normal',
+      fontWeight: 700,
+    },
+    submittedText: {
+      color: '#9A9A9A', 
+      fontSize: 10,
+      fontWeight: 700,
+    },
     profilePic: {
       width: 24,
       height: 24,
@@ -299,14 +356,16 @@ const styles = StyleSheet.create({
     },
     postTextContainer: {
       flex: 1,
-      marginBottom: 8,
-    },
-    username: {
-      fontSize: 16,
-      fontWeight: 'bold',
+      marginBottom: 0,
     },
     postText: {
       fontSize: 16,
+      color: '#000',
+      fontWeight: 700, 
+    },
+    username: {
+      fontSize: 14,
+      fontWeight: 'bold',
     },
     favoriteButton: {
       position: 'absolute',
@@ -368,35 +427,57 @@ const styles = StyleSheet.create({
       paddingBottom: 0,
     },
     commentsHeadingText: {
-      fontFamily: 'Gotham',
+      //fontFamily: 'Gotham',
       fontWeight: 'bold',
-      fontSize: 12, 
+      fontSize: 16, 
     },
-    commentInput: {
+    commentsBody: {
+      paddingLeft: 16,
+    },
+    commentInputRect: {
+      flex: 1,
+      alignSelf: 'stretch',
+      alignItems: 'center',
+      backgroundColor: '#D4D4D4',
       borderWidth: 1,
       borderColor: '#ccc',
-      borderRadius: 8,
+      borderBottomEndRadius: 6,
+      left: 0, 
+      right: 0, 
+      height: 80,
+      bottom: 0,
+      position: 'absolute',
+      
+    },
+    textboxRec: {
+      backgroundColor: '#FFFFFF',
+      padding: 0,
+      marginTop: 14,
+      marginBottom: 11,
+      borderRadius: 20,
+    },
+    commentInput: {
+      flexShrink: 0,
+      borderWidth: 3,
+      borderColor: '#ccc',
+      borderRadius: 20,
       padding: 8,
-      marginBottom: 16,
+      color: '#616060',
+      fontSize: 10,
+      width: 324,
+      height: 40,
     },
     commentList: {
       maxHeight: 200,
     },
-    comment: {
-      marginBottom: 8,
-    },
     commentUser: {
-      flexDirection: 'row',
       marginBottom: 3,
-      alignItems: 'center',
       fontWeight: 'bold',
-      fontSize: 10, 
+      fontSize: 13, 
     },
     commentText: {
-      flexDirection: 'row',
       marginBottom: 12,
-      alignItems: 'center',
-      fontSize: 10,
+      fontSize: 13,
       fontWeight: 'bold', 
       color: '#AFAFAF'
     },
@@ -411,15 +492,17 @@ const styles = StyleSheet.create({
     },
     modalContent: {
       backgroundColor: '#fff',
-      borderRadius: 31,
       width: '100%',
       height: '60%',
-      paddingHorizontal: 16,
+      //paddingHorizontal: 16,
       paddingTop: 16,
-      borderColor: '#000000',
-      borderWidth: 1,
+      borderColor: '#AFAFAF',
+      //borderWidth: 1,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
     },
     commentsContainer: {
+      flexGrow: 1,
       marginTop: 16,
       borderTopColor: '#ccc',
       paddingTop: 16, 

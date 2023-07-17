@@ -130,11 +130,11 @@ const ProfileScreen = ({ route }) => {
 
 
 
-    console.log("hi" + remove);
+    console.log("hiiiiiiiiiiiiii"+removed);
 
 
     if(!removed){
-      const dbrefReq = ref(db, 'Users/' + userId + "/friendrequests");
+      const dbrefReq = ref(db, 'Users/' + profileId + "/friendrequests");
       get(dbrefReq).then((snapshot) => {
         if (snapshot.exists()) {
           data=snapshot.val();
@@ -146,7 +146,7 @@ const ProfileScreen = ({ route }) => {
           let isFriend = false;
           let idFound = -1;
           verbatimsArray.forEach((friend) => {
-            if (friend.value === profileId) {
+            if (friend.value === userId) {
               isFriend=true;
               idFound=friend.id;
             }
@@ -157,22 +157,22 @@ const ProfileScreen = ({ route }) => {
   
           if (isFriend) {
             //console.log("3");
-            remove(ref(db, 'Users/' + userId + "/friendrequests/"+idFound));
+            remove(ref(db, 'Users/' + profileId + "/friendrequests/"+idFound));
           } else {
             //console.log("4");
             
-            const newPostKey = push(child(ref(db), 'Users/' + userId + "/friendrequests")).key;
+            const newPostKey = push(child(ref(db), 'Users/' + profileId + "/friendrequests")).key;
             const updates = {};
-            updates["/"+newPostKey] = profileId;
-            update(ref(db, 'Users/' + userId + "/friendrequests"), updates);
+            updates["/"+newPostKey] = userId;
+            update(ref(db, 'Users/' + profileId + "/friendrequests"), updates);
           }
         
         } else {
           //console.log("5");
           const updates = {};
-          const newPostKey = push(child(ref(db), 'Users/' + userId + "/friendrequests")).key;
-          updates["/"+newPostKey] = profileId;
-          update(ref(db, 'Users/' + userId + "/friendrequests"), updates);
+          const newPostKey = push(child(ref(db), 'Users/' + profileId + "/friendrequests")).key;
+          updates["/"+newPostKey] = userId;
+          update(ref(db, 'Users/' + profileId + "/friendrequests"), updates);
         }
       }).catch((error) => {
         //console.log("6");

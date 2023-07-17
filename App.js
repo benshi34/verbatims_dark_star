@@ -107,6 +107,7 @@ export default function App() {
   const SearchStack = () => (
     <Stack.Navigator>
       <Stack.Screen name="Search" component={SearchScreen} initialParams={{ curUserId: userID }}/>
+      <Stack.Screen name="Friends" component={FriendScreen}  />
       <Stack.Screen name="UserProfile" component={ProfileScreen} />
     </Stack.Navigator>
   );

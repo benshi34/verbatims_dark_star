@@ -198,13 +198,17 @@ const FriendScreen = ({ route }) => {
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.listContainer}
           />
-          <Text style={styles.title}>Friend Requests</Text>
-          <FlatList
-            data={friendRequests}
-            renderItem={renderFriendRequestItem}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.listContainer}
-          />
+          { userId == profileId && (
+            <View>
+            <Text style={styles.title}>Friend Requests</Text>
+            <FlatList
+              data={friendRequests}
+              renderItem={renderFriendRequestItem}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.listContainer}
+            /> 
+            </View>
+          )}
         </View>
     );
 }

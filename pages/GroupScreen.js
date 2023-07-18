@@ -10,6 +10,7 @@ const storage = getStorage();
 const GroupScreen = ({ route }) => {
   const { curUserId } = route.params;
   const [Groups, setGroups] = useState([]);
+  const [filteredGroups, setFilteredGroups] = useState([]);
   const [Message, setMessage] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -42,6 +43,7 @@ const GroupScreen = ({ route }) => {
               })
               Promise.all(promises).then(groupArray => {
                 setGroups(groupArray);
+                setFilteredGroups(groupArray);
               })
               console.log(groupArray);
             }
@@ -93,23 +95,17 @@ const GroupScreen = ({ route }) => {
         return "No new messages"
       }
     }
-    
-    const renderResults = ({ item }) => {
-      if (!item) {
-        return null;
-      }
-      return (<View style={styles.item}>
-        <Image source={{uri: item.profilePic}} style={styles.profilePic} />
-        <Text style={styles.usernameText}>{item.name}</Text>
-      </View>);
-    };
 
     const handleSearch = (text) => {
-      const filteredResults = text ? Groups.filter((item) => 
-        item.name.toLowerCase().includes(text.toLowerCase())
-      ) : [];
+      if (text === '') {
+        setFilteredGroups(Groups);
+      } else {
+        const filteredResults = text ? Groups.filter((item) => 
+          item.name.toLowerCase().includes(text.toLowerCase())
+        ) : [];
+        setFilteredGroups(filteredResults);
+      }
       setSearchText(text);
-      setSearchResults(filteredResults);
     };
   
     const renderGroups = ({ item }) => {
@@ -149,19 +145,9 @@ const GroupScreen = ({ route }) => {
               value={searchText}
               placeholderTextColor="#888"
             />
-
-            {searchText !== '' ? (
-            <FlatList
-              data={searchResults}
-              renderItem={renderResults}
-              keyExtractor={(item) => item}
-              ListEmptyComponent={<Text style={styles.emptyText}>No results found</Text>}
-            />
-            ) : null}
           </View>
-
           <FlatList
-            data={Groups}
+            data={filteredGroups}
             renderItem={renderGroups}
             keyExtractor={(item) => item.id.toString()}
             contentContainerStyle={styles.listContainer}

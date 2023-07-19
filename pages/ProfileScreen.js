@@ -44,6 +44,7 @@ const ProfileScreen = ({ route }) => {
     const url = await getDownloadURL(storageRef).catch((error) => {
       console.log(error);
     });
+    return (url !== undefined ? url : defaultUrl);
     setProfilePicUrl(url !== undefined ? url : defaultUrl);
   }  
 
@@ -56,7 +57,13 @@ const ProfileScreen = ({ route }) => {
         const uploadTask = uploadBytes(storageRef, file, metadata);
         uploadTask
         .then((snapshot) => {
-          downloadUrl();
+          downloadUrl()
+          .then((url) => {
+            setProfilePicUrl(url);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
           //setSelectedImage(result.uri); 
         })
         .catch((error) => {
@@ -130,7 +137,7 @@ const ProfileScreen = ({ route }) => {
 
 
 
-    console.log("hiiiiiiiiiiiiii"+removed);
+    //console.log("hiiiiiiiiiiiiii"+removed);
 
 
     if(!removed){
@@ -195,61 +202,65 @@ const ProfileScreen = ({ route }) => {
           if (data) {
             let verbatimsArray = Object.keys(data).map((key) => {
               return { id: key, ...data[key] };
-            });
-            const promises = verbatimsArray.map(async item => {
-              const defaultStorageRef = refStorage(storage, '1.jpg');
-              const defaultUrl = await getDownloadURL(defaultStorageRef);
-              const storageRef = refStorage(storage, String(item.verbaiter) + '.jpg');
-              const url = await getDownloadURL(storageRef).catch((error) => {
-                console.log(error);
-              });
-              return { ...item, profilePic: url === undefined ? defaultUrl : url};
-            })
-            Promise.all(promises).then(verbatimsArray => {
-              const mapC = verbatimsArray.filter((item) => item.verbaiter === profileId);
+            }); 
+            const fetchGroupsAsync = async () => {
+              const includedGroups = await fetchGroups();
+              return includedGroups;
+            };
+    
+            fetchGroupsAsync().then((includedGroups) => {
+              const mapC = verbatimsArray.filter((item) => item.verbaiter === profileId && includedGroups.includes(item.group));
+              //console.log(mapC);
               setVerbatims(mapC);
-              const mapB = verbatimsArray.filter((item) => item.verbastard === profileId);
+              const mapB = verbatimsArray.filter((item) => item.verbastard === profileId && includedGroups.includes(item.group));
+              //console.log(mapB);
               setVerbastards(mapB);
-            })
+            });
           }
         })
+        
+        //console.log("hi!");
         const userRef = ref(db, "Users/" + profileId);
+        //console.log("hi!!");
         onValue(userRef, (snapshot) => {
           data = snapshot.val();
+          //console.log("hi!!!");
           if (data) {
             let likedverbatims = data.likedverbatims || [];
             likedverbatims = likedverbatims.filter((postId) => postId !== undefined);
             setLikedPosts(likedverbatims);
             setUsername(data.username === undefined ? "NoName" : data.username)
           }
+          //console.log("hi!!!!");
         })
+        //console.log("hi!!!!!");
       } catch (error) {
         console.error('Error fetching verbatims: ', error);
       }
     }
+    
 
+    const fetchGroups = () => {
+      return new Promise((resolve, reject) => {
+        const dbref = ref(db, 'Users/' + userId + "/groups");
+        get(dbref).then((snapshot) => {
+          if (snapshot.exists()) {
+            data = snapshot.val();
+            let verbatimsArray = Object.keys(data).map((key) => {
+              return { id: key, val: data[key] };
+            });
+            resolve(verbatimsArray.map(item => item.val));
 
-
-    const profileIdSetter = async () => {
-      const dbref = ref(db, 'Users/' + profileId + "/friends");
-      get(dbref).then((snapshot) => {
-        if (snapshot.exists()) {
-          const updates = {};
-          updates["/friends"] = snapshot.val()+" "+userId;
-
-          update(ref(db, 'Users/' + userId), updates);
-
-          /*console.log(snapshot.val());
-          set(ref(db, 'Users/' + userId), {
-            friends:snapshot.val()+" "+userId
-          });*/
-        } else {
-          console.log("No data available");
-        }
-      }).catch((error) => {
-        console.error(error);
+          } else {
+            resolve([]);
+          }
+        }).catch((error) => {
+          reject(error);
+        });
       });
-    }
+    };
+
+
 
 
     const titleFriendButton = async () => {
@@ -307,7 +318,13 @@ const ProfileScreen = ({ route }) => {
     }
 
     findUsername();
-    downloadUrl();
+    downloadUrl()
+    .then((url) => {
+      setProfilePicUrl(url);
+    })
+    .catch((error) => {
+      console.log(error);
+    });
     //getFriends(friendName);
     fetchVerbatims();
     titleFriendButton();

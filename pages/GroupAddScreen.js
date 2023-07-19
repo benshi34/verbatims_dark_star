@@ -13,6 +13,7 @@ const GroupAddScreen = ({ route }) => {
     const [groupName, setGroupName] = useState('');
     const [selectedUsers, setSelectedUsers] = useState([]);
     const [allUsers, setAllUsers] = useState([])
+    const [sampledUsers, setSampledUsers] = useState([]);
 
     const db = getDatabase(app);
     const navigation = useNavigation();
@@ -20,7 +21,6 @@ const GroupAddScreen = ({ route }) => {
     const createGroup = () => {
         navigation.goBack();
     }
-
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Create New Group</Text>
@@ -29,7 +29,7 @@ const GroupAddScreen = ({ route }) => {
                 value={groupName}
                 onChangeText={text => setGroupName(text)}
                 style={styles.input}
-            />   
+            />
             <TouchableOpacity
                 style={styles.button}
                 onPress={createGroup}

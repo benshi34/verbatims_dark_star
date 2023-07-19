@@ -307,42 +307,43 @@ const HomeScreen = ({ route }) => {
                     animationType="slide" 
                     transparent
                   >
-                    <Pressable 
-                      onPress={(event) => event.target == event.currentTarget && setShowModal(false)}
-                      style={styles.modalContainer}
-                    >
-                    <View style={styles.modalContent}>
-                      <View style={styles.commentsHeading}>
-                        <Text style={styles.commentsHeadingText}>Comments</Text>
-                      </View>
-                      
-                         <ScrollView
-                            data={currComments}
-                            renderItem={renderComment}
-                            keyExtractor={(item, index) => index}
-                            contentContainerStyle={styles.commentsContainer}
-                            style={styles.commentsBody}
-                        />
+                      <Pressable 
+                        onPress={(event) => event.target == event.currentTarget && setShowModal(false)}
+                        style={styles.modalContainer}
+                      >
+                        
+                        <KeyboardAvoidingView behavior={"padding"} style={styles.modalContent}>
+                          <View style={styles.commentsHeading}>
+                            <Text style={styles.commentsHeadingText}>Comments</Text>
+                          </View>
+                          
+                            <ScrollView
+                                data={currComments}
+                                renderItem={renderComment}
+                                keyExtractor={(item, index) => index}
+                                contentContainerStyle={styles.commentsContainer}
+                                style={styles.commentsBody}
+                            />
 
-                        <KeyboardAvoidingView
-                          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                          style={styles.commentInputRect}
-                        >
-                        <View style={styles.textboxRec}>
-                         <TextInput
-                          style={styles.commentInput}
-                          placeholder="Add a comment..."
-                          placeholderTextColor="#616060"
-                          onChangeText={(text) => setCommentText(text)}
-                          value={commentText}
-                          onSubmitEditing={() => addComment(selectedPost.id)}
-                        />
+                            <View
+                              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                              style={styles.commentInputRect}
+                            >
+                            <View style={styles.textboxRec}>
+                            <TextInput
+                              style={styles.commentInput}
+                              placeholder="Add a comment..."
+                              placeholderTextColor="#616060"
+                              onChangeText={(text) => setCommentText(text)}
+                              value={commentText}
+                              onSubmitEditing={() => addComment(selectedPost.id)}
+                            />
+                            </View>
                         </View>
-                    </KeyboardAvoidingView>
-                  </View>
-                  </Pressable>
+                      </KeyboardAvoidingView>
+                    
+                    </Pressable>
                 </Modal>
-              
               )}
       </TouchableWithoutFeedback>
       </View>
@@ -351,7 +352,7 @@ const HomeScreen = ({ route }) => {
 
 const styles = StyleSheet.create({
     container: {
-      flex: 0,
+      flex: 1,
       backgroundColor: '#fff',
     },
     headerView: {
@@ -493,7 +494,7 @@ const styles = StyleSheet.create({
       paddingLeft: 16,
     },
     commentInputRect: {
-      flex: 1,
+      flex: 0,
       alignSelf: 'stretch',
       alignItems: 'center',
       backgroundColor: '#D4D4D4',
@@ -504,7 +505,7 @@ const styles = StyleSheet.create({
       right: 0, 
       height: 80,
       bottom: 0,
-      position: 'absolute',
+      position: 'relative',
       
     },
     textboxRec: {

@@ -150,11 +150,9 @@ const GroupScreen = ({ route }) => {
               placeholderTextColor="#888"
             />
           </View>
-          <Button
-                title='Create Group'
-                buttonStyle={styles.button}
-                onPress={handleCreateGroup}
-          />
+          <TouchableOpacity style={styles.button} onPress={handleCreateGroup}>
+            <Text style={styles.buttonText}>Create Group</Text>
+          </TouchableOpacity>
           <FlatList
             data={filteredGroups}
             renderItem={renderGroups}
@@ -179,6 +177,19 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     paddingBottom: 16,
+  },
+  button: {
+    width: '100%',
+    height: 40,
+    backgroundColor: '#4287f5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
   },
   postContainer: {
     backgroundColor: '#f5f5f5',

@@ -376,7 +376,8 @@ const styles = StyleSheet.create({
     listContainer: {
       position: 'relative',
       padding: 16,
-      height: '100%',
+      flexGrow: 1,
+      paddingBottom: 220,
     },
     postContainer: {
       backgroundColor: '#f5f5f5',

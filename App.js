@@ -16,6 +16,7 @@ import AddScreen from "./pages/AddScreen.js";
 import ChatScreen from "./pages/ChatScreen.js";
 import SearchScreen from "./pages/SearchScreen.js";
 import FriendScreen from "./pages/FriendScreen.js";
+import GroupAddScreen from "./pages/GroupAddScreen.js";
 import { createStackNavigator } from "@react-navigation/stack";
 
 const Tab = createBottomTabNavigator();
@@ -100,6 +101,7 @@ export default function App() {
       <Stack.Navigator>
         <Stack.Screen name="Groups" component={GroupScreen} initialParams={{ curUserId: userID }}/>
         <Stack.Screen name="Chat" component={ChatScreen}/>
+        <Stack.Screen name="CreateGroup" component={GroupAddScreen}/>
       </Stack.Navigator>
     );
   };

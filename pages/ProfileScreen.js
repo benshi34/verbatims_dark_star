@@ -490,53 +490,6 @@ const ProfileScreen = ({ route }) => {
     );
   };
 
-/*
-
-{!showImage && (
-                  <FlatList
-                  data={discussionPosts}
-                  renderItem={renderDiscussionPost}
-                  keyExtractor={(item) => item.id.toString()}
-                  contentContainerStyle={styles.listContainer}
-                  />
-        )}
-
-        */
-
-        /*
-        <Button title={buttonText} onPress={toggleImageVisibility} />
-        
-        <Button title={submittedButtonText} onPress={toggleSubmittedImageVisibility} />*/
-        
-        /*
-        <TouchableOpacity onPress={handleButtonPress} style={styles.imageButton}>
-          {selectedImage ? (
-            <Image source={{ uri: selectedImage }} style={styles.image} />
-          ) : (
-            <Image source={require('../assets/kharn.jpg')} style={styles.image} />
-          )}
-        </TouchableOpacity>
-        */
-
-/*
-const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appspot.com/o/1.jpg?alt=media&token=0b82c18e-9de4-4f37-ab86-ff2748decf86';  
-  return (
-    <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <TouchableOpacity onPress={handleButtonPress} style={styles.imageButton}>
-          {metadata && (
-            <Image source={{ uri: htref }} style={styles.image} />
-          )}
-        </TouchableOpacity>
-        */
-            /*
-          <TextInput
-            style={styles.inputField}
-            placeholder="Enter friend's name"
-            onChangeText={setFriendName}
-            value={friendName}
-          />*/
-
   const toggleShowVerbatims = () => {
     setShowAllVerbatims(!showAllVerbatims);
   };
@@ -547,18 +500,18 @@ const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appsp
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <Text style={styles.text}>{profileUsername}</Text>
+      <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+        <Text style={styles.profileName}>{profileUsername}</Text>
 
         {userId!==profileId && (
           <View style={styles.imageButton}>
-            <Image source={{ uri: profilePicUrl }} style={styles.image} />
+            <Image source={{ uri: profilePicUrl }} style={styles.mainProfileImage} />
           </View>
         )}
         
         {userId===profileId && (
           <TouchableOpacity onPress={handleButtonPress} style={styles.imageButton}>
-            <Image source={{ uri: profilePicUrl }} style={styles.image} />
+            <Image source={{ uri: profilePicUrl }} style={styles.mainProfileImage} />
           </TouchableOpacity>
         )}
 
@@ -584,8 +537,10 @@ const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appsp
           style={styles.scrollViewList}
         />
         {verbatims.length > 1 && 
-          <Button title={showAllVerbatims ? 'Show less' : 'Show more'} onPress={toggleShowVerbatims} />}
-
+          <TouchableOpacity onPress={toggleShowVerbatims} style={styles.showMoreButton}>
+          <Text style={styles.showMoreButtonText}> {showAllVerbatims ? 'Show less' : 'Show more'} </Text>
+          </TouchableOpacity>
+        }
 
         <Text style={styles.text}>Verbatims You Submitted</Text>
         <FlatList
@@ -596,8 +551,11 @@ const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appsp
           style={styles.scrollViewList}
         />
         {verbastards.length > 1 && 
-          <Button title={showAllVerbastards ? 'Show less' : 'Show more'} onPress={toggleShowVerbastards} />}
-        
+          <TouchableOpacity onPress={toggleShowVerbastards} style={styles.showMoreButton}>
+          <Text style={styles.showMoreButtonText}> {showAllVerbastards ? 'Show less' : 'Show more'} </Text>
+          </TouchableOpacity>
+        }     
+
         {selectedPost && (
                 <Modal visible={showModal} animationType="slide" transparent>
                   <View style={styles.modalContainer}>
@@ -638,21 +596,46 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
   },
+  profileName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#4664D6',
+    fontSize: 24,
+    paddingTop: 60,
+    paddingBottom: 20,
+  },
   scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    flexDirection: 'column',
   },
   imageButton: {
-    marginTop: 0,
-    marginLeft: 0,
     justifyContent: 'center', // Center the image horizontally
     alignItems: 'center', // Center the image vertically
+    paddingBottom: 15,
   },
-  image: {
-    width: 200,
-    height: 200,
+  mainProfileImage: {
+    width: 150,
+    height: 150,
     borderRadius: 100,
+  },
+  showMoreButton: {
+    backgroundColor: '#617FE8',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    alignItems: 'center',
+    width: '80%',
+    alignSelf: 'center',
+  },
+  showMoreButtonText: {
+    fontSize: 14,
+    color: '#FFF',
+    fontWeight: 700,
+    paddingTop: 3,
+    paddingBottom: 3,
   },
   backgroundImage: {
     position: 'relative',
@@ -663,10 +646,11 @@ const styles = StyleSheet.create({
     width: 320,
   },
   text: {
-    marginTop: 20,
+    marginTop: 10,
     fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
+    paddingBottom: 20,
   },
   header: {
     fontSize: 24,
@@ -694,9 +678,6 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     marginRight: 8,
-  },
-  username: {
-    fontWeight: 'bold',
   },
   postText: {
     fontSize: 16,
@@ -741,10 +722,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#333',
   },
-  scrollContainer: {
-    flexGrow: 1,
-    paddingBottom: 16,
-  },
   actionsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -757,21 +734,26 @@ const styles = StyleSheet.create({
     backgroundColor: '#e1e1e1',
   },
   belowProfileButton: {
-    backgroundColor: '#ddd',
+    backgroundColor: '#617FE8',
     paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: 8,
+    borderRadius: 16,
   },
   closeButton: {
     alignSelf: 'flex-end',
     backgroundColor: '#ddd',
     paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: 8,
+    borderRadius: 16,
   },
   closeButtonText: {
     fontSize: 14,
-    color: '#333',
+    color: '#FFF',
+    fontWeight: 700,
+    paddingTop: 3, 
+    paddingLeft: 3,
+    paddingBottom: 3,
+    paddingRight: 3,
   },
   commentsHeading: {
     paddingHorizontal: 12,
@@ -833,15 +815,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     marginBottom: 16,
-  },
-  inputField: {
-    flex: 1,
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    borderRadius: 4,
-    paddingHorizontal: 12,
-    marginRight: 8,
   },
 });
 

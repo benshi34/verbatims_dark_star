@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, ScrollView, TextInput } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, ScrollView, TextInput, Button } from 'react-native';
 import { getDatabase, ref, get, onValue } from "firebase/database";
 import { getStorage, ref as refStorage, getDownloadURL } from "firebase/storage";
 import { app } from "../Firebase.js";
@@ -107,6 +107,10 @@ const GroupScreen = ({ route }) => {
       }
       setSearchText(text);
     };
+
+    const handleCreateGroup = () => {
+      navigation.navigate('CreateGroup', { id: userId })
+    };
   
     const renderGroups = ({ item }) => {
       const handleGroupPress = () => {
@@ -146,6 +150,11 @@ const GroupScreen = ({ route }) => {
               placeholderTextColor="#888"
             />
           </View>
+          <Button
+                title='Create Group'
+                buttonStyle={styles.button}
+                onPress={handleCreateGroup}
+          />
           <FlatList
             data={filteredGroups}
             renderItem={renderGroups}

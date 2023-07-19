@@ -203,7 +203,7 @@ const HomeScreen = ({ route }) => {
           <Path
             d="M3.825 19L5.45 11.975L0 7.25L7.2 6.625L10 0L12.8 6.625L20 7.25L14.55 11.975L16.175 19L10 15.275L3.825 19Z"
             fill={isFavorite ? "#FFD600" : "#f5f5f5"}
-            stroke={"#AFAFAF"}
+            stroke={isFavorite ? "none" : "#AFAFAF"}
           />
         </Svg>
       </TouchableOpacity>
@@ -411,7 +411,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     position: "relative",
-    paddingBottom: 300,
+    paddingBottom: 330,
     paddingLeft: 15,
     paddingRight: 15,
     paddingTop: 10,

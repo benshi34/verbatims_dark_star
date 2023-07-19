@@ -420,11 +420,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     position: "relative",
-<<<<<<< HEAD
-    paddingBottom: 400,
-=======
     paddingBottom: 330,
->>>>>>> 317ae700eb183841021e6d01ba9ef8d72c63ad9d
     paddingLeft: 15,
     paddingRight: 15,
     paddingTop: 10,

@@ -1,5 +1,5 @@
 import React, { useEffect,useState } from 'react';
-import { View, TextInput, FlatList, Text, StyleSheet, Image } from 'react-native';
+import { View, TextInput, FlatList, Text, StyleSheet, Image, Keyboard } from 'react-native';
 import { getDatabase, ref, get, child, onValue, update } from "firebase/database";
 import { getStorage, ref as refStorage, getDownloadURL } from "firebase/storage";
 import { app } from "../Firebase.js";
@@ -79,9 +79,13 @@ const SearchScreen = ({ route }) => {
     setSearchResults(filteredResults);
   };
   
-  const SvgPenis = () => {
+  const dismissKeyboard = () => {
+    Keyboard.dismiss(); // Dismiss the keyboard
+  };
+
+  const SvgPenis = ({ onPress }) => {
     return (
-      <TouchableOpacity style={styles.penisContainer}>
+      <TouchableOpacity style={styles.penisContainer} onPress={dismissKeyboard}>
         <Svg 
           xmlns="http://www.w3.org/2000/svg" 
           width="128" 

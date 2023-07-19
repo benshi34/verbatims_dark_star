@@ -109,7 +109,7 @@ const GroupScreen = ({ route }) => {
     };
 
     const handleCreateGroup = () => {
-      navigation.navigate('CreateGroup', { id: userId })
+      navigation.navigate("Create New Group", { id: userId });
     };
   
     const renderGroups = ({ item }) => {

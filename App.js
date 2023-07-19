@@ -99,9 +99,19 @@ export default function App() {
   const GroupStack = () => {
     return (
       <Stack.Navigator>
-        <Stack.Screen name="Groups" component={GroupScreen} initialParams={{ curUserId: userID }}/>
-        <Stack.Screen name="Chat" component={ChatScreen}/>
-        <Stack.Screen name="CreateGroup" component={GroupAddScreen}/>
+        <Stack.Screen
+          name="Groups"
+          component={GroupScreen}
+          initialParams={{ curUserId: userID }}
+        />
+        <Stack.Screen name="Chat" component={ChatScreen} />
+        <Stack.Screen
+          options={{
+            contentStyle: { backgroundColor: "white" },
+          }}
+          name="Create New Group"
+          component={GroupAddScreen}
+        />
       </Stack.Navigator>
     );
   };

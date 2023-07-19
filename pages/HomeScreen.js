@@ -210,7 +210,7 @@ const HomeScreen = ({ route }) => {
     );
   };
 
-  const SvgLikeButton = ({ onPress, isLiked }) => {
+  const SvgLikeButton = ({ onPress, isLiked, numLikes}) => {
     return (
       <TouchableOpacity style={styles.likeButtonContainer} onPress={onPress}>
         <Svg
@@ -229,13 +229,13 @@ const HomeScreen = ({ route }) => {
           style={[styles.likeButtonText, isLiked && styles.likeButtonLiked]}
         >
           {" "}
-          n Likes
+          {numLikes} Likes
         </Text>
       </TouchableOpacity>
     );
   };
 
-  const SvgCommentButton = ({ onPress }) => {
+  const SvgCommentButton = ({ onPress, numComments }) => {
     return (
       <TouchableOpacity style={styles.likeButtonContainer} onPress={onPress}>
         <Svg
@@ -259,7 +259,7 @@ const HomeScreen = ({ route }) => {
             stroke-linecap="round"
           />
         </Svg>
-        <Text style={[styles.commentButtonText]}> n Comments</Text>
+        <Text style={[styles.commentButtonText]}> {numComments} Comments</Text>
       </TouchableOpacity>
     );
   };
@@ -271,6 +271,14 @@ const HomeScreen = ({ route }) => {
       groupName = "No Group";
     } else {
       groupName = item.groupName;
+    }
+    let numLikes = 0;
+    if (item.likes !== undefined) {
+      numLikes = item.likes.length;
+    }
+    let numComments = 0;
+    if (item.comments !== undefined) {
+      numComments = Object.keys(item.comments).length;
     }
     return (
       <View style={styles.postContainer}>
@@ -311,6 +319,7 @@ const HomeScreen = ({ route }) => {
           <SvgLikeButton
             onPress={() => toggleLike(item.id)}
             isLiked={isLiked}
+            numLikes={numLikes}
           />
           <Text> </Text>
           {/*<TouchableOpacity style={styles.commentButton} onPress={() => openModal(item.id)}>
@@ -318,6 +327,7 @@ const HomeScreen = ({ route }) => {
           </TouchableOpacity>*/}
           <SvgCommentButton 
             onPress={() => openModal(item.id)} 
+            numComments={numComments}
           />
           </View>
         </View>
@@ -352,13 +362,12 @@ const HomeScreen = ({ route }) => {
                       <View style={styles.commentsHeading}>
                         <Text style={styles.commentsHeadingText}>Comments</Text>
                       </View>
-                      
-                         <ScrollView
-                            data={currComments}
-                            renderItem={renderComment}
-                            keyExtractor={(item, index) => index}
-                            contentContainerStyle={styles.commentsContainer}
-                            style={styles.commentsBody}
+                        <FlatList
+                          data={currComments}
+                          renderItem={renderComment}
+                          keyExtractor={(item, index) => index}
+                          contentContainerStyle={styles.commentsContainer}
+                          style={styles.commentsBody}
                         />
 
                         <KeyboardAvoidingView

@@ -177,29 +177,57 @@ const HomeScreen = ({ route }) => {
       );
     };
 
-    /*
-    const SvgLikeButton = ({ onPress }) => {
+    const SvgFavoritedButton = ({ onPress, isFavorite }) => {
       return (
-        <TouchableOpacity onPress={onPress}>
-          <Svg xmlns="http://www.w3.org/2000/svg" width="14" height="13" viewBox="0 0 14 13" fill="none">
+        <TouchableOpacity style={styles.likeButtonContainer} onPress={onPress}>
+          <Svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 19 19" fill="none">
             <Path 
-              d="M13.6613 2.66409C13.4441 2.14276 13.1309 1.67033 12.7392 1.27326C12.3472 0.875002 11.8851 0.558512 11.3779 0.341001C10.852 0.114559 10.288 
-                -0.0013468 9.71847 1.18067e-05C8.91954 1.18067e-05 8.14005 0.226778 7.46266 0.655113C7.3006 0.757578 7.14665 0.870121 7.0008 0.992743C6.85495 0.870121 
-                6.701 0.757578 6.53894 0.655113C5.86155 0.226778 5.08206 1.18067e-05 4.28313 1.18067e-05C3.70783 1.18067e-05 3.15036 0.114235 2.62368 0.341001C2.11483 
-                0.559368 1.65621 0.873481 1.26241 1.27326C0.870233 1.66989 0.556949 2.14242 0.340317 2.66409C0.115059 3.20665 0 3.7828 0 4.37575C0 4.93511 0.110198 5.51798 
-                0.328973 6.11093C0.512096 6.60646 0.774626 7.12046 1.11008 7.6395C1.64162 8.4609 2.37249 9.31757 3.28 10.186C4.78388 11.6255 6.27317 12.62 6.33637 12.6603L6.72045 
-                12.9156C6.8906 13.0281 7.10938 13.0281 7.27954 12.9156L7.66361 12.6603C7.72681 12.6183 9.21448 11.6255 10.72 10.186C11.6275 9.31757 12.3584 8.4609 12.8899 7.6395C13.2254 
-                7.12046 13.4895 6.60646 13.671 6.11093C13.8898 5.51798 14 4.93511 14 4.37575C14.0016 3.7828 13.8865 3.20665 13.6613 2.66409ZM7.0008 11.5869C7.0008 11.5869 1.23162 7.75541 
-                1.23162 4.37575C1.23162 2.66409 2.59775 1.27662 4.28313 1.27662C5.46776 1.27662 6.49519 1.96196 7.0008 2.96309C7.50641 1.96196 8.53385 1.27662 9.71847 1.27662C11.4039 1.27662 
-                12.77 2.66409 12.77 4.37575C12.77 7.75541 7.0008 11.5869 7.0008 11.5869Z" 
-              fill="#AFAFAF"
+              d="M3.825 19L5.45 11.975L0 7.25L7.2 6.625L10 0L12.8 6.625L20 7.25L14.55 11.975L16.175 19L10 15.275L3.825 19Z"
+              fill={isFavorite ? "#FFD600" : "#f5f5f5"}
+              stroke={'#AFAFAF'}
             />
           </Svg>
         </TouchableOpacity>
       );
     };
-    */
 
+    const SvgLikeButton = ({ onPress, isLiked }) => {
+      return (
+        <TouchableOpacity style={styles.likeButtonContainer} onPress={onPress}>
+          <Svg xmlns="http://www.w3.org/2000/svg" width="14" height="13" viewBox="0 0 14 13" fill="none">
+            <Path 
+              d="M10.7021 2.6004C10.532 2.20638 10.2866 1.84933 9.97978 1.54923C9.67273 1.24823 9.31069 1.00903 8.91338 0.844638C8.50139 0.673496 8.0595 0.585896 7.61338 0.586923C6.9875 0.586923 6.37686 0.75831 5.84619 1.08204C5.71924 1.15948 5.59863 1.24454 5.48438 1.33722C5.37012 1.24454 5.24951 1.15948 5.12256 1.08204C4.59189 0.75831 3.98125 0.586923 3.35537 0.586923C2.90469 0.586923 2.46797 0.673251 2.05537 0.844638C1.65674 1.00968 1.29746 1.24708 0.988965 1.54923C0.681734 1.84899 0.43631 2.20613 0.266602 2.6004C0.0901367 3.01046 0 3.44591 0 3.89405C0 4.31681 0.0863282 4.75733 0.257715 5.20548C0.401172 5.57999 0.606836 5.96847 0.869629 6.36075C1.28604 6.98155 1.85859 7.62901 2.56953 8.28536C3.74766 9.37335 4.91436 10.1249 4.96387 10.1554L5.26475 10.3483C5.39805 10.4334 5.56943 10.4334 5.70273 10.3483L6.00361 10.1554C6.05313 10.1236 7.21855 9.37335 8.39795 8.28536C9.10889 7.62901 9.68145 6.98155 10.0979 6.36075C10.3606 5.96847 10.5676 5.57999 10.7098 5.20548C10.8812 4.75733 10.9675 4.31681 10.9675 3.89405C10.9688 3.44591 10.8786 3.01046 10.7021 2.6004Z"
+              fill={isLiked ? "red" : "#AFAFAF"}
+            />
+          </Svg>
+          <Text style={[styles.likeButtonText, isLiked && styles.likeButtonLiked]}> n Likes</Text>
+        </TouchableOpacity>
+      );
+    };
+
+    const SvgCommentButton = ({ onPress }) => {
+      return (
+        <TouchableOpacity style={styles.likeButtonContainer} onPress={onPress}>
+          <Svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <Path 
+              d="M7 9.5C8.8855 9.5 9.8285 9.5 10.414 8.914C11 8.3285 11 7.3855 11 5.5C11 3.6145 11 2.6715 10.414 2.086C9.8285 1.5 8.8855 1.5 7 1.5H5C3.1145 1.5 2.1715 1.5 1.586 2.086C1 2.6715 1 3.6145 1 5.5C1 7.3855 1 8.3285 1.586 8.914C1.9125 9.241 2.35 9.3855 3 9.449" 
+              stroke="#5570D6" 
+              stroke-width="2" 
+              stroke-linecap="round" 
+              stroke-linejoin="round"
+            />
+            <Path 
+              d="M7.00012 9.5C6.38212 9.5 5.70112 9.75 5.07962 10.0725C4.08062 10.591 3.58112 10.8505 3.33512 10.685C3.08912 10.52 3.13562 10.0075 3.22912 8.983L3.25012 8.75" 
+              stroke="#5570D6" 
+              stroke-width="2" 
+              stroke-linecap="round"
+            />
+          </Svg>
+          <Text style={[styles.commentButtonText]}> n Comments</Text>
+        </TouchableOpacity>
+      );
+    };
+    
     const renderDiscussionPost = ({ item }) => {
       let isLiked = likedPosts.includes(item.id);
       let groupName = null;
@@ -213,35 +241,54 @@ const HomeScreen = ({ route }) => {
         <View style={styles.postContainer}>
           <View style={styles.userContainer}>
             <Image source={{uri: item.profilePic}} style={styles.profilePic} />
-            <Text style={styles.username}>{item.verbaiterName} Said:</Text>
-            <Text style={styles.timestamp}>{item.timestamp}</Text>
+            <View style={styles.userInfo}>
+              <Text style={styles.username}>{item.verbaiterName} Said:</Text>
+              <Text style={styles.timestamp}>{item.timestamp}</Text>
+            </View>
           </View>
           
           <View style={styles.postTextContainer}>
             <Text style={styles.postText}>"{item.post}"</Text>
           </View>
-          <Text style={styles.submittedText}>Submitted by: {item.verbastardName} | {groupName}</Text>
-          <TouchableOpacity
+          <View style={styles.submittedByContainer}>
+            <Text style={styles.submittedByText}>Submitted by: {item.verbastardName} | {groupName}</Text>
+          </View>
+          {/*<TouchableOpacity
             style={[styles.favoriteButton, item.isFavorite && styles.favoriteButtonActive]}
             onPress={() => toggleFavorite(item.id)}
           >
-            <Text style={[styles.favoriteButtonText, item.isFavorite && styles.favoriteButtonTextActive]}>
+            <Text style={[styles.favoriteButtonText, item.isFavorite && styles.favoriteButtonActive]}>
               {item.isFavorite ? 'Unfavorite' : 'Favorite'}
             </Text>
-          </TouchableOpacity>
+          </TouchableOpacity>*/}
+          <View style={styles.favoriteButton}>
+            <SvgFavoritedButton 
+              onPress={() => toggleFavorite(item.id)} 
+              isFavorite={item.isFavorite}
+            />
+          </View>
           <View style={styles.actionsContainer}>
-          <TouchableOpacity style={[styles.likeButton, isLiked && styles.likeButtonLiked]} onPress={() => toggleLike(item.id)}>
+          {/*<TouchableOpacity style={[styles.likeButton, isLiked && styles.likeButtonLiked]} onPress={() => toggleLike(item.id)}>
             <Text style={styles.likeButtonText}>Like</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.commentButton} onPress={() => openModal(item.id)}>
+          </TouchableOpacity>*/}
+          <SvgLikeButton 
+            onPress={() => toggleLike(item.id)} 
+            isLiked={isLiked}
+          />
+          <Text>   </Text>
+          {/*<TouchableOpacity style={styles.commentButton} onPress={() => openModal(item.id)}>
             <Text style={styles.commentButtonText}>View Comments</Text>
-          </TouchableOpacity>
+          </TouchableOpacity>*/}
+          <SvgCommentButton 
+            onPress={() => openModal(item.id)} 
+          />
           </View>
         </View>
       );
     };
     
     return (
+        
         <View style={styles.container}>
           <TouchableWithoutFeedback onPress={dismissKeyboard}>
             <View style={styles.headerView}>
@@ -269,7 +316,7 @@ const HomeScreen = ({ route }) => {
                         <Text style={styles.commentsHeadingText}>Comments</Text>
                       </View>
                       
-                         <FlatList
+                         <ScrollView
                             data={currComments}
                             renderItem={renderComment}
                             keyExtractor={(item, index) => index}
@@ -304,24 +351,31 @@ const HomeScreen = ({ route }) => {
 
 const styles = StyleSheet.create({
     container: {
-      flex: 1,
-      padding: 16,
+      flex: 0,
       backgroundColor: '#fff',
-      paddingTop: 45,
     },
     headerView: {
+      paddingTop: 45,
+      paddingBottom: 16,
+      width: "100%",
+      height: 110,
+      backgroundColor: "#fff",
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.8,
+      shadowRadius: 4,
+      elevation: 5,
       alignItems: 'center',
     },
     header: {
       fontSize: 39,
       fontWeight: 400,
-      marginBottom: 16,
-      marginTop: 16,
       color: '#617FE8',
     },
     listContainer: {
-      paddingBottom: 16,
       position: 'relative',
+      padding: 16,
+      height: '100%',
     },
     postContainer: {
       backgroundColor: '#f5f5f5',
@@ -335,7 +389,10 @@ const styles = StyleSheet.create({
     userContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginBottom: 8,
+      marginBottom: 1,
+    },
+    userInfo: {
+      margin: 0,
     },
     timestamp: {
       color: '#9A9A9A',
@@ -343,7 +400,10 @@ const styles = StyleSheet.create({
       fontStyle: 'normal',
       fontWeight: 700,
     },
-    submittedText: {
+    submittedByContainer: {
+      marginHorizontal: 8, 
+    },
+    submittedByText: {
       color: '#9A9A9A', 
       fontSize: 10,
       fontWeight: 700,
@@ -355,8 +415,8 @@ const styles = StyleSheet.create({
       marginRight: 8,
     },
     postTextContainer: {
-      flex: 1,
-      marginBottom: 0,
+      flex: 0,
+      marginBottom: 4,
     },
     postText: {
       fontSize: 16,
@@ -373,37 +433,35 @@ const styles = StyleSheet.create({
       right: 8,
       paddingHorizontal: 12,
       paddingVertical: 6,
-      borderRadius: 16,
-      backgroundColor: '#e1e1e1',
     },
     favoriteButtonText: {
       fontSize: 14,
       color: '#333',
     },
     favoriteButtonActive: {
-      backgroundColor: '#ffcc00',
+      backgroundColor: 'yellow',
     },
-    likeButton: {
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 16,
-      backgroundColor: '#e1e1e1',
+    likeButtonContainer: {
+      flexDirection: 'row',
     },
     likeButtonLiked: {
-      backgroundColor: 'red',
+      color: 'red',
     },
     likeButtonText: {
-      fontSize: 14,
-      color: '#333',
+      fontSize: 10,
+      fontWeight: 700,
+      color: '#AFAFAF',
     },
     scrollContainer: {
       flexGrow: 1,
       paddingBottom: 16,
     },
     actionsContainer: {
+      width: '100%',
       flexDirection: 'row',
-      justifyContent: 'space-between',
+      justifyContent: 'center',
       alignItems: 'center',
+      marginTop: 8,
     },
     commentButton: {
       paddingHorizontal: 12,
@@ -482,8 +540,9 @@ const styles = StyleSheet.create({
       color: '#AFAFAF'
     },
     commentButtonText: {
-      fontSize: 14,
-      color: '#333',
+      fontSize: 10,
+      fontWeight: 700,
+      color: '#617FE8',
     },
     modalContainer: {
       flex: 1,

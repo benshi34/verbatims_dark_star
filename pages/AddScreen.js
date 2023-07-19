@@ -45,52 +45,179 @@ const AddScreen = ({ route }) => {
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [pressedIndexes, setPressedIndexes] = useState([]);
   const [updatedIndexes, setUpdatedIndexes] = useState([]);
+  const { userID } = route.params;
 
   const fetchGroups = () => {
-    const groupsRef = ref(db, "Groups");
-    onValue(groupsRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const groupsData = snapshot.val();
-        const groupsArray = Object.entries(groupsData).map(([id, group]) => ({
-          id,
-          ...group,
-        }));
+    const dbref = ref(db, "Users/" + userID + "/groups");
+    get(dbref)
+      .then((snapshot) => {
+        if (snapshot.exists()) {
+          data = snapshot.val();
+          let groups = Object.values(data);
 
-        setGroups(groupsArray);
+          const groupsArr = groups.map((element) => ({
+            id: element,
+          }));
 
-        if (groupsArray.length <= 5) {
-          setSampledGroups(groupsArray);
-        } else {
-          const shuffledGroups = groupsArray.sort(() => 0.5 - Math.random());
-          const sampledGroups = shuffledGroups.slice(0, 5);
-          setSampledGroups(sampledGroups);
+          const promises = [];
+          for (let i = 0; i < groupsArr.length; i++) {
+            const group = groupsArr[i];
+            const promise = getGroupnameFromID(group["id"])
+              .then((groupData) => {
+                groupsArr[i]["name"] = groupData["name"];
+                groupsArr[i]["members"] = Object.values(groupData["users"]);
+                console.log(groupsArr);
+              })
+              .catch((error) => {
+                console.error(error);
+              });
+            promises.push(promise);
+          }
+
+          Promise.all(promises)
+            .then(() => {
+              console.log("RUN");
+
+              selectedUser = sampledUsers[selectedIndex]["id"];
+
+              console.log(selectedUser);
+
+              const filteredGroups = groupsArr.filter((element) => {
+                return element["members"].includes(selectedUser);
+              });
+
+              setGroups(filteredGroups);
+
+              if (filteredGroups.length <= 5) {
+                setSampledGroups(filteredGroups);
+              } else {
+                const shuffledGroups = filteredGroups.sort(
+                  () => 0.5 - Math.random()
+                );
+                const sampledGroups = shuffledGroups.slice(0, 5);
+                setSampledGroups(sampledGroups);
+              }
+            })
+            .catch((error) => {
+              console.error(error);
+            });
         }
-      }
+      })
+      .catch((error) => {
+        //console.log("6");
+        console.error(error);
+      });
+
+    // const groupsRef = ref(db, "Groups");
+    // onValue(groupsRef, (snapshot) => {
+    //   if (snapshot.exists()) {
+    //     const groupsData = snapshot.val();
+    //     const groupsArray = Object.entries(groupsData).map(([id, group]) => ({
+    //       id,
+    //       ...group,
+    //     }));
+
+    //     setGroups(groupsArray);
+
+    //     if (groupsArray.length <= 5) {
+    //       setSampledGroups(groupsArray);
+    //     } else {
+    //       const shuffledGroups = groupsArray.sort(() => 0.5 - Math.random());
+    //       const sampledGroups = shuffledGroups.slice(0, 5);
+    //       setSampledGroups(sampledGroups);
+    //     }
+    //   }
+    // });
+  };
+
+  const getUsernameFromID = (userIdValue) => {
+    const dbref = ref(db, "Users/" + userIdValue);
+
+    return new Promise((resolve, reject) => {
+      get(dbref)
+        .then((snapshot) => {
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+            resolve(data["username"]);
+          } else {
+            reject(new Error("User not found."));
+          }
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
+  };
+
+  const getGroupnameFromID = (groupIDValue) => {
+    const dbref = ref(db, "Groups/" + groupIDValue);
+
+    return new Promise((resolve, reject) => {
+      get(dbref)
+        .then((snapshot) => {
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+            console.log(data);
+            resolve(data);
+          } else {
+            reject(new Error("Group not found."));
+          }
+        })
+        .catch((error) => {
+          reject(error);
+        });
     });
   };
 
   // Fetch the user data from Firebase
   const fetchUsers = () => {
-    const usersRef = ref(db, "Users");
-    onValue(usersRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const usersData = snapshot.val();
-        const usersArray = Object.entries(usersData).map(([id, user]) => ({
-          id,
-          ...user,
-        }));
+    const dbref = ref(db, "Users/" + userID + "/friends");
+    get(dbref)
+      .then((snapshot) => {
+        if (snapshot.exists()) {
+          data = snapshot.val();
+          let friends = Object.values(data);
 
-        setUsers(usersArray);
+          const friendsArr = friends.map((element) => ({
+            id: element,
+          }));
 
-        if (usersArray.length <= 5) {
-          setSampledUsers(usersArray);
-        } else {
-          const shuffledUsers = usersArray.sort(() => 0.5 - Math.random());
-          const sampledUsers = shuffledUsers.slice(0, 5);
-          setSampledUsers(sampledUsers);
+          const promises = [];
+          for (let i = 0; i < friendsArr.length; i++) {
+            const friend = friendsArr[i];
+            const promise = getUsernameFromID(friend["id"])
+              .then((username) => {
+                friendsArr[i]["username"] = username;
+              })
+              .catch((error) => {
+                console.error(error);
+              });
+            promises.push(promise);
+          }
+
+          Promise.all(promises)
+            .then(() => {
+              setUsers(friendsArr);
+
+              if (friendsArr.length <= 5) {
+                setSampledUsers(friendsArr);
+              } else {
+                const shuffledUsers = friendsArr.sort(
+                  () => 0.5 - Math.random()
+                );
+                const sampledUsers = shuffledUsers.slice(0, 5);
+                setSampledUsers(sampledUsers);
+              }
+            })
+            .catch((error) => {
+              console.error(error);
+            });
         }
-      }
-    });
+      })
+      .catch((error) => {
+        //console.log("6");
+        console.error(error);
+      });
   };
 
   const sampleGroups = () => {
@@ -305,14 +432,20 @@ const AddScreen = ({ route }) => {
 
   // Fetch the user data when the component mounts
   useEffect(() => {
-    fetchUsers(), fetchGroups();
-    fetchGroups(), sampleGroups();
+    fetchUsers();
   }, []);
 
-  const contactChosen = (userItem) => {
-    newSampledUsers = sampledUsers.concat(userItem);
-    setSampledUsers(newSampledUsers);
-    setSelectedIndex(sampledUsers.length);
+  useEffect(() => {
+    fetchGroups();
+  }, [selectedIndex]);
+
+  const contactChosen = (userItem, index) => {
+    if (!sampledUsers.includes(userItem)) {
+      newSampledUsers = sampledUsers.concat(userItem);
+      setSampledUsers(newSampledUsers);
+      setSelectedIndex(sampledUsers.length);
+    }
+    setSelectedIndex(index);
     togglePopup();
   };
 
@@ -365,7 +498,7 @@ const AddScreen = ({ route }) => {
               <ScrollView contentContainerStyle={styles.scrollContainer}>
                 {users.map((user, index) => (
                   <TouchableOpacity
-                    onPress={() => contactChosen(user)}
+                    onPress={() => contactChosen(user, index)}
                     style={styles.chooseButtonContainer}
                     key={index}
                   >
@@ -373,7 +506,15 @@ const AddScreen = ({ route }) => {
                       source={require("../assets/kharn.jpg")}
                       style={styles.image}
                     />
-                    <Text style={styles.buttonText}>{user.username}</Text>
+                    <Text
+                      style={
+                        selectedIndex === index
+                          ? styles.purpleButtonText
+                          : styles.buttonText
+                      }
+                    >
+                      {user.username}
+                    </Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
@@ -396,29 +537,43 @@ const AddScreen = ({ route }) => {
             <Text style={styles.subText}>Suggested Groups</Text>
 
             <View style={styles.innerContactsContainer}>
-              {sampledGroups.map((group, index) => {
-                const isPressed = updatedIndexes.includes(group.id);
-                const buttonStyle = isPressed
-                  ? styles.buttonPressed
-                  : styles.buttonContainer;
-                const textStyle = isPressed
-                  ? styles.buttonTextPressed
-                  : styles.buttonText;
+              {sampledGroups.length === 0 ? (
+                <View style={styles.noGroupContainer}>
+                  {selectedIndex === null ? (
+                    <Text style={styles.noGroupText}>
+                      Choose a Contact to See Available Groups
+                    </Text>
+                  ) : (
+                    <Text style={styles.noGroupText}>
+                      You Don't Have Groups in Common With That User
+                    </Text>
+                  )}
+                </View>
+              ) : (
+                sampledGroups.map((group, index) => {
+                  const isPressed = updatedIndexes.includes(group.id);
+                  const buttonStyle = isPressed
+                    ? styles.buttonPressed
+                    : styles.buttonContainer;
+                  const textStyle = isPressed
+                    ? styles.buttonTextPressed
+                    : styles.buttonText;
 
-                return (
-                  <TouchableOpacity
-                    style={buttonStyle}
-                    key={index}
-                    onPress={() => selectGroup(group.id)}
-                  >
-                    <Image
-                      source={require("../assets/kharn.jpg")}
-                      style={styles.image}
-                    />
-                    <Text style={textStyle}>{group.name}</Text>
-                  </TouchableOpacity>
-                );
-              })}
+                  return (
+                    <TouchableOpacity
+                      style={buttonStyle}
+                      key={index}
+                      onPress={() => selectGroup(group.id)}
+                    >
+                      <Image
+                        source={require("../assets/kharn.jpg")}
+                        style={styles.image}
+                      />
+                      <Text style={textStyle}>{group.name}</Text>
+                    </TouchableOpacity>
+                  );
+                })
+              )}
             </View>
 
             <TouchableOpacity
@@ -631,6 +786,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginLeft: 7,
   },
+  purpleButtonText: {
+    color: "#3E63E4",
+    fontWeight: "bold",
+    fontSize: 14,
+    marginLeft: 7,
+  },
+
   buttonTextPressed: {
     color: "white",
     fontWeight: "bold",
@@ -812,6 +974,21 @@ const styles = StyleSheet.create({
     elevation: 2,
     paddingBottom: 20,
   },
+  noGroupText: {
+    fontWeight: "bold",
+    textAlign: "center",
+    fontSize: 16,
+    color: "#334CA4",
+  },
+  noGroupContainer: {
+    alignItems: "center",
+    flex: 1,
+    marginLeft: 25,
+    marginRight: 25,
+    paddingTop: 10,
+    paddingBottom: 10,
+  },
+
   buttonOpen: {
     backgroundColor: "#F194FF",
   },
@@ -822,6 +999,7 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
     textAlign: "center",
+    alignItems: "center",
   },
   modalText: {
     color: "#375FEA",

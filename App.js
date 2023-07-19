@@ -126,7 +126,7 @@ export default function App() {
         screenOptions={{
           tabBarInactiveTintColor: "black", // Set the inactive tab text color here
           tabBarActiveTintColor: "#3E63E4", // Set the active tab text color here
-          headerShown: false, 
+          headerShown: false,
         }}
       >
         <Tab.Screen
@@ -183,7 +183,7 @@ export default function App() {
         <Tab.Screen
           name="Add Verbatim"
           component={AddScreen}
-          initialParams={{ value: userID }}
+          initialParams={{ userID: userID }}
           options={{
             headerShown: false,
             tabBarIcon: ({ focused, color, size }) => (

@@ -31,16 +31,14 @@ import {
 const db = getDatabase(app);
 
 const AddScreen = ({ route }) => {
-  const [postText, setPostText] = useState("");
   const [users, setUsers] = useState([]);
-  const [selectedGroup, setSelectedGroup] = useState(""); // Store the selected group
+  const [verbatimText, setVerbatimText] = useState(""); // Store the selected group
   const [sampledGroups, setSampledGroups] = useState([]);
   const [sampledUsers, setSampledUsers] = useState([]);
   const [groups, setGroups] = useState([]); // Store the groups
-  const [selectedVerbaiter, setSelectedVerbaiter] = useState(""); // Store the selected verbaiter
-  const [verbaiterModalVisible, setVerbaiterModalVisible] = useState(false);
   const [groupsModalVisible, setGroupsModalVisible] = useState(false);
   const [isPopupVisible, setPopupVisible] = useState(false);
+  const [isAlertPopupVisible, setAlertPopupVisible] = useState(false);
   const [isGroupPopupVisible, setGroupPopupVisible] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [pressedIndexes, setPressedIndexes] = useState([]);
@@ -76,26 +74,27 @@ const AddScreen = ({ route }) => {
 
           Promise.all(promises)
             .then(() => {
-              console.log("RUN");
+              selectedUser = sampledUsers[selectedIndex];
 
-              selectedUser = sampledUsers[selectedIndex]["id"];
+              if (selectedUser != null) {
+                const filteredGroups = groupsArr.filter((element) => {
+                  return element["members"].includes(selectedUser["id"]);
+                });
 
-              console.log(selectedUser);
+                setGroups(filteredGroups);
 
-              const filteredGroups = groupsArr.filter((element) => {
-                return element["members"].includes(selectedUser);
-              });
-
-              setGroups(filteredGroups);
-
-              if (filteredGroups.length <= 5) {
-                setSampledGroups(filteredGroups);
+                if (filteredGroups.length <= 5) {
+                  setSampledGroups(filteredGroups);
+                } else {
+                  const shuffledGroups = filteredGroups.sort(
+                    () => 0.5 - Math.random()
+                  );
+                  const sampledGroups = shuffledGroups.slice(0, 5);
+                  setSampledGroups(sampledGroups);
+                }
               } else {
-                const shuffledGroups = filteredGroups.sort(
-                  () => 0.5 - Math.random()
-                );
-                const sampledGroups = shuffledGroups.slice(0, 5);
-                setSampledGroups(sampledGroups);
+                setGroups([]);
+                setSampledGroups([]);
               }
             })
             .catch((error) => {
@@ -104,30 +103,8 @@ const AddScreen = ({ route }) => {
         }
       })
       .catch((error) => {
-        //console.log("6");
         console.error(error);
       });
-
-    // const groupsRef = ref(db, "Groups");
-    // onValue(groupsRef, (snapshot) => {
-    //   if (snapshot.exists()) {
-    //     const groupsData = snapshot.val();
-    //     const groupsArray = Object.entries(groupsData).map(([id, group]) => ({
-    //       id,
-    //       ...group,
-    //     }));
-
-    //     setGroups(groupsArray);
-
-    //     if (groupsArray.length <= 5) {
-    //       setSampledGroups(groupsArray);
-    //     } else {
-    //       const shuffledGroups = groupsArray.sort(() => 0.5 - Math.random());
-    //       const sampledGroups = shuffledGroups.slice(0, 5);
-    //       setSampledGroups(sampledGroups);
-    //     }
-    //   }
-    // });
   };
 
   const getUsernameFromID = (userIdValue) => {
@@ -234,6 +211,15 @@ const AddScreen = ({ route }) => {
     // Get the current timestamp
     const timestamp = Date.now();
 
+    if (
+      pressedIndexes.length == 0 ||
+      verbatimText == "" ||
+      pressedIndexes == null
+    ) {
+      toggleAlert();
+      return;
+    }
+
     // Convert timestamp to YYYY-MM-DD format
     const date = new Date(timestamp);
     const year = date.getFullYear();
@@ -241,49 +227,37 @@ const AddScreen = ({ route }) => {
     const day = String(date.getDate()).padStart(2, "0");
     const formattedDate = `${year}-${month}-${day}`;
 
-    const newVerbatimKey = push(child(ref(db), "Verbatims")).key;
+    getUsernameFromID(userID)
+      .then((username) => {
+        selectedUser = sampledUsers[selectedIndex];
 
-    const usersRef = ref(db, "Users");
-    onValue(usersRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const usersData = snapshot.val();
-        const matchingUser = Object.entries(usersData).find(
-          ([id, user]) => user.username === selectedVerbaiter.username
+        const selectedGroups = sampledGroups.filter((item) =>
+          pressedIndexes.includes(item.id)
         );
 
-        if (matchingUser) {
-          const [userId] = matchingUser; // Get the ID of the matching user
+        for (let i = 0; i < selectedGroups.length; i++) {
+          group = selectedGroups[i];
 
-          // Set the selectedVerbaiter to the matching user's ID
-          setSelectedVerbaiter(userId);
+          const newVerbatimKey = push(child(ref(db), "Verbatims")).key;
 
-          const { value } = route.params;
-          // Create verbatim, save the verbatim to the database
           set(ref(db, "Verbatims/" + newVerbatimKey), {
-            group: selectedGroup ? selectedGroup.id : "",
-            id: newVerbatimKey,
-            post: postText,
+            group: group["id"],
+            groupName: group["name"],
+            post: verbatimText,
             timestamp: formattedDate,
-            verbaiter: userId,
-            // verbaiterName: snapshot.val().{$userId}.username,
-            verbastard: value,
-            // verbastardName: snapshot.val().{$userId}.username,
+            verbaiter: selectedUser["id"],
+            verbaiterName: selectedUser["username"],
+            verbastard: userID,
+            verbastardName: username,
           });
-
-          setPostText("");
-          setVerbaiter("");
-          setSelectedGroup("");
-          setSelectedVerbaiter("");
-
-          // Reset the button text to "Choose Verbaiter" if it's not already displaying that
-          if (selectedVerbaiter !== "Choose Verbaiter") {
-            setShowVerbaiterPicker(false);
-          }
-        } else {
-          console.log("User not found with the selected verbaiter username.");
         }
-      }
-    });
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
+    const newVerbatimKey = push(child(ref(db), "Verbatims")).key;
+    selectedUser = sampledUsers[selectedIndex];
   };
 
   const dismissKeyboard = () => {
@@ -336,18 +310,21 @@ const AddScreen = ({ route }) => {
     setGroupPopupVisible(!isGroupPopupVisible);
   };
 
+  const toggleAlert = () => {
+    setAlertPopupVisible(!isAlertPopupVisible);
+  };
+
   const groupSelected = (index, group) => {
     if (pressedIndexes.includes(group.id)) {
       setPressedIndexes(
         pressedIndexes.filter((pressedIndex) => pressedIndex !== group.id)
       );
       setUpdatedIndexes(
-        pressedIndexes.filter((pressedIndex) => pressedIndex !== group.id)
+        updatedIndexes.filter((updatedIndex) => updatedIndex !== group.id)
       );
     } else {
       setPressedIndexes([...pressedIndexes, group.id]);
       setUpdatedIndexes([...pressedIndexes, group.id]);
-
       var include = true;
       for (let sampledGroup of sampledGroups) {
         if (sampledGroup.id == group.id) {
@@ -414,7 +391,7 @@ const AddScreen = ({ route }) => {
   };
 
   const selectUser = (index) => {
-    setSelectedIndex(index === selectedIndex ? null : index);
+    setSelectedIndex(index);
   };
 
   const selectGroup = (groupID) => {
@@ -460,6 +437,22 @@ const AddScreen = ({ route }) => {
           <Text style={styles.titleText}>Who said it?</Text>
           <View style={styles.suggestedContactsContainer}>
             <Text style={styles.subText}>Suggested Contacts</Text>
+
+            <Popup visible={isAlertPopupVisible} onClose={toggleAlert}>
+              <View style={styles.alertRectangle}>
+                <Text style={styles.alertText}>Alert</Text>
+                <Text style={styles.alertDescriptionText}>
+                  Oops, We Can't Add Your Verbatim! Make Sure You Have Entered
+                  All Fields
+                </Text>
+                <TouchableOpacity
+                  style={styles.alertOtherButton}
+                  onPress={toggleAlert}
+                >
+                  <Text style={styles.alertOtherButtonText}>Close</Text>
+                </TouchableOpacity>
+              </View>
+            </Popup>
 
             <View style={styles.innerContactsContainer}>
               {sampledUsers.map((user, index) => {
@@ -528,6 +521,7 @@ const AddScreen = ({ route }) => {
             multiline={true}
             numberOfLines={2}
             textAlignVertical="top"
+            onChangeText={setVerbatimText}
           />
 
           <Text style={styles.finalTitleText}>
@@ -597,7 +591,10 @@ const AddScreen = ({ route }) => {
             </TouchableOpacity>
           </Popup>
 
-          <TouchableOpacity style={styles.submitButton}>
+          <TouchableOpacity
+            onPress={submitVerbatim}
+            style={styles.submitButton}
+          >
             <Image
               source={require("../assets/send.png")}
               style={styles.image2}
@@ -815,6 +812,19 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
   },
+  alertOtherButton: {
+    backgroundColor: "#3E63E4",
+    borderRadius: 11,
+    marginLeft: 0,
+    marginRight: 0,
+    paddingLeft: 10,
+    paddingRight: 17,
+    paddingTop: 7,
+    paddingBottom: 7,
+    flexDirection: "row",
+    justifyContent: "center",
+  },
+
   submitButton: {
     backgroundColor: "#3E63E4",
     borderRadius: 11,
@@ -835,6 +845,13 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   otherButtonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 14,
+    marginLeft: 7,
+    textAlign: "center",
+  },
+  alertOtherButtonText: {
     color: "white",
     fontWeight: "bold",
     fontSize: 14,
@@ -888,20 +905,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  // smallerRectangle: {
-  //   bottom: 0,
-  //   width: "100%",
-  //   height: 50,
-  //   backgroundColor: "#FFFFFF",
-  //   shadowColor: "#000",
-  //   shadowOffset: { width: 0, height: 2 },
-  //   shadowOpacity: 0.8,
-  //   shadowRadius: 4,
-  //   elevation: 5,
-  //   justifyContent: "center",
-  //   alignItems: "center",
-  //   padding: 0,
-  // },
+
   verbatimText: {
     fontSize: 26,
     color: "white",
@@ -909,6 +913,31 @@ const styles = StyleSheet.create({
     marginTop: 63,
     marginRight: 185,
   },
+
+  alertRectangle: {
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center",
+    padding: 0,
+    display: "flex",
+  },
+
+  alertText: {
+    fontSize: 20,
+    color: "red",
+    fontWeight: "bold",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+
+  alertDescriptionText: {
+    fontSize: 15,
+    color: "black",
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+
   textInput: {
     backgroundColor: "white",
     color: "black",

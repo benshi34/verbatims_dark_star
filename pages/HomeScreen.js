@@ -358,19 +358,19 @@ const HomeScreen = ({ route }) => {
                       onPress={(event) => event.target == event.currentTarget && setShowModal(false)}
                       style={styles.modalContainer}
                     >
+                    </Pressable>
                     <View style={styles.modalContent}>
                       <View style={styles.commentsHeading}>
                         <Text style={styles.commentsHeadingText}>Comments</Text>
                       </View>
-                        <FlatList
-                          data={currComments}
-                          renderItem={renderComment}
-                          keyExtractor={(item, index) => index}
-                          contentContainerStyle={styles.commentsContainer}
-                          style={styles.commentsBody}
-                        />
-
-                        <KeyboardAvoidingView
+                      <FlatList
+                        data={currComments}
+                        renderItem={renderComment}
+                        keyExtractor={(item, index) => index}
+                        contentContainerStyle={styles.commentsContainer}
+                        style={styles.commentsBody}
+                      />
+                      <KeyboardAvoidingView
                           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                           style={styles.commentInputRect}
                         >
@@ -386,7 +386,6 @@ const HomeScreen = ({ route }) => {
                         </View>
                     </KeyboardAvoidingView>
                   </View>
-                  </Pressable>
                 </Modal>
               
               )}
@@ -541,8 +540,6 @@ const styles = StyleSheet.create({
     paddingLeft: 16,
   },
   commentInputRect: {
-    flex: 1,
-    alignSelf: "stretch",
     alignItems: "center",
     backgroundColor: "#D4D4D4",
     borderWidth: 1,
@@ -552,7 +549,6 @@ const styles = StyleSheet.create({
     right: 0,
     height: 80,
     bottom: 0,
-    position: "absolute",
   },
   textboxRec: {
     backgroundColor: "#FFFFFF",
@@ -608,10 +604,10 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
   },
   commentsContainer: {
-    flexGrow: 1,
     marginTop: 16,
     borderTopColor: "#ccc",
     paddingTop: 16,
+    paddingBottom: 20,
   },
 });
 

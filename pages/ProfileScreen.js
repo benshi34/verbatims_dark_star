@@ -216,54 +216,32 @@ const ProfileScreen = ({ route }) => {
           for(const group in includedGroups){
             fetchChatAsync(includedGroups[group]).then((verbatimsArray) => {
               for(const id in verbatimsArray){
-                //console.log(verbatimsArray[id]);
                 fetchVerbatimAsync(verbatimsArray[id]).then((selectedVerbatim) => {
-                  //console.log(selectedVerbatim);
-                  //console.log(selectedVerbatim);
-                  //const mapC = selectedVerbatim.filter((item) => item.verbaiter === profileId);
-                  //let tempVerbatims = verbatims;
-                  //tempVerbatims = tempVerbatims.concat(mapC);
-                  //setVerbatims(verbatims);
                   if (selectedVerbatim.verbaiter === profileId) {
                     tempVerbatims.push(selectedVerbatim);
                     setVerbastards(tempVerbatims);
                   }
                   
                   if (selectedVerbatim.verbaiter === profileId) {
-                    tempVerbatims.push(selectedVerbatim);
-                    setVerbatims(tempVerbatims);
+                    tempVerbastards.push(selectedVerbatim);
+                    setVerbatims(tempVerbastards);
                   }
-
-                  //const mapB = selectedVerbatim.filter((item) => item.verbastard === profileId);
-                  //let tempVerbatims2 = verbastards;
-                  //tempVerbatims2 = tempVerbatims2.concat(mapB);
-                  //setVerbastards(tempVerbatims2);
-                  
-                  /*if(selectedVerbatim.verbastard === profileId){
-                    setVerbatims((verbastard) => [...verbastard, selectedVerbatim]);
-                  }*/
-
                 })
               }
             })
           }
         })
         
-        //console.log("hi!");
         const userRef = ref(db, "Users/" + profileId);
-        //console.log("hi!!");
         onValue(userRef, (snapshot) => {
           data = snapshot.val();
-          //console.log("hi!!!");
           if (data) {
             let likedverbatims = data.likedverbatims || [];
             likedverbatims = likedverbatims.filter((postId) => postId !== undefined);
             setLikedPosts(likedverbatims);
             setUsername(data.username === undefined ? "NoName" : data.username)
           }
-          //console.log("hi!!!!");
         })
-        //console.log("hi!!!!!");
       } catch (error) {
         console.error('Error fetching verbatims: ', error);
       }

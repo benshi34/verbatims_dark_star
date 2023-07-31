@@ -196,26 +196,56 @@ const ProfileScreen = ({ route }) => {
 
     const fetchVerbatims = async () => {
       try {
-        const dbref = ref(db, "Verbatims");
-        onValue(dbref, (snapshot) => {
-          data = snapshot.val()
-          if (data) {
-            let verbatimsArray = Object.keys(data).map((key) => {
-              return { id: key, ...data[key] };
-            }); 
-            const fetchGroupsAsync = async () => {
-              const includedGroups = await fetchGroups();
-              return includedGroups;
-            };
-    
-            fetchGroupsAsync().then((includedGroups) => {
-              const mapC = verbatimsArray.filter((item) => item.verbaiter === profileId && includedGroups.includes(item.group));
-              //console.log(mapC);
-              setVerbatims(mapC);
-              const mapB = verbatimsArray.filter((item) => item.verbastard === profileId && includedGroups.includes(item.group));
-              //console.log(mapB);
-              setVerbastards(mapB);
-            });
+        
+        const fetchGroupsAsync = async () => {
+          const includedGroups = await fetchGroups('Users/' + userId + "/groups");
+          return includedGroups;
+        };
+        const fetchChatAsync = async (group) => {
+          const includedGroups = await fetchGroups("Groups/"+group+"/verbatims");
+          return includedGroups;
+        };
+        const fetchVerbatimAsync = async (group) => {
+          const includedGroups = await retGet("Verbatims/"+group);
+          return includedGroups;
+        };
+
+        fetchGroupsAsync().then((includedGroups) => {
+          tempVerbatims=[];
+          tempVerbastards=[];
+          for(const group in includedGroups){
+            fetchChatAsync(includedGroups[group]).then((verbatimsArray) => {
+              for(const id in verbatimsArray){
+                //console.log(verbatimsArray[id]);
+                fetchVerbatimAsync(verbatimsArray[id]).then((selectedVerbatim) => {
+                  //console.log(selectedVerbatim);
+                  //console.log(selectedVerbatim);
+                  //const mapC = selectedVerbatim.filter((item) => item.verbaiter === profileId);
+                  //let tempVerbatims = verbatims;
+                  //tempVerbatims = tempVerbatims.concat(mapC);
+                  //setVerbatims(verbatims);
+                  if (selectedVerbatim.verbaiter === profileId) {
+                    tempVerbatims.push(selectedVerbatim);
+                    setVerbastards(tempVerbatims);
+                  }
+                  
+                  if (selectedVerbatim.verbaiter === profileId) {
+                    tempVerbatims.push(selectedVerbatim);
+                    setVerbatims(tempVerbatims);
+                  }
+
+                  //const mapB = selectedVerbatim.filter((item) => item.verbastard === profileId);
+                  //let tempVerbatims2 = verbastards;
+                  //tempVerbatims2 = tempVerbatims2.concat(mapB);
+                  //setVerbastards(tempVerbatims2);
+                  
+                  /*if(selectedVerbatim.verbastard === profileId){
+                    setVerbatims((verbastard) => [...verbastard, selectedVerbatim]);
+                  }*/
+
+                })
+              }
+            })
           }
         })
         
@@ -240,17 +270,36 @@ const ProfileScreen = ({ route }) => {
     }
     
 
-    const fetchGroups = () => {
+    const fetchGroups = (item) => {
       return new Promise((resolve, reject) => {
-        const dbref = ref(db, 'Users/' + userId + "/groups");
+        const dbref = ref(db, item);
         get(dbref).then((snapshot) => {
           if (snapshot.exists()) {
             data = snapshot.val();
+            
             let verbatimsArray = Object.keys(data).map((key) => {
               return { id: key, val: data[key] };
             });
             resolve(verbatimsArray.map(item => item.val));
 
+          } else {
+            resolve({});
+          }
+        }).catch((error) => {
+          reject(error);
+        });
+      });
+    };
+
+    const retGet = (item) => {
+      return new Promise((resolve, reject) => {
+        const dbref = ref(db, item);
+        get(dbref).then((snapshot) => {
+          if (snapshot.exists()) {
+            data = snapshot.val();
+            //newArray = data.filter(item => item !== undefined);
+            //console.log(newArray);
+            resolve(data);
           } else {
             resolve([]);
           }
@@ -532,7 +581,7 @@ const ProfileScreen = ({ route }) => {
         <FlatList
           data={showAllVerbatims ? verbatims : verbatims.slice(0, 1)}
           renderItem={renderDiscussionPost}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item,index) => index}
           contentContainerStyle={styles.listContainer}
           style={styles.scrollViewList}
         />
@@ -546,7 +595,7 @@ const ProfileScreen = ({ route }) => {
         <FlatList
           data={showAllVerbastards ? verbastards : verbastards.slice(0, 1)}
           renderItem={renderDiscussionPost}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item,index) => index}
           contentContainerStyle={styles.listContainer}
           style={styles.scrollViewList}
         />

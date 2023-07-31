@@ -219,12 +219,12 @@ const ProfileScreen = ({ route }) => {
                 fetchVerbatimAsync(verbatimsArray[id]).then((selectedVerbatim) => {
                   if (selectedVerbatim.verbaiter === profileId) {
                     tempVerbatims.push(selectedVerbatim);
-                    setVerbastards(tempVerbatims);
+                    setVerbatims(tempVerbatims);
                   }
                   
-                  if (selectedVerbatim.verbaiter === profileId) {
+                  if (selectedVerbatim.verbastard === profileId) {
                     tempVerbastards.push(selectedVerbatim);
-                    setVerbatims(tempVerbastards);
+                    setVerbastards(tempVerbastards);
                   }
                 })
               }

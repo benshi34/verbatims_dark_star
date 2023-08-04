@@ -72,6 +72,31 @@ const HomeScreen = ({ route }) => {
     fetchVerbatims();
   }, []);
 
+  const getProfilePictureFromID = (userIdValue) => {
+    const storageRef = refStorage(
+      storage,
+      String(userIdValue) + ".jpg"
+    );
+    const defaultStorageRef = refStorage(
+      storage, 
+      "1.jpg"
+    )
+    
+    return new Promise((resolve, reject) => {
+      getDownloadURL(storageRef).then((url) => {
+        resolve(url)
+      })
+      .catch((error) => {
+        getDownloadURL(defaultStorageRef).then((url) => {
+          resolve(url)
+        })
+        .catch((error) => {
+          reject(error)
+        })
+      })
+    });
+  }
+
   const toggleFavorite = (postId) => {
     setVerbatims((prevPosts) =>
       prevPosts.map((post) =>
@@ -166,15 +191,30 @@ const HomeScreen = ({ route }) => {
   const openModal = (postId) => {
     const post = verbatims.find((post) => post.id === postId);
     setSelectedPost(post);
-    setCurrComments(
-      Object.values(post.comments === undefined ? [] : post.comments)
-    );
-    setShowModal(true);
-  };
+    let currComments = Object.values(post.comments === undefined ? [] : post.comments)
+    let promises = [];
+    for (let i = 0; i < currComments.length; i++) {
+      const comment = currComments[i];
+      const promise = getProfilePictureFromID(comment.user)
+        .then((url) => {
+          currComments[i].profilePic = url;
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+      promises.push(promise);
+    }
 
-  const closeModal = () => {
-    setSelectedPost(null);
-    setShowModal(false);
+    Promise.all(promises)
+      .then(() => {
+        setCurrComments(currComments)
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+    
+    setShowModal(true);
+    console.log(currComments);
   };
 
   const renderComment = ({ item }) => {
@@ -182,10 +222,12 @@ const HomeScreen = ({ route }) => {
       return null;
     }
     return (
-      <View>
+      <View style={styles.commentBox}>
         <Image source={{ uri: item.profilePic }} style={styles.profilePic} />
+        <View style={styles.commentInteriorBox}>
         <Text style={styles.commentUser}>{item.username}</Text>
         <Text style={styles.commentText}>{item.comment}</Text>
+        </View>
       </View>
     );
   };
@@ -298,14 +340,6 @@ const HomeScreen = ({ route }) => {
             Submitted by: {item.verbastardName} | {groupName}
           </Text>
         </View>
-        {/*<TouchableOpacity
-            style={[styles.favoriteButton, item.isFavorite && styles.favoriteButtonActive]}
-            onPress={() => toggleFavorite(item.id)}
-          >
-            <Text style={[styles.favoriteButtonText, item.isFavorite && styles.favoriteButtonActive]}>
-              {item.isFavorite ? 'Unfavorite' : 'Favorite'}
-            </Text>
-          </TouchableOpacity>*/}
         <View style={styles.favoriteButton}>
           <SvgFavoritedButton
             onPress={() => toggleFavorite(item.id)}
@@ -313,18 +347,11 @@ const HomeScreen = ({ route }) => {
           />
         </View>
         <View style={styles.actionsContainer}>
-          {/*<TouchableOpacity style={[styles.likeButton, isLiked && styles.likeButtonLiked]} onPress={() => toggleLike(item.id)}>
-            <Text style={styles.likeButtonText}>Like</Text>
-          </TouchableOpacity>*/}
           <SvgLikeButton
             onPress={() => toggleLike(item.id)}
             isLiked={isLiked}
             numLikes={numLikes}
           />
-          <Text> </Text>
-          {/*<TouchableOpacity style={styles.commentButton} onPress={() => openModal(item.id)}>
-            <Text style={styles.commentButtonText}>View Comments</Text>
-          </TouchableOpacity>*/}
           <SvgCommentButton 
             onPress={() => openModal(item.id)} 
             numComments={numComments}
@@ -419,7 +446,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     position: "relative",
-    paddingBottom: 330,
+    paddingBottom: 400,
     paddingLeft: 15,
     paddingRight: 15,
     paddingTop: 10,
@@ -490,6 +517,7 @@ const styles = StyleSheet.create({
   },
   likeButtonContainer: {
     flexDirection: "row",
+    paddingRight: 4,
   },
   likeButtonLiked: {
     color: "red",
@@ -502,6 +530,12 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     paddingBottom: 16,
+  },
+  commentBox: {
+    flexDirection: "row",
+  },
+  commentInteriorBox: {
+    flexDirection: "column",
   },
   actionsContainer: {
     width: "100%",

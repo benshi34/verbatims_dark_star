@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import ButtonContainer from "./ButtonContainer.js";
+import { getStorage, ref as refStorage, getDownloadURL } from "firebase/storage";
 
 import { app } from "../Firebase.js";
 import {
@@ -29,6 +30,7 @@ import {
 } from "firebase/database";
 
 const db = getDatabase(app);
+const storage = getStorage();
 
 const AddScreen = ({ route }) => {
   const [users, setUsers] = useState([]);
@@ -69,7 +71,15 @@ const AddScreen = ({ route }) => {
               .catch((error) => {
                 console.error(error);
               });
+            const picturePromise = getProfilePictureFromID(group["id"])
+              .then((url) => {
+                groupsArr[i]["profilePic"] = url
+              })
+              .catch((error) => {
+                console.error(error);
+              });
             promises.push(promise);
+            promises.push(picturePromise);
           }
 
           Promise.all(promises)
@@ -146,6 +156,31 @@ const AddScreen = ({ route }) => {
     });
   };
 
+  const getProfilePictureFromID = (userIdValue) => {
+    const storageRef = refStorage(
+      storage,
+      String(userIdValue) + ".jpg"
+    );
+    const defaultStorageRef = refStorage(
+      storage, 
+      "1.jpg"
+    )
+    
+    return new Promise((resolve, reject) => {
+      getDownloadURL(storageRef).then((url) => {
+        resolve(url)
+      })
+      .catch((error) => {
+        getDownloadURL(defaultStorageRef).then((url) => {
+          resolve(url)
+        })
+        .catch((error) => {
+          reject(error)
+        })
+      })
+    });
+  }
+
   // Fetch the user data from Firebase
   const fetchUsers = () => {
     const dbref = ref(db, "Users/" + userID + "/friends");
@@ -159,7 +194,7 @@ const AddScreen = ({ route }) => {
             id: element,
           }));
 
-          const promises = [];
+          let promises = [];
           for (let i = 0; i < friendsArr.length; i++) {
             const friend = friendsArr[i];
             const promise = getUsernameFromID(friend["id"])
@@ -172,6 +207,18 @@ const AddScreen = ({ route }) => {
             promises.push(promise);
           }
 
+          for (let i = 0; i < friendsArr.length; i++) {
+            const friend = friendsArr[i]
+            const promise = getProfilePictureFromID(friend["id"])
+              .then((url) => {
+                friendsArr[i]["profilePic"] = url
+              })
+              .catch((error) => {
+                console.error(error);
+              });
+            promises.push(promise)
+          }
+          
           Promise.all(promises)
             .then(() => {
               setUsers(friendsArr);
@@ -239,6 +286,7 @@ const AddScreen = ({ route }) => {
           group = selectedGroups[i];
 
           const newVerbatimKey = push(child(ref(db), "Verbatims")).key;
+          const newGroupVerbatimKey = push(child(ref(db), "Groups/" + group["id"] + "/verbatims")).key;
 
           set(ref(db, "Verbatims/" + newVerbatimKey), {
             group: group["id"],
@@ -250,13 +298,15 @@ const AddScreen = ({ route }) => {
             verbastard: userID,
             verbastardName: username,
           });
+          
+          const updates = {};
+          updates["Groups/" + group["id"] + "/verbatims/" + newGroupVerbatimKey] = newVerbatimKey;
+          update(ref(db), updates);
         }
       })
       .catch((error) => {
         console.error(error);
       });
-
-    const newVerbatimKey = push(child(ref(db), "Verbatims")).key;
     selectedUser = sampledUsers[selectedIndex];
   };
 
@@ -379,7 +429,7 @@ const AddScreen = ({ route }) => {
               onPress={() => groupSelected(index, group)}
             >
               <Image
-                source={require("../assets/kharn.jpg")}
+                source={{ uri : group.profilePic }}
                 style={styles.image}
               />
               <Text style={textStyle}>{group.name}</Text>
@@ -471,7 +521,7 @@ const AddScreen = ({ route }) => {
                     key={index}
                   >
                     <Image
-                      source={require("../assets/kharn.jpg")}
+                      source={{ uri : user.profilePic }}
                       style={styles.image}
                     />
                     <Text style={textStyle}>{user.username}</Text>
@@ -496,7 +546,7 @@ const AddScreen = ({ route }) => {
                     key={index}
                   >
                     <Image
-                      source={require("../assets/kharn.jpg")}
+                      source={{ uri : user.profilePic }}
                       style={styles.image}
                     />
                     <Text
@@ -560,7 +610,7 @@ const AddScreen = ({ route }) => {
                       onPress={() => selectGroup(group.id)}
                     >
                       <Image
-                        source={require("../assets/kharn.jpg")}
+                        source={{ uri : group.profilePic }}
                         style={styles.image}
                       />
                       <Text style={textStyle}>{group.name}</Text>

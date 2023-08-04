@@ -239,6 +239,7 @@ const AddScreen = ({ route }) => {
           group = selectedGroups[i];
 
           const newVerbatimKey = push(child(ref(db), "Verbatims")).key;
+          const newGroupVerbatimKey = push(child(ref(db), "Groups/" + group["id"] + "/verbatims")).key;
 
           set(ref(db, "Verbatims/" + newVerbatimKey), {
             group: group["id"],
@@ -250,6 +251,10 @@ const AddScreen = ({ route }) => {
             verbastard: userID,
             verbastardName: username,
           });
+          
+          const updates = {};
+          updates["Groups/" + group["id"] + "/verbatims/" + newGroupVerbatimKey] = newVerbatimKey;
+          update(ref(db), updates);
         }
       })
       .catch((error) => {

@@ -172,11 +172,6 @@ const HomeScreen = ({ route }) => {
     setShowModal(true);
   };
 
-  const closeModal = () => {
-    setSelectedPost(null);
-    setShowModal(false);
-  };
-
   const renderComment = ({ item }) => {
     if (!item) {
       return null;
@@ -298,14 +293,6 @@ const HomeScreen = ({ route }) => {
             Submitted by: {item.verbastardName} | {groupName}
           </Text>
         </View>
-        {/*<TouchableOpacity
-            style={[styles.favoriteButton, item.isFavorite && styles.favoriteButtonActive]}
-            onPress={() => toggleFavorite(item.id)}
-          >
-            <Text style={[styles.favoriteButtonText, item.isFavorite && styles.favoriteButtonActive]}>
-              {item.isFavorite ? 'Unfavorite' : 'Favorite'}
-            </Text>
-          </TouchableOpacity>*/}
         <View style={styles.favoriteButton}>
           <SvgFavoritedButton
             onPress={() => toggleFavorite(item.id)}
@@ -313,18 +300,11 @@ const HomeScreen = ({ route }) => {
           />
         </View>
         <View style={styles.actionsContainer}>
-          {/*<TouchableOpacity style={[styles.likeButton, isLiked && styles.likeButtonLiked]} onPress={() => toggleLike(item.id)}>
-            <Text style={styles.likeButtonText}>Like</Text>
-          </TouchableOpacity>*/}
           <SvgLikeButton
             onPress={() => toggleLike(item.id)}
             isLiked={isLiked}
             numLikes={numLikes}
           />
-          <Text> </Text>
-          {/*<TouchableOpacity style={styles.commentButton} onPress={() => openModal(item.id)}>
-            <Text style={styles.commentButtonText}>View Comments</Text>
-          </TouchableOpacity>*/}
           <SvgCommentButton 
             onPress={() => openModal(item.id)} 
             numComments={numComments}
@@ -419,7 +399,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     position: "relative",
-    paddingBottom: 330,
+    paddingBottom: 400,
     paddingLeft: 15,
     paddingRight: 15,
     paddingTop: 10,
@@ -490,6 +470,7 @@ const styles = StyleSheet.create({
   },
   likeButtonContainer: {
     flexDirection: "row",
+    paddingRight: 4,
   },
   likeButtonLiked: {
     color: "red",

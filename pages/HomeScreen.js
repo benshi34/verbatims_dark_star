@@ -22,53 +22,81 @@ const HomeScreen = ({ route }) => {
   const userId = value;
   const storage = getStorage();
 
+  const downloadUrl = async (itemVerbaiter) => {
+    const defaultStorageRef = await refStorage(storage, '1.jpg');
+    const defaultUrl = await getDownloadURL(defaultStorageRef);
+    const storageRef = await refStorage(storage, String(itemVerbaiter) + '.jpg');
+    const url = await getDownloadURL(storageRef).catch((error) => {
+      console.log(error);
+    });
+    return (url !== undefined ? url : defaultUrl);
+    setProfilePicUrl(url !== undefined ? url : defaultUrl);
+  }  
+
   useEffect(() => {
     // Simulated data for discussion posts
+    
     const fetchVerbatims = async () => {
-      try {
-        const dbref = ref(db, "Verbatims");
-        onValue(dbref, (snapshot) => {
-          data = snapshot.val();
-          if (data) {
-            let verbatimsArray = Object.keys(data).map((key) => {
-              return { id: key, ...data[key] };
-            });
-            const promises = verbatimsArray.map(async (item) => {
-              const defaultStorageRef = refStorage(storage, "1.jpg");
-              const defaultUrl = await getDownloadURL(defaultStorageRef);
-              const storageRef = refStorage(
-                storage,
-                String(item.verbaiter) + ".jpg"
+      onValue(ref(db, "Groups/"), (snapshot) => {
+
+        try {
+        
+          const fetchGroupsAsync = async () => {
+            const includedGroups = await fetchGroups('Users/' + userId + "/groups");
+            return includedGroups;
+          };
+  
+          const fetchChatAsync = async (group) => {
+            const includedGroups = await fetchGroups("Groups/"+group+"/verbatims");
+            return includedGroups;
+          };
+  
+          const fetchVerbatimAsync = async (group) => {
+            const includedGroups = await retGet("Verbatims/"+group);
+            return includedGroups;
+          };
+  
+          fetchGroupsAsync().then((includedGroups) => {
+            tempVerbatims=[];
+            tempVerbastards=[];
+            for(const group in includedGroups){
+              fetchChatAsync(includedGroups[group]).then((verbatimsArray) => {
+                for(const id in verbatimsArray){
+                  fetchVerbatimAsync(verbatimsArray[id]).then((selectedVerbatim) => {
+                    downloadUrl(selectedVerbatim.verbaiter)
+                    .then((url) => {
+                        tempVerbatims.push({...selectedVerbatim, 
+                          profilePic: url});
+                        setVerbatims(tempVerbatims);
+                      })
+                    .catch((error) => {
+                      console.log(error);
+                    });
+  
+                  })
+                }
+              })
+            }
+          })
+          console.log("Verbatims");
+          console.log(verbatims);
+          const userRef = ref(db, "Users/" + userId);
+          onValue(userRef, (snapshot) => {
+            data = snapshot.val();
+            if (data) {
+              let likedverbatims = data.likedverbatims || [];
+              likedverbatims = likedverbatims.filter(
+                (postId) => postId !== undefined
               );
-              const url = await getDownloadURL(storageRef).catch((error) => {
-                console.log(error);
-              });
-              return {
-                ...item,
-                profilePic: url === undefined ? defaultUrl : url,
-              };
-            });
-            Promise.all(promises).then((verbatimsArray) => {
-              setVerbatims(verbatimsArray);
-            });
-          }
-        });
-        const userRef = ref(db, "Users/" + userId);
-        onValue(userRef, (snapshot) => {
-          data = snapshot.val();
-          if (data) {
-            let likedverbatims = data.likedverbatims || [];
-            likedverbatims = likedverbatims.filter(
-              (postId) => postId !== undefined
-            );
-            setLikedPosts(likedverbatims);
-            setUsername(data.username === undefined ? "NoName" : data.username);
-          }
-        });
-      } catch (error) {
-        console.error("Error fetching verbatims: ", error);
-      }
-    };
+              setLikedPosts(likedverbatims);
+              setUsername(data.username === undefined ? "NoName" : data.username);
+            }
+          });
+        } catch (error) {
+          console.error('Error fetching verbatims: ', error);
+        }
+      })
+    }
     fetchVerbatims();
   }, []);
 
@@ -140,6 +168,44 @@ const HomeScreen = ({ route }) => {
       .catch((error) => {
         console.error("Error fetching user: ", error);
       });
+  };
+
+  
+
+  const fetchGroups = (item) => {
+    return new Promise((resolve, reject) => {
+      const dbref = ref(db, item);
+      get(dbref).then((snapshot) => {
+        if (snapshot.exists()) {
+          data = snapshot.val();
+          let verbatimsArray = Object.keys(data).map((key) => {
+            return { id: key, val: data[key] };
+          });
+          resolve(verbatimsArray.map(item => item.val));
+
+        } else {
+          resolve({});
+        }
+      }).catch((error) => {
+        reject(error);
+      });
+    });
+  };
+
+  const retGet = (item) => {
+    return new Promise((resolve, reject) => {
+      const dbref = ref(db, item);
+      get(dbref).then((snapshot) => {
+        if (snapshot.exists()) {
+          data = snapshot.val();
+          resolve(data);
+        } else {
+          resolve([]);
+        }
+      }).catch((error) => {
+        reject(error);
+      });
+    });
   };
 
   const addComment = (postId) => {

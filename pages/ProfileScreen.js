@@ -107,28 +107,13 @@ const ProfileScreen = ({ route }) => {
           }
         });
 
-        //const isFriend = verbatimsArray.some((friend) => friend.id === userId);
-        
-
         if (isFriend) {
-          //console.log("3");
           remove(ref(db, 'Users/' + userId + "/friends/"+idFound));
           removed=true;
         } else {
-          //console.log("4");
-          
-          /*const newPostKey = push(child(ref(db), 'Users/' + userId + "/friends")).key;
-          const updates = {};
-          updates["/"+newPostKey] = profileId;
-          update(ref(db, 'Users/' + userId + "/friends"), updates);*/
         }
       
       } else {
-        //console.log("5");
-        /*const updates = {};
-        const newPostKey = push(child(ref(db), 'Users/' + userId + "/friends")).key;
-        updates["/"+newPostKey] = profileId;
-        update(ref(db, 'Users/' + userId + "/friends"), updates);*/
       }
     }).catch((error) => {
       //console.log("6");
@@ -136,16 +121,11 @@ const ProfileScreen = ({ route }) => {
     });
 
 
-
-    //console.log("hiiiiiiiiiiiiii"+removed);
-
-
     if(!removed){
       const dbrefReq = ref(db, 'Users/' + profileId + "/friendrequests");
       get(dbrefReq).then((snapshot) => {
         if (snapshot.exists()) {
           data=snapshot.val();
-          //console.log("2");
           let verbatimsArray = Object.keys(data).map((key) => {
             return { id: key, value:data[key] };
           });
@@ -158,31 +138,23 @@ const ProfileScreen = ({ route }) => {
               idFound=friend.id;
             }
           });
-  
-          //const isFriend = verbatimsArray.some((friend) => friend.id === userId);
-          
-  
+
           if (isFriend) {
-            //console.log("3");
             remove(ref(db, 'Users/' + profileId + "/friendrequests/"+idFound));
           } else {
-            //console.log("4");
-            
             const newPostKey = push(child(ref(db), 'Users/' + profileId + "/friendrequests")).key;
             const updates = {};
             updates["/"+newPostKey] = userId;
             update(ref(db, 'Users/' + profileId + "/friendrequests"), updates);
           }
-        
+          
         } else {
-          //console.log("5");
           const updates = {};
           const newPostKey = push(child(ref(db), 'Users/' + profileId + "/friendrequests")).key;
           updates["/"+newPostKey] = userId;
           update(ref(db, 'Users/' + profileId + "/friendrequests"), updates);
         }
       }).catch((error) => {
-        //console.log("6");
         console.error(error);
       });
     }
@@ -867,3 +839,5 @@ ProfileScreen.navigationOptions = {
 };
 
 export default ProfileScreen*/
+
+

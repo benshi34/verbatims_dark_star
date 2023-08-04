@@ -223,7 +223,7 @@ const HomeScreen = ({ route }) => {
     }
     return (
       <View style={styles.commentBox}>
-        <Image source={{ uri: item.profilePic }} style={styles.profilePic} />
+        <Image source={{ uri: item.profilePic }} style={styles.commentPic} />
         <View style={styles.commentInteriorBox}>
         <Text style={styles.commentUser}>{item.username}</Text>
         <Text style={styles.commentText}>{item.comment}</Text>
@@ -642,6 +642,13 @@ const styles = StyleSheet.create({
     borderTopColor: "#ccc",
     paddingTop: 16,
     paddingBottom: 20,
+  },
+  commentPic: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    marginRight: 8,
+    top: 5
   },
 });
 

@@ -72,6 +72,31 @@ const HomeScreen = ({ route }) => {
     fetchVerbatims();
   }, []);
 
+  const getProfilePictureFromID = (userIdValue) => {
+    const storageRef = refStorage(
+      storage,
+      String(userIdValue) + ".jpg"
+    );
+    const defaultStorageRef = refStorage(
+      storage, 
+      "1.jpg"
+    )
+    
+    return new Promise((resolve, reject) => {
+      getDownloadURL(storageRef).then((url) => {
+        resolve(url)
+      })
+      .catch((error) => {
+        getDownloadURL(defaultStorageRef).then((url) => {
+          resolve(url)
+        })
+        .catch((error) => {
+          reject(error)
+        })
+      })
+    });
+  }
+
   const toggleFavorite = (postId) => {
     setVerbatims((prevPosts) =>
       prevPosts.map((post) =>
@@ -166,10 +191,30 @@ const HomeScreen = ({ route }) => {
   const openModal = (postId) => {
     const post = verbatims.find((post) => post.id === postId);
     setSelectedPost(post);
-    setCurrComments(
-      Object.values(post.comments === undefined ? [] : post.comments)
-    );
+    let currComments = Object.values(post.comments === undefined ? [] : post.comments)
+    let promises = [];
+    for (let i = 0; i < currComments.length; i++) {
+      const comment = currComments[i];
+      const promise = getProfilePictureFromID(comment.user)
+        .then((url) => {
+          currComments[i].profilePic = url;
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+      promises.push(promise);
+    }
+
+    Promise.all(promises)
+      .then(() => {
+        setCurrComments(currComments)
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+    
     setShowModal(true);
+    console.log(currComments);
   };
 
   const renderComment = ({ item }) => {
@@ -177,10 +222,12 @@ const HomeScreen = ({ route }) => {
       return null;
     }
     return (
-      <View>
+      <View style={styles.commentBox}>
         <Image source={{ uri: item.profilePic }} style={styles.profilePic} />
+        <View style={styles.commentInteriorBox}>
         <Text style={styles.commentUser}>{item.username}</Text>
         <Text style={styles.commentText}>{item.comment}</Text>
+        </View>
       </View>
     );
   };
@@ -483,6 +530,12 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     paddingBottom: 16,
+  },
+  commentBox: {
+    flexDirection: "row",
+  },
+  commentInteriorBox: {
+    flexDirection: "column",
   },
   actionsContainer: {
     width: "100%",

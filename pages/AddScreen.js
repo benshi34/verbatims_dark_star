@@ -147,7 +147,7 @@ const AddScreen = ({ route }) => {
     });
   };
 
-  /*const getGroupnameFromID = (groupIDValue) => {
+  const getGroupnameFromID = (groupIDValue) => {
     const dbref = ref(db, "Groups/" + groupIDValue);
 
     return new Promise((resolve, reject) => {
@@ -165,7 +165,7 @@ const AddScreen = ({ route }) => {
           reject(error);
         });
     });
-  };*/
+  };
 
   const getProfilePictureFromID = (userIdValue) => {
     const storageRef = refStorage(

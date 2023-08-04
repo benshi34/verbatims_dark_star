@@ -30,7 +30,6 @@ const HomeScreen = ({ route }) => {
       console.log(error);
     });
     return (url !== undefined ? url : defaultUrl);
-    setProfilePicUrl(url !== undefined ? url : defaultUrl);
   }  
 
   useEffect(() => {

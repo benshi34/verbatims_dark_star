@@ -47,6 +47,17 @@ const AddScreen = ({ route }) => {
   const [updatedIndexes, setUpdatedIndexes] = useState([]);
   const { userID } = route.params;
 
+  
+  const downloadUrl = async (profileId) => {
+    const defaultStorageRef = await refStorage(storage, '1.jpg');
+    const defaultUrl = await getDownloadURL(defaultStorageRef);
+    const storageRef = await refStorage(storage, String(profileId) + '.jpg');
+    const url = await getDownloadURL(storageRef).catch((error) => {
+      console.log(error);
+    });
+    return (url !== undefined ? url : defaultUrl);
+  }  
+
   const fetchGroups = () => {
     const dbref = ref(db, "Users/" + userID + "/groups");
     get(dbref)
@@ -71,7 +82,7 @@ const AddScreen = ({ route }) => {
               .catch((error) => {
                 console.error(error);
               });
-            const picturePromise = getProfilePictureFromID(group["id"])
+            const picturePromise = downloadUrl(group["id"])
               .then((url) => {
                 groupsArr[i]["profilePic"] = url
               })
@@ -136,7 +147,7 @@ const AddScreen = ({ route }) => {
     });
   };
 
-  const getGroupnameFromID = (groupIDValue) => {
+  /*const getGroupnameFromID = (groupIDValue) => {
     const dbref = ref(db, "Groups/" + groupIDValue);
 
     return new Promise((resolve, reject) => {
@@ -154,7 +165,7 @@ const AddScreen = ({ route }) => {
           reject(error);
         });
     });
-  };
+  };*/
 
   const getProfilePictureFromID = (userIdValue) => {
     const storageRef = refStorage(

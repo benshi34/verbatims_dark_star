@@ -1,6 +1,6 @@
 import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import React, { useEffect} from 'react';
-import { getDatabase, ref, get, onValue, remove, push, set } from "firebase/database";
+import { getDatabase, ref, get, onValue, remove, push, set, child, update } from "firebase/database";
 import { app } from "../Firebase.js";
 import { getStorage, ref as refStorage, getDownloadURL } from "firebase/storage";
 import { useNavigation } from '@react-navigation/native';
@@ -163,13 +163,23 @@ const FriendScreen = ({ route }) => {
       }
     }
 
+   /* 
+    const removeFriend = async () => {
+      
+    }
+    */
+    
+
     const renderFriendItem = ({ item }) => {
 
 
       return (
           <TouchableOpacity onPress={() => handleProfilePress(item.friendId)} style={styles.friendItemContainer}>
             <Image source={{uri: item.profilePic}} style={styles.friendAvatar} />
-            <Text style={styles.friendName}>{item.friendName}  {item.isFriend}</Text>
+            <Text style={styles.friendName}>{item.friendName}</Text>
+            <TouchableOpacity style={styles.removeButton}>
+              <Text style={styles.declineButtonText}>Remove Friend</Text>
+            </TouchableOpacity>
           </TouchableOpacity>
       );
     };
@@ -195,7 +205,7 @@ const FriendScreen = ({ route }) => {
           <FlatList
             data={friends}
             renderItem={renderFriendItem}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item.id.toString()}
             contentContainerStyle={styles.listContainer}
           />
           { userId == profileId && (
@@ -224,6 +234,9 @@ const styles = StyleSheet.create({
       fontSize: 20,
       fontWeight: 'bold',
       marginBottom: 10,
+      paddingTop: 20,
+      color: '#4287f5',
+      textAlign: 'center',
     },
     friendItemContainer: {
       flexDirection: 'row',
@@ -237,6 +250,7 @@ const styles = StyleSheet.create({
       marginRight: 10,
     },
     friendName: {
+      flex: 1,
       fontSize: 16,
       fontWeight: 'bold',
     },
@@ -257,7 +271,7 @@ const styles = StyleSheet.create({
       fontWeight: 'bold',
     },
     acceptButton: {
-      backgroundColor: '#2ecc71',
+      backgroundColor: '#4287f5',
       borderRadius: 5,
       paddingVertical: 5,
       paddingHorizontal: 10,
@@ -268,17 +282,23 @@ const styles = StyleSheet.create({
       fontWeight: 'bold',
     },
     declineButton: {
-      backgroundColor: '#e74c3c',
+      backgroundColor: "#f5f5f5",
       borderRadius: 5,
       paddingVertical: 5,
       paddingHorizontal: 10,
     },
     declineButtonText: {
-      color: '#fff',
+      color: 'black',
       fontWeight: 'bold',
     },
     listContainer: {
       paddingBottom: 20,
+    },
+    removeButton: {
+      backgroundColor: "#f5f5f5",
+      borderRadius: 5,
+      paddingVertical: 5,
+      paddingHorizontal: 10,
     },
   });
 export default FriendScreen

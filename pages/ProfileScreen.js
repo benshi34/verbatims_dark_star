@@ -169,7 +169,7 @@ const ProfileScreen = ({ route }) => {
       try {
         
         const fetchGroupsAsync = async () => {
-          const includedGroups = await fetchGroups('Users/' + userId + "/groups");
+          const includedGroups = await fetchGroups('Users/' + profileId + "/groups");
           return includedGroups;
         };
         const fetchChatAsync = async (group) => {

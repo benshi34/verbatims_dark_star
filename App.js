@@ -120,7 +120,7 @@ export default function App() {
     <Stack.Navigator>
       <Stack.Screen name="Search" component={SearchScreen} initialParams={{ curUserId: userID }}/>
       <Stack.Screen name="Friends" component={FriendScreen}  />
-      <Stack.Screen name="UserProfile" component={ProfileScreen} />
+      <Stack.Screen name="UserProfile" component={ProfileScreen} initialParams={{ userId: userID, profileId: userID }} />
     </Stack.Navigator>
   );
 
@@ -128,7 +128,7 @@ export default function App() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Profile" component={ProfileScreen} initialParams={{ userId: userID, profileId: userID }}/>
       <Stack.Screen name="Friends" component={FriendScreen}  />
-      <Stack.Screen name="UserProfile" component={ProfileScreen} />
+      <Stack.Screen name="UserProfile" component={ProfileScreen} initialParams={{ userId: userID, profileId: userID }}/>
     </Stack.Navigator>
   )
 

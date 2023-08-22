@@ -26,11 +26,12 @@ const ProfileScreen = ({ route }) => {
   const [showModal, setShowModal] = useState(false);
   const [metadata, setMetadata] = useState(null);
   const [friendButtonTitle, setFriendButtonTitle] = useState('');
-  const [profilePicUrl,setProfilePicUrl] = useState('');
+  const [profilePicUrl,setProfilePicUrl] = useState('https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appspot.com/o/1.jpg?alt=media&token=42a40419-f444-4648-a1b3-8c25aebb21cd');
   const [currComments, setCurrComments] = useState([]);
   const [profileUsername, setProfileUsername] = useState('');
   const [showAllVerbatims, setShowAllVerbatims] = useState(false);
   const [showAllVerbastards, setShowAllVerbastards] = useState(false);
+  const [downloadedUrl,setDownloadedUrl] = useState(false);
   const { userId, profileId } = route.params;
   //const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appspot.com/o/1.jpg?alt=media&token=11ea9825-a4e2-4a7b-97c1-c4ad1b1eaae2';  
 
@@ -46,6 +47,7 @@ const ProfileScreen = ({ route }) => {
     const url = await getDownloadURL(storageRef).catch((error) => {
       console.log(error);
     });
+    setDownloadedUrl(true);
     return (url !== undefined ? url : defaultUrl);
   }  
 
@@ -520,17 +522,19 @@ const ProfileScreen = ({ route }) => {
           <Text style={styles.profileName}>{profileUsername}</Text>
         </View>
 
-        {userId!==profileId && (
-          <View style={styles.imageButton}>
-            <Image source={{ uri: profilePicUrl }} style={styles.mainProfileImage} />
-          </View>
+        {downloadedUrl && (
+          userId !== profileId ? (
+            <View style={styles.imageButton}>
+              <Image source={{ uri: profilePicUrl }} style={styles.mainProfileImage} />
+            </View>
+          ) : (
+            <TouchableOpacity onPress={handleButtonPress} style={styles.imageButton}>
+              <Image source={{ uri: profilePicUrl }} style={styles.mainProfileImage} />
+            </TouchableOpacity>
+          )
         )}
-        
-        {userId===profileId && (
-          <TouchableOpacity onPress={handleButtonPress} style={styles.imageButton}>
-            <Image source={{ uri: profilePicUrl }} style={styles.mainProfileImage} />
-          </TouchableOpacity>
-        )}
+
+
 
         <View style={styles.inputContainer}>
           <TouchableOpacity onPress={displayFriends} style={styles.belowProfileButton}>
@@ -546,13 +550,14 @@ const ProfileScreen = ({ route }) => {
 
         <Text style={styles.text}>Verbatims You Said</Text>
         
-        <FlatList
-          data={showAllVerbatims ? verbatims : verbatims.slice(0, 1)}
-          renderItem={renderDiscussionPost}
-          keyExtractor={(item,index) => index}
-          contentContainerStyle={styles.listContainer}
-          style={styles.scrollViewList}
-        />
+        <View style={styles.scrollViewList}>
+          {(showAllVerbatims ? verbatims : verbatims.slice(0, 1)).map((item, index) => (
+            <View key={index} style={styles.listContainer}>
+              {renderDiscussionPost({ item })}
+            </View>
+          ))}
+        </View>
+
         {verbatims.length > 1 && 
           <TouchableOpacity onPress={toggleShowVerbatims} style={styles.showMoreButton}>
           <Text style={styles.showMoreButtonText}> {showAllVerbatims ? 'Show less' : 'Show more'} </Text>
@@ -560,13 +565,15 @@ const ProfileScreen = ({ route }) => {
         }
 
         <Text style={styles.text}>Verbatims You Submitted</Text>
-        <FlatList
-          data={showAllVerbastards ? verbastards : verbastards.slice(0, 1)}
-          renderItem={renderDiscussionPost}
-          keyExtractor={(item,index) => index}
-          contentContainerStyle={styles.listContainer}
-          style={styles.scrollViewList}
-        />
+
+        <View style={styles.scrollViewList}>
+          {(showAllVerbastards ? verbastards : verbastards.slice(0, 1)).map((item, index) => (
+            <View key={index} style={styles.listContainer}>
+              {renderDiscussionPost({ item })}
+            </View>
+          ))}
+        </View>
+
         {verbastards.length > 1 && 
           <TouchableOpacity onPress={toggleShowVerbastards} style={styles.showMoreButton}>
           <Text style={styles.showMoreButtonText}> {showAllVerbastards ? 'Show less' : 'Show more'} </Text>

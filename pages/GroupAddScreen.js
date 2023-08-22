@@ -10,7 +10,7 @@ import {
   Button,
   TextInput,
 } from "react-native";
-import { getDatabase, ref, get, onValue } from "firebase/database";
+import { getDatabase, ref, get, onValue, push, child, set, update } from "firebase/database";
 import {
   getStorage,
   ref as refStorage,
@@ -18,20 +18,53 @@ import {
 } from "firebase/storage";
 import { app } from "../Firebase.js";
 import { useNavigation } from "@react-navigation/native";
+import uuid from 'react-native-uuid';
 
 const storage = getStorage();
 
 const GroupAddScreen = ({ route }) => {
   const { id } = route.params;
-  console.log(id);
   const [groupName, setGroupName] = useState("");
   const [users, setUsers] = useState([]);
+  const [usersIds, setUsersIds] = useState({});
   const [pressedIndices, setPressedIndices] = useState([]);
+  const [searchText, setSearchText] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [dataArray, setDataArray] = useState([]);
+  const [showSearch,setShowSearch] = useState(false);
+  const [pfpUsers,setPfpUsers] = useState({});
 
   const db = getDatabase(app);
   const navigation = useNavigation();
 
+  const downloadUrl = async (profileId) => {
+    const defaultStorageRef = await refStorage(storage, '1.jpg');
+    const defaultUrl = await getDownloadURL(defaultStorageRef);
+    const storageRef = await refStorage(storage, String(profileId) + '.jpg');
+    const url = await getDownloadURL(storageRef).catch((error) => {
+      console.log(error);
+    });
+    return (url !== undefined ? url : defaultUrl);
+  }  
+
+
   const createGroup = () => {
+    
+    const newGroupKey = push(child(ref(db), "Groups")).key;
+
+    updatedData = {}
+
+    set(ref(db, "Groups/" + newGroupKey), {
+      id: newGroupKey,
+      name: groupName,
+      users: usersIds,
+      verbatims: "",
+    });
+    
+    /*const updates = {};
+    updates["Groups/" + group["id"] + "/verbatims/" + newGroupVerbatimKey] = newVerbatimKey;
+    update(ref(db), updates);*/
+
     navigation.goBack();
   };
 
@@ -63,7 +96,6 @@ const GroupAddScreen = ({ route }) => {
         if (snapshot.exists()) {
           data = snapshot.val();
           let friends = Object.values(data);
-          console.log(friends);
 
           const friendsArr = friends.map((element) => ({
             id: element,
@@ -84,8 +116,9 @@ const GroupAddScreen = ({ route }) => {
 
           Promise.all(promises)
             .then(() => {
+              console.log(friendsArr);
               setUsers(friendsArr);
-              console.log(users);
+              setUsersIds(data);
             })
             .catch((error) => {
               console.error(error);
@@ -108,12 +141,138 @@ const GroupAddScreen = ({ route }) => {
     }
   };
 
+  const updateProfilePics = async () => {
+    const updatedPfps = {};
+    for(const i in users){
+      await downloadUrl(users[i].id)
+      .then((url) => {
+        console.log(url);
+        updatedPfps[users[i].id]=url;
+      })
+      .catch((error) => {
+        updatedPfps[users[i].id]='https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appspot.com/o/1.jpg?alt=media&token=42a40419-f444-4648-a1b3-8c25aebb21cd';
+        console.log(error);
+      });
+    }
+    return updatedPfps;
+  }
+
+  useEffect(()=>{
+    updateProfilePics()
+      .then((updatedPfps) => {
+        setPfpUsers(updatedPfps);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, [users])
+
   useEffect(() => {
-    fetchUsers();
+    //fetchUsers();
   }, []);
+
+  
+  useEffect(() => {
+    // Simulated data for discussion posts
+    const fetchDiscussionPosts = async () => {
+      try {
+        const dbref = ref(db, "Users/")
+        onValue(dbref, (snapshot) => {
+          data = snapshot.val()
+          if (data) {
+            const userInfo = Object.keys(data).map(async (key) => {
+                const userInfo = data[key];
+                const defaultStorageRef = refStorage(storage, '1.jpg');
+                const defaultUrl = await getDownloadURL(defaultStorageRef);
+                const storageRef = refStorage(storage, String(key) + '.jpg');
+                const url = await getDownloadURL(storageRef).catch((error) => {
+                  console.log(error);
+                });
+                return { username: userInfo.username, userId: key, profilePic: url !== undefined ? url : defaultUrl};
+            });
+            Promise.all(userInfo).then(userInfoArr => {
+              setDataArray(userInfoArr);
+            })
+          }
+        })
+      } catch (error) {
+        console.error('Error fetching discussion posts: ', error);
+      }
+    }
+
+    fetchDiscussionPosts();
+  }, []);
+
+  const renderResults = ({ item }) => {
+    if (!item) {
+      return null;
+    }
+    //item.userId
+    return (
+      <TouchableOpacity onPress={() => handleProfilePress(item)} style={styles.item}>
+        <Image source={{uri: item.profilePic}} style={styles.profilePic} />
+        <Text style={styles.usernameText}>{item.username}</Text>
+      </TouchableOpacity>
+      );
+  };
+  
+
+  const handleProfilePress = (item) => {
+    setShowSearch(false);
+    setSearchText('');
+
+    updatedUsersId = usersIds;
+
+    updatedUsersId[uuid.v1()]=item.userId;
+    //console.log(updatedUsersId);
+    setUsersIds(updatedUsersId);
+    const newElement = {};
+    newElement["id"]=item.userId;
+    newElement["username"]=item.username;
+    setUsers(users=>[...users,newElement])
+    //item.userId
+    //navigation.navigate('UserProfile', {userId: id, profileId: user });
+  }
+
+  const handleSearch = (text) => {
+    const filteredResults = text ? dataArray.filter((item) => {
+      if (item.username) {
+        return item.username.toLowerCase().includes(text.toLowerCase());
+      }
+      return false;
+    }) : [];
+    setSearchText(text);
+    setSearchResults(filteredResults);
+  };
+
+  const togglePopup = () => {
+    setShowSearch(!showSearch);
+  }
+  if(showSearch){
+    return(
+      <View style={styles.container}>
+        <TextInput
+          style={styles.input}
+          placeholder="Search..."
+          onChangeText={handleSearch}
+          value={searchText}
+          placeholderTextColor="#888"
+        />
+        {searchText !== '' ? (
+          <FlatList
+            data={searchResults}
+            renderItem={renderResults}
+            keyExtractor={(item) => item}
+            ListEmptyComponent={<Text style={styles.emptyText}>No results found</Text>}
+          />
+        ) : null}
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
+      
       <View style={styles.centerContainer}>
         <Text style={styles.title}>Create New Group</Text>
         <TextInput
@@ -136,7 +295,7 @@ const GroupAddScreen = ({ route }) => {
               key={index}
             >
               <Image
-                source={require("../assets/kharn.jpg")}
+                source={{uri:pfpUsers[user.id]}}
                 style={styles.image}
               />
               <Text style={buttonStyle}>{user["username"]}</Text>
@@ -145,6 +304,9 @@ const GroupAddScreen = ({ route }) => {
         })}
       </ScrollView>
       <View style={styles.centerContainer}>
+        <TouchableOpacity style={styles.button} onPress={togglePopup}>
+          <Text style={styles.buttonText}>Add Member To Group</Text>
+        </TouchableOpacity>
         <TouchableOpacity style={styles.button} onPress={createGroup}>
           <Text style={styles.buttonText}>Create Group Chat</Text>
         </TouchableOpacity>
@@ -201,6 +363,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 8,
+    marginBottom: 20,
   },
   listText: {
     fontSize: 16,
@@ -212,22 +375,38 @@ const styles = StyleSheet.create({
     paddingLeft: 40,
     marginBottom: 20,
   },
-  chooseButtonContainer: {
-    backgroundColor: "white",
-    borderRadius: 11,
-    borderWidth: 0,
-    borderColor: "gray",
-    paddingTop: 5,
-    paddingBottom: 3,
-    paddingLeft: 9,
-    paddingRight: 9,
-    paddingBottom: 10,
-    paddingTop: 10,
-    marginLeft: -5,
-    marginRight: -5,
-
+  input: {
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    marginBottom: 16,
+    fontSize: 16,
+    color: '#333',
+    backgroundColor: '#fff',
+  },
+  item: {
     flexDirection: "row",
-    alignItems: "center",
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  usernameText: {
+    fontSize: 18,
+    color: '#333',
+  },
+  emptyText: {
+    fontSize: 16,
+    marginTop: 16,
+    textAlign: 'center',
+    color: '#555',
+  },
+  profilePic: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    marginRight: 8,
   },
 });
 

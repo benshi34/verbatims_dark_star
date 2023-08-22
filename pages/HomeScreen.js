@@ -15,6 +15,7 @@ const HomeScreen = ({ route }) => {
   const [likedPosts, setLikedPosts] = useState([]);
   const [username, setUsername] = useState("");
   const [currComments, setCurrComments] = useState([]);
+  const [reload, setReload] = useState(false);
 
   const { value } = route.params;
 
@@ -22,55 +23,110 @@ const HomeScreen = ({ route }) => {
   const userId = value;
   const storage = getStorage();
 
-  useEffect(() => {
-    // Simulated data for discussion posts
-    const fetchVerbatims = async () => {
-      try {
-        const dbref = ref(db, "Verbatims");
-        onValue(dbref, (snapshot) => {
-          data = snapshot.val();
-          if (data) {
-            let verbatimsArray = Object.keys(data).map((key) => {
-              return { id: key, ...data[key] };
-            });
-            const promises = verbatimsArray.map(async (item) => {
-              const defaultStorageRef = refStorage(storage, "1.jpg");
-              const defaultUrl = await getDownloadURL(defaultStorageRef);
-              const storageRef = refStorage(
-                storage,
-                String(item.verbaiter) + ".jpg"
-              );
-              const url = await getDownloadURL(storageRef).catch((error) => {
-                console.log(error);
-              });
-              return {
-                ...item,
-                profilePic: url === undefined ? defaultUrl : url,
-              };
-            });
-            Promise.all(promises).then((verbatimsArray) => {
-              setVerbatims(verbatimsArray);
-            });
+  
+
+  const fetchVerbatims = async () => {
+    try {
+      console.log("updated");
+      const fetchGroupsAsync = async () => {
+        const includedGroups = await fetchGroups('Users/' + userId + "/groups");
+        return includedGroups;
+      };
+
+      const fetchChatAsync = async (group) => {
+        const includedGroups = await fetchGroups("Groups/"+group+"/verbatims");
+        return includedGroups;
+      };
+
+      const fetchVerbatimAsync = async (group) => {
+        const includedGroups = await retGet("Verbatims/"+group);
+        return includedGroups;
+      };
+
+      const fetchAndProcessData = async () => {
+        try {
+          const includedGroups = await fetchGroupsAsync();
+          const tempVerbatims = [];
+          
+          for (const group in includedGroups) {
+            const verbatimsArray = await fetchChatAsync(includedGroups[group]);
+            
+            for (const id in verbatimsArray) {
+              const selectedVerbatim = await fetchVerbatimAsync(verbatimsArray[id]);
+                  const likes = selectedVerbatim.likes
+                  const comments = selectedVerbatim.comments
+                  let numLikes = 0
+                  let numComments = 0
+                  if (likes !== undefined && likes !== null) {
+                    numLikes = likes.length
+                  }
+                  if (comments !== undefined && comments !== null) {
+                    numComments = Object.keys(comments).length
+                  }
+              const url = await downloadUrl(selectedVerbatim.verbaiter);
+              tempVerbatims.push({ ...selectedVerbatim, id: verbatimsArray[id], profilePic: url, numLikes: numLikes, numComments: numComments });
+            }
           }
-        });
-        const userRef = ref(db, "Users/" + userId);
-        onValue(userRef, (snapshot) => {
-          data = snapshot.val();
-          if (data) {
-            let likedverbatims = data.likedverbatims || [];
-            likedverbatims = likedverbatims.filter(
-              (postId) => postId !== undefined
-            );
-            setLikedPosts(likedverbatims);
-            setUsername(data.username === undefined ? "NoName" : data.username);
-          }
-        });
-      } catch (error) {
-        console.error("Error fetching verbatims: ", error);
+          setVerbatims(tempVerbatims);
+        } catch (error) {
+          console.log(error);
+        }
       }
-    };
-    fetchVerbatims();
-  }, []);
+      fetchAndProcessData();
+      const userRef = ref(db, "Users/" + userId);
+      onValue(userRef, (snapshot) => {
+        data = snapshot.val();
+        if (data) {
+          let likedverbatims = data.likedverbatims || [];
+          likedverbatims = likedverbatims.filter(
+            (postId) => postId !== undefined
+          );
+          setLikedPosts(likedverbatims);
+          setUsername(data.username === undefined ? "NoName" : data.username);
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching verbatims: ', error);
+    }
+  }
+
+  
+  useEffect(()=>{
+    onValue(ref(db, "Groups/"), (snapshot) => {
+      fetchVerbatims();
+    })
+    
+    onValue(ref(db, "Verbatims/"), (snapshot) => {
+      fetchVerbatims();
+    })
+
+  },[])
+  
+
+  const getProfilePictureFromID = (userIdValue) => {
+    const storageRef = refStorage(
+      storage,
+      String(userIdValue) + ".jpg"
+    );
+    const defaultStorageRef = refStorage(
+      storage, 
+      "1.jpg"
+    )
+    
+    return new Promise((resolve, reject) => {
+      getDownloadURL(storageRef).then((url) => {
+        resolve(url)
+      })
+      .catch((error) => {
+        getDownloadURL(defaultStorageRef).then((url) => {
+          resolve(url)
+        })
+        .catch((error) => {
+          reject(error)
+        })
+      })
+    });
+  }
 
   const toggleFavorite = (postId) => {
     setVerbatims((prevPosts) =>
@@ -157,7 +213,16 @@ const HomeScreen = ({ route }) => {
         username: username,
       });
       onValue(newCommentsRef, (snapshot) => {
-        setCurrComments((prevComments) => [...prevComments, snapshot.val()]);
+        
+        const comment = snapshot.val();
+        getProfilePictureFromID(comment.user)
+          .then((url) => {
+            comment.profilePic = url;
+            setCurrComments((prevComments) => [...prevComments, comment]);
+          })
+          .catch((error) => {
+            console.error(error);
+          });
       });
       setCommentText("");
     }
@@ -166,9 +231,28 @@ const HomeScreen = ({ route }) => {
   const openModal = (postId) => {
     const post = verbatims.find((post) => post.id === postId);
     setSelectedPost(post);
-    setCurrComments(
-      Object.values(post.comments === undefined ? [] : post.comments)
-    );
+    let currComments = Object.values(post.comments === undefined ? [] : post.comments)
+    let promises = [];
+    for (let i = 0; i < currComments.length; i++) {
+      const comment = currComments[i];
+      const promise = getProfilePictureFromID(comment.user)
+        .then((url) => {
+          currComments[i].profilePic = url;
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+      promises.push(promise);
+    }
+
+    Promise.all(promises)
+      .then(() => {
+        setCurrComments(currComments)
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+    
     setShowModal(true);
   };
 
@@ -272,14 +356,6 @@ const HomeScreen = ({ route }) => {
     } else {
       groupName = item.groupName;
     }
-    let numLikes = 0;
-    if (item.likes !== undefined) {
-      numLikes = item.likes.length;
-    }
-    let numComments = 0;
-    if (item.comments !== undefined) {
-      numComments = Object.keys(item.comments).length;
-    }
     return (
       <View style={styles.postContainer}>
         <View style={styles.userContainer}>
@@ -308,11 +384,11 @@ const HomeScreen = ({ route }) => {
           <SvgLikeButton
             onPress={() => toggleLike(item.id)}
             isLiked={isLiked}
-            numLikes={numLikes}
+            numLikes={item.numLikes}
           />
           <SvgCommentButton 
             onPress={() => openModal(item.id)} 
-            numComments={numComments}
+            numComments={item.numComments}
           />
           </View>
         </View>
@@ -334,21 +410,16 @@ const HomeScreen = ({ route }) => {
               />
               {selectedPost && (
                 
-                <Modal 
-                  visible={showModal} 
-                  animationType="slide" 
-                  transparent
-                >
-                  <Pressable 
-                    onPress={(event) => event.target == event.currentTarget && setShowModal(false)}
-                    style={styles.pressableIDK}
+                  <Modal 
+                    visible={showModal} 
+                    animationType="slide" 
+                    transparent
                   >
-                  </Pressable>
-                  <KeyboardAvoidingView
-                      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    <Pressable 
+                      onPress={(event) => event.target == event.currentTarget && setShowModal(false)}
                       style={styles.modalContainer}
                     >
-                      
+                    </Pressable>
                     <View style={styles.modalContent}>
                       <View style={styles.commentsHeading}>
                         <Text style={styles.commentsHeadingText}>Comments</Text>

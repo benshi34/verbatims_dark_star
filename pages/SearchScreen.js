@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#fff',
   },
   input: {
     height: 40,
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   usernameText: {
-    fontSize: 18,
+    fontSize: 17,
     color: '#333',
     fontWeight: 'bold',
   },
@@ -174,9 +174,9 @@ const styles = StyleSheet.create({
     color: '#555',
   },
   profilePic: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     marginRight: 10,
   },
   penisContainer: {

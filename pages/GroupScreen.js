@@ -153,12 +153,11 @@ const GroupScreen = ({ route }) => {
           <TouchableOpacity style={styles.button} onPress={handleCreateGroup}>
             <Text style={styles.buttonText}>Create Group</Text>
           </TouchableOpacity>
-          <FlatList
-            data={filteredGroups}
-            renderItem={renderGroups}
-            keyExtractor={(item) => item.id.toString()}
-            contentContainerStyle={styles.listContainer}
-          />
+          {filteredGroups.map((item, index) => (
+            <View key={index} style={styles.listContainer}>
+              {renderGroups({ item })}
+            </View>
+          ))}
         </ScrollView>
       </View>
     )

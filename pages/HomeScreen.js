@@ -23,6 +23,16 @@ const HomeScreen = ({ route }) => {
   const userId = value;
   const storage = getStorage();
 
+  const downloadUrl = async (itemVerbaiter) => {
+    const defaultStorageRef = await refStorage(storage, '1.jpg');
+    const defaultUrl = await getDownloadURL(defaultStorageRef);
+    const storageRef = await refStorage(storage, String(itemVerbaiter) + '.jpg');
+    const url = await getDownloadURL(storageRef).catch((error) => {
+      console.log(error);
+    });
+    return (url !== undefined ? url : defaultUrl);
+  }  
+
   
 
   const fetchVerbatims = async () => {
@@ -198,6 +208,44 @@ const HomeScreen = ({ route }) => {
       });
   };
 
+  
+
+  const fetchGroups = (item) => {
+    return new Promise((resolve, reject) => {
+      const dbref = ref(db, item);
+      get(dbref).then((snapshot) => {
+        if (snapshot.exists()) {
+          data = snapshot.val();
+          let verbatimsArray = Object.keys(data).map((key) => {
+            return { id: key, val: data[key] };
+          });
+          resolve(verbatimsArray.map(item => item.val));
+
+        } else {
+          resolve({});
+        }
+      }).catch((error) => {
+        reject(error);
+      });
+    });
+  };
+
+  const retGet = (item) => {
+    return new Promise((resolve, reject) => {
+      const dbref = ref(db, item);
+      get(dbref).then((snapshot) => {
+        if (snapshot.exists()) {
+          data = snapshot.val();
+          resolve(data);
+        } else {
+          resolve([]);
+        }
+      }).catch((error) => {
+        reject(error);
+      });
+    });
+  };
+
   const addComment = (postId) => {
     if (commentText.trim()) {
       // setVerbatims((prevPosts) =>
@@ -254,11 +302,7 @@ const HomeScreen = ({ route }) => {
       });
     
     setShowModal(true);
-  };
-
-  const closeModal = () => {
-    setSelectedPost(null);
-    setShowModal(false);
+    console.log(currComments);
   };
 
   const renderComment = ({ item }) => {
@@ -266,10 +310,12 @@ const HomeScreen = ({ route }) => {
       return null;
     }
     return (
-      <View>
-        <Image source={{ uri: item.profilePic }} style={styles.profilePic} />
+      <View style={styles.commentBox}>
+        <Image source={{ uri: item.profilePic }} style={styles.commentPic} />
+        <View style={styles.commentInteriorBox}>
         <Text style={styles.commentUser}>{item.username}</Text>
         <Text style={styles.commentText}>{item.comment}</Text>
+        </View>
       </View>
     );
   };
@@ -431,21 +477,22 @@ const HomeScreen = ({ route }) => {
                         contentContainerStyle={styles.commentsContainer}
                         style={styles.commentsBody}
                       />
-                      <View style={styles.commentInputRect}>
+                      <KeyboardAvoidingView
+                          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                          style={styles.commentInputRect}
+                        >
                         <View style={styles.textboxRec}>
-                          <TextInput
-                            style={styles.commentInput}
-                            placeholder="Add a comment..."
-                            placeholderTextColor="#616060"
-                            onChangeText={(text) => setCommentText(text)}
-                            value={commentText}
-                            onSubmitEditing={() => addComment(selectedPost.id)}
-                          />
+                         <TextInput
+                          style={styles.commentInput}
+                          placeholder="Add a comment..."
+                          placeholderTextColor="#616060"
+                          onChangeText={(text) => setCommentText(text)}
+                          value={commentText}
+                          onSubmitEditing={() => addComment(selectedPost.id)}
+                        />
                         </View>
-                      </View>
-                    </View>
-                </KeyboardAvoidingView>
-                
+                    </KeyboardAvoidingView>
+                  </View>
                 </Modal>
               
               )}
@@ -458,7 +505,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 0,
     backgroundColor: "#fff",
-    marginBottom: 50,
   },
   headerView: {
     paddingTop: 70,
@@ -466,6 +512,10 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 130,
     backgroundColor: "white",
+    // shadowColor: "#000",
+    // shadowOffset: { width: 0, height: 2 },
+    // shadowOpacity: 0.8,
+    // shadowRadius: 4,
     elevation: 5,
     alignItems: "center",
   },
@@ -476,7 +526,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     position: "relative",
-    paddingBottom: 330,
+    paddingBottom: 400,
     paddingLeft: 15,
     paddingRight: 15,
     paddingTop: 10,
@@ -547,6 +597,7 @@ const styles = StyleSheet.create({
   },
   likeButtonContainer: {
     flexDirection: "row",
+    paddingRight: 4,
   },
   likeButtonLiked: {
     color: "red",
@@ -559,6 +610,12 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     paddingBottom: 16,
+  },
+  commentBox: {
+    flexDirection: "row",
+  },
+  commentInteriorBox: {
+    flexDirection: "column",
   },
   actionsContainer: {
     width: "100%",
@@ -644,9 +701,6 @@ const styles = StyleSheet.create({
     fontWeight: 700,
     color: "#617FE8",
   },
-  pressableIDK: {
-    flex: 0,
-  },
   modalContainer: {
     flex: 1,
     justifyContent: "flex-end",
@@ -668,6 +722,13 @@ const styles = StyleSheet.create({
     borderTopColor: "#ccc",
     paddingTop: 16,
     paddingBottom: 20,
+  },
+  commentPic: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    marginRight: 8,
+    top: 5
   },
 });
 

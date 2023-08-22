@@ -209,7 +209,7 @@ const FriendScreen = ({ route }) => {
             contentContainerStyle={styles.listContainer}
           />
           { userId == profileId && (
-            <View>
+            <View style={styles.container2}>
             <Text style={styles.title}>Friend Requests</Text>
             <FlatList
               data={friendRequests}
@@ -227,8 +227,11 @@ const styles = StyleSheet.create({
     container: {
       flex: 1,
       paddingHorizontal: 20,
-      paddingTop: 20,
+      paddingTop: 40,
       backgroundColor: '#fff',
+    },
+    container2: {
+      flex: 1,
     },
     title: {
       fontSize: 20,

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, ScrollView, TextInput, Modal, Button, KeyboardAvoidingView} from 'react-native';
+import { Svg, SvgUri, Path } from 'react-native-svg';
 import * as ImagePicker from 'expo-image-picker';
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, get, child, onValue, update, remove, push } from "firebase/database";
@@ -11,6 +12,7 @@ const storage = getStorage();
 const metadata = {
   contentType: 'image/jpeg',
 };
+
 
 const ProfileScreen = ({ route }) => {
   const [verbatims, setVerbatims] = useState([]);
@@ -453,38 +455,53 @@ const ProfileScreen = ({ route }) => {
     let groupName = null;
     if (item.groupName === null) {
       groupName = "No Group";
-    }
-    else {
+    } else {
       groupName = item.groupName;
+    }
+    let numLikes = 0;
+    if (item.likes !== undefined) {
+      numLikes = item.likes.length;
+    }
+    let numComments = 0;
+    if (item.comments !== undefined) {
+      numComments = Object.keys(item.comments).length;
     }
     return (
       <View style={styles.postContainer}>
         <View style={styles.userContainer}>
-          <Image source={{uri: item.profilePic}} style={styles.profilePic} />
-          <Text style={styles.username}>{item.verbaiterName} Said:</Text>
+          <Image source={{ uri: item.profilePic }} style={styles.profilePic} />
+          <View style={styles.userInfo}>
+            <Text style={styles.username}>{item.verbaiterName} Said:</Text>
+            <Text style={styles.timestamp}>{item.timestamp}</Text>
+          </View>
         </View>
-        <Text>{item.timestamp}</Text>
-        <Text>Submitted by: {item.verbastardName} | {groupName}</Text>
+
         <View style={styles.postTextContainer}>
-          <Text style={styles.postText}>{item.post}</Text>
+          <Text style={styles.postText}>"{item.post}"</Text>
         </View>
-        <TouchableOpacity
-          style={[styles.favoriteButton, item.isFavorite && styles.favoriteButtonActive]}
-          onPress={() => toggleFavorite(item.id)}
-        >
-          <Text style={[styles.favoriteButtonText, item.isFavorite && styles.favoriteButtonTextActive]}>
-            {item.isFavorite ? 'Unfavorite' : 'Favorite'}
+        <View style={styles.submittedByContainer}>
+          <Text style={styles.submittedByText}>
+            Submitted by: {item.verbastardName} | {groupName}
           </Text>
-        </TouchableOpacity>
-        <View style={styles.actionsContainer}>
-        <TouchableOpacity style={[styles.likeButton, isLiked && styles.likeButtonLiked]} onPress={() => toggleLike(item.id)}>
-          <Text style={styles.likeButtonText}>Like</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.commentButton} onPress={() => openModal(item.id)}>
-          <Text style={styles.commentButtonText}>View Comments</Text>
-        </TouchableOpacity>
         </View>
-      </View>
+        <View style={styles.favoriteButton}>
+          <SvgFavoritedButton
+            onPress={() => toggleFavorite(item.id)}
+            isFavorite={item.isFavorite}
+          />
+        </View>
+        <View style={styles.actionsContainer}>
+          <SvgLikeButton
+            onPress={() => toggleLike(item.id)}
+            isLiked={isLiked}
+            numLikes={numLikes}
+          />
+          <SvgCommentButton 
+            onPress={() => openModal(item.id)} 
+            numComments={numComments}
+          />
+          </View>
+        </View>
     );
   };
 
@@ -499,7 +516,9 @@ const ProfileScreen = ({ route }) => {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        <Text style={styles.profileName}>{profileUsername}</Text>
+        <View style={styles.headerView}>
+          <Text style={styles.profileName}>{profileUsername}</Text>
+        </View>
 
         {userId!==profileId && (
           <View style={styles.imageButton}>
@@ -587,19 +606,93 @@ const ProfileScreen = ({ route }) => {
   );
 };
 
+const SvgFavoritedButton = ({ onPress, isFavorite }) => {
+  return (
+    <TouchableOpacity style={styles.likeButtonContainer} onPress={onPress}>
+      <Svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="19"
+        height="19"
+        viewBox="0 0 19 19"
+        fill="none"
+      >
+        <Path
+          d="M3.825 19L5.45 11.975L0 7.25L7.2 6.625L10 0L12.8 6.625L20 7.25L14.55 11.975L16.175 19L10 15.275L3.825 19Z"
+          fill={isFavorite ? "#FFD600" : "#f5f5f5"}
+          stroke={isFavorite ? "none" : "#AFAFAF"}
+        />
+      </Svg>
+    </TouchableOpacity>
+  );
+};
+
+const SvgLikeButton = ({ onPress, isLiked, numLikes}) => {
+  return (
+    <TouchableOpacity style={styles.likeButtonContainer} onPress={onPress}>
+      <Svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="14"
+        height="13"
+        viewBox="0 0 14 13"
+        fill="none"
+      >
+        <Path
+          d="M10.7021 2.6004C10.532 2.20638 10.2866 1.84933 9.97978 1.54923C9.67273 1.24823 9.31069 1.00903 8.91338 0.844638C8.50139 0.673496 8.0595 0.585896 7.61338 0.586923C6.9875 0.586923 6.37686 0.75831 5.84619 1.08204C5.71924 1.15948 5.59863 1.24454 5.48438 1.33722C5.37012 1.24454 5.24951 1.15948 5.12256 1.08204C4.59189 0.75831 3.98125 0.586923 3.35537 0.586923C2.90469 0.586923 2.46797 0.673251 2.05537 0.844638C1.65674 1.00968 1.29746 1.24708 0.988965 1.54923C0.681734 1.84899 0.43631 2.20613 0.266602 2.6004C0.0901367 3.01046 0 3.44591 0 3.89405C0 4.31681 0.0863282 4.75733 0.257715 5.20548C0.401172 5.57999 0.606836 5.96847 0.869629 6.36075C1.28604 6.98155 1.85859 7.62901 2.56953 8.28536C3.74766 9.37335 4.91436 10.1249 4.96387 10.1554L5.26475 10.3483C5.39805 10.4334 5.56943 10.4334 5.70273 10.3483L6.00361 10.1554C6.05313 10.1236 7.21855 9.37335 8.39795 8.28536C9.10889 7.62901 9.68145 6.98155 10.0979 6.36075C10.3606 5.96847 10.5676 5.57999 10.7098 5.20548C10.8812 4.75733 10.9675 4.31681 10.9675 3.89405C10.9688 3.44591 10.8786 3.01046 10.7021 2.6004Z"
+          fill={isLiked ? "red" : "#AFAFAF"}
+        />
+      </Svg>
+      <Text
+        style={[styles.likeButtonText, isLiked && styles.likeButtonLiked]}
+      >
+        {" "}
+        {numLikes} Likes
+      </Text>
+    </TouchableOpacity>
+  );
+};
+
+const SvgCommentButton = ({ onPress, numComments }) => {
+  return (
+    <TouchableOpacity style={styles.likeButtonContainer} onPress={onPress}>
+      <Svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="12"
+        height="12"
+        viewBox="0 0 12 12"
+        fill="none"
+      >
+        <Path
+          d="M7 9.5C8.8855 9.5 9.8285 9.5 10.414 8.914C11 8.3285 11 7.3855 11 5.5C11 3.6145 11 2.6715 10.414 2.086C9.8285 1.5 8.8855 1.5 7 1.5H5C3.1145 1.5 2.1715 1.5 1.586 2.086C1 2.6715 1 3.6145 1 5.5C1 7.3855 1 8.3285 1.586 8.914C1.9125 9.241 2.35 9.3855 3 9.449"
+          stroke="#5570D6"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <Path
+          d="M7.00012 9.5C6.38212 9.5 5.70112 9.75 5.07962 10.0725C4.08062 10.591 3.58112 10.8505 3.33512 10.685C3.08912 10.52 3.13562 10.0075 3.22912 8.983L3.25012 8.75"
+          stroke="#5570D6"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+      </Svg>
+      <Text style={[styles.commentButtonText]}> {numComments} Comments</Text>
+    </TouchableOpacity>
+  );
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingTop: 12,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fff',
   },
   profileName: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 39,
+    fontWeight: "bold",
+    color: "#617FE8",
     textAlign: 'center',
-    color: '#4664D6',
-    fontSize: 24,
     paddingTop: 60,
     paddingBottom: 20,
   },
@@ -641,7 +734,7 @@ const styles = StyleSheet.create({
     height: 100,
   },
   scrollViewList: {
-    width: 320,
+    width: 400,
   },
   text: {
     marginTop: 10,
@@ -650,26 +743,31 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingBottom: 20,
   },
-  header: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 16,
+  headerView: {
+    paddingTop: 0,
+    paddingBottom: 20,
+    width: "100%",
+    height: 130,
+    backgroundColor: "white",
+    elevation: 5,
+    alignItems: "center",
   },
   listContainer: {
     paddingBottom: 15,
   },
   postContainer: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
     padding: 16,
     marginBottom: 16,
-    borderRadius: 8,
-    flexDirection: 'column',
-    alignItems: 'flex-start',
+    borderRadius: 17,
+    flexDirection: "column",
+    alignItems: "flex-start",
+    position: "relative",
   },
   userContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 1,
   },
   profilePic: {
     width: 24,
@@ -679,57 +777,68 @@ const styles = StyleSheet.create({
   },
   postText: {
     fontSize: 16,
+    color: "#000",
+    fontWeight: 700,
   },
   postTextContainer: {
-    flex: 1,
-    marginBottom: 8,
+    flex: 0,
+    marginBottom: 4,
+  },
+  submittedByContainer: {
+    marginHorizontal: 8,
+  },
+  submittedByText: {
+    color: "#9A9A9A",
+    fontSize: 10,
+    fontWeight: 700,
   },
   username: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
   },
-  postText: {
-    fontSize: 16,
+  timestamp: {
+    color: "#9A9A9A",
+    fontSize: 8,
+    fontStyle: "normal",
+    fontWeight: 700,
   },
   favoriteButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 8,
     right: 8,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 16,
-    backgroundColor: '#e1e1e1',
   },
   favoriteButtonText: {
     fontSize: 14,
-    color: '#333',
+    color: "#333",
   },
   favoriteButtonActive: {
-    backgroundColor: '#ffcc00',
+    backgroundColor: "yellow",
   },
-  likeButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    backgroundColor: '#e1e1e1',
+  likeButtonContainer: {
+    flexDirection: "row",
   },
   likeButtonLiked: {
-    backgroundColor: 'red',
+    color: "red",
   },
   likeButtonText: {
-    fontSize: 14,
-    color: '#333',
+    fontSize: 10,
+    fontWeight: 700,
+    color: "#AFAFAF",
   },
   actionsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 8,
   },
   commentButton: {
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
-    backgroundColor: '#e1e1e1',
+    backgroundColor: "#e1e1e1",
   },
   belowProfileButton: {
     backgroundColor: '#617FE8',
@@ -776,8 +885,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   commentButtonText: {
-    fontSize: 14,
-    color: '#333',
+    fontSize: 10,
+    fontWeight: 700,
+    color: "#617FE8",
   },
   modalContainer: {
     flex: 1,

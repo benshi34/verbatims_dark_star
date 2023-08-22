@@ -22,21 +22,9 @@ const HomeScreen = ({ route }) => {
   const userId = value;
   const storage = getStorage();
 
-  const downloadUrl = async (itemVerbaiter) => {
-    const defaultStorageRef = await refStorage(storage, '1.jpg');
-    const defaultUrl = await getDownloadURL(defaultStorageRef);
-    const storageRef = await refStorage(storage, String(itemVerbaiter) + '.jpg');
-    const url = await getDownloadURL(storageRef).catch((error) => {
-      console.log(error);
-    });
-    return (url !== undefined ? url : defaultUrl);
-  }  
-
   useEffect(() => {
     // Simulated data for discussion posts
-    
-    
-    /*const fetchVerbatims = async () => {
+    const fetchVerbatims = async () => {
       try {
         const dbref = ref(db, "Verbatims");
         onValue(dbref, (snapshot) => {
@@ -80,119 +68,9 @@ const HomeScreen = ({ route }) => {
       } catch (error) {
         console.error("Error fetching verbatims: ", error);
       }
-    };*/
-    
-
-
-    const fetchVerbatims = async () => {
-      onValue(ref(db, "Groups/"), (snapshot) => {
-
-        try {
-        
-          const fetchGroupsAsync = async () => {
-            const includedGroups = await fetchGroups('Users/' + userId + "/groups");
-            return includedGroups;
-          };
-  
-          const fetchChatAsync = async (group) => {
-            const includedGroups = await fetchGroups("Groups/"+group+"/verbatims");
-            return includedGroups;
-          };
-  
-          const fetchVerbatimAsync = async (group) => {
-            const includedGroups = await retGet("Verbatims/"+group);
-            return includedGroups;
-          };
-
-          const fetchAndProcessData = async () => {
-            try {
-              const includedGroups = await fetchGroupsAsync();
-              const tempVerbatims = [];
-              
-              for (const group in includedGroups) {
-                const verbatimsArray = await fetchChatAsync(includedGroups[group]);
-                
-                for (const id in verbatimsArray) {
-                  const selectedVerbatim = await fetchVerbatimAsync(verbatimsArray[id]);
-                  const url = await downloadUrl(selectedVerbatim.verbaiter);
-                  tempVerbatims.push({ ...selectedVerbatim, id: verbatimsArray[id], profilePic: url });
-                }
-              }
-              setVerbatims(tempVerbatims);
-            } catch (error) {
-              console.log(error);
-            }
-          }
-          fetchAndProcessData();
-
-          /*fetchGroupsAsync().then((includedGroups) => {
-            tempVerbatims=[];
-            tempVerbastards=[];
-            for(const group in includedGroups){
-              fetchChatAsync(includedGroups[group]).then((verbatimsArray) => {
-                for(const id in verbatimsArray){
-                  fetchVerbatimAsync(verbatimsArray[id]).then((selectedVerbatim) => {
-                    downloadUrl(selectedVerbatim.verbaiter)
-                    .then((url) => {
-                        tempVerbatims.push({...selectedVerbatim, 
-                          profilePic: url});
-                        setVerbatims(tempVerbatims);
-                      })
-                    .catch((error) => {
-                      console.log(error);
-                    });
-  
-                  })
-                }
-              })
-            }
-          })*/
-          console.log("Verbatims");
-          console.log(verbatims);
-          const userRef = ref(db, "Users/" + userId);
-          onValue(userRef, (snapshot) => {
-            data = snapshot.val();
-            if (data) {
-              let likedverbatims = data.likedverbatims || [];
-              likedverbatims = likedverbatims.filter(
-                (postId) => postId !== undefined
-              );
-              setLikedPosts(likedverbatims);
-              setUsername(data.username === undefined ? "NoName" : data.username);
-            }
-          });
-        } catch (error) {
-          console.error('Error fetching verbatims: ', error);
-        }
-      })
-    }
+    };
     fetchVerbatims();
   }, []);
-
-  const getProfilePictureFromID = (userIdValue) => {
-    const storageRef = refStorage(
-      storage,
-      String(userIdValue) + ".jpg"
-    );
-    const defaultStorageRef = refStorage(
-      storage, 
-      "1.jpg"
-    )
-    
-    return new Promise((resolve, reject) => {
-      getDownloadURL(storageRef).then((url) => {
-        resolve(url)
-      })
-      .catch((error) => {
-        getDownloadURL(defaultStorageRef).then((url) => {
-          resolve(url)
-        })
-        .catch((error) => {
-          reject(error)
-        })
-      })
-    });
-  }
 
   const toggleFavorite = (postId) => {
     setVerbatims((prevPosts) =>
@@ -264,44 +142,6 @@ const HomeScreen = ({ route }) => {
       });
   };
 
-  
-
-  const fetchGroups = (item) => {
-    return new Promise((resolve, reject) => {
-      const dbref = ref(db, item);
-      get(dbref).then((snapshot) => {
-        if (snapshot.exists()) {
-          data = snapshot.val();
-          let verbatimsArray = Object.keys(data).map((key) => {
-            return { id: key, val: data[key] };
-          });
-          resolve(verbatimsArray.map(item => item.val));
-
-        } else {
-          resolve({});
-        }
-      }).catch((error) => {
-        reject(error);
-      });
-    });
-  };
-
-  const retGet = (item) => {
-    return new Promise((resolve, reject) => {
-      const dbref = ref(db, item);
-      get(dbref).then((snapshot) => {
-        if (snapshot.exists()) {
-          data = snapshot.val();
-          resolve(data);
-        } else {
-          resolve([]);
-        }
-      }).catch((error) => {
-        reject(error);
-      });
-    });
-  };
-
   const addComment = (postId) => {
     if (commentText.trim()) {
       // setVerbatims((prevPosts) =>
@@ -326,30 +166,15 @@ const HomeScreen = ({ route }) => {
   const openModal = (postId) => {
     const post = verbatims.find((post) => post.id === postId);
     setSelectedPost(post);
-    let currComments = Object.values(post.comments === undefined ? [] : post.comments)
-    let promises = [];
-    for (let i = 0; i < currComments.length; i++) {
-      const comment = currComments[i];
-      const promise = getProfilePictureFromID(comment.user)
-        .then((url) => {
-          currComments[i].profilePic = url;
-        })
-        .catch((error) => {
-          console.error(error);
-        });
-      promises.push(promise);
-    }
-
-    Promise.all(promises)
-      .then(() => {
-        setCurrComments(currComments)
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-    
+    setCurrComments(
+      Object.values(post.comments === undefined ? [] : post.comments)
+    );
     setShowModal(true);
-    console.log(currComments);
+  };
+
+  const closeModal = () => {
+    setSelectedPost(null);
+    setShowModal(false);
   };
 
   const renderComment = ({ item }) => {
@@ -357,12 +182,10 @@ const HomeScreen = ({ route }) => {
       return null;
     }
     return (
-      <View style={styles.commentBox}>
-        <Image source={{ uri: item.profilePic }} style={styles.commentPic} />
-        <View style={styles.commentInteriorBox}>
+      <View>
+        <Image source={{ uri: item.profilePic }} style={styles.profilePic} />
         <Text style={styles.commentUser}>{item.username}</Text>
         <Text style={styles.commentText}>{item.comment}</Text>
-        </View>
       </View>
     );
   };
@@ -511,16 +334,21 @@ const HomeScreen = ({ route }) => {
               />
               {selectedPost && (
                 
-                  <Modal 
-                    visible={showModal} 
-                    animationType="slide" 
-                    transparent
+                <Modal 
+                  visible={showModal} 
+                  animationType="slide" 
+                  transparent
+                >
+                  <Pressable 
+                    onPress={(event) => event.target == event.currentTarget && setShowModal(false)}
+                    style={styles.pressableIDK}
                   >
-                    <Pressable 
-                      onPress={(event) => event.target == event.currentTarget && setShowModal(false)}
+                  </Pressable>
+                  <KeyboardAvoidingView
+                      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                       style={styles.modalContainer}
                     >
-                    </Pressable>
+                      
                     <View style={styles.modalContent}>
                       <View style={styles.commentsHeading}>
                         <Text style={styles.commentsHeadingText}>Comments</Text>
@@ -532,22 +360,21 @@ const HomeScreen = ({ route }) => {
                         contentContainerStyle={styles.commentsContainer}
                         style={styles.commentsBody}
                       />
-                      <KeyboardAvoidingView
-                          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                          style={styles.commentInputRect}
-                        >
+                      <View style={styles.commentInputRect}>
                         <View style={styles.textboxRec}>
-                         <TextInput
-                          style={styles.commentInput}
-                          placeholder="Add a comment..."
-                          placeholderTextColor="#616060"
-                          onChangeText={(text) => setCommentText(text)}
-                          value={commentText}
-                          onSubmitEditing={() => addComment(selectedPost.id)}
-                        />
+                          <TextInput
+                            style={styles.commentInput}
+                            placeholder="Add a comment..."
+                            placeholderTextColor="#616060"
+                            onChangeText={(text) => setCommentText(text)}
+                            value={commentText}
+                            onSubmitEditing={() => addComment(selectedPost.id)}
+                          />
                         </View>
-                    </KeyboardAvoidingView>
-                  </View>
+                      </View>
+                    </View>
+                </KeyboardAvoidingView>
+                
                 </Modal>
               
               )}
@@ -560,6 +387,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 0,
     backgroundColor: "#fff",
+    marginBottom: 50,
   },
   headerView: {
     paddingTop: 70,
@@ -567,10 +395,6 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 130,
     backgroundColor: "white",
-    // shadowColor: "#000",
-    // shadowOffset: { width: 0, height: 2 },
-    // shadowOpacity: 0.8,
-    // shadowRadius: 4,
     elevation: 5,
     alignItems: "center",
   },
@@ -581,7 +405,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     position: "relative",
-    paddingBottom: 400,
+    paddingBottom: 330,
     paddingLeft: 15,
     paddingRight: 15,
     paddingTop: 10,
@@ -652,7 +476,6 @@ const styles = StyleSheet.create({
   },
   likeButtonContainer: {
     flexDirection: "row",
-    paddingRight: 4,
   },
   likeButtonLiked: {
     color: "red",
@@ -665,12 +488,6 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     paddingBottom: 16,
-  },
-  commentBox: {
-    flexDirection: "row",
-  },
-  commentInteriorBox: {
-    flexDirection: "column",
   },
   actionsContainer: {
     width: "100%",
@@ -756,6 +573,9 @@ const styles = StyleSheet.create({
     fontWeight: 700,
     color: "#617FE8",
   },
+  pressableIDK: {
+    flex: 0,
+  },
   modalContainer: {
     flex: 1,
     justifyContent: "flex-end",
@@ -777,13 +597,6 @@ const styles = StyleSheet.create({
     borderTopColor: "#ccc",
     paddingTop: 16,
     paddingBottom: 20,
-  },
-  commentPic: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    marginRight: 8,
-    top: 5
   },
 });
 

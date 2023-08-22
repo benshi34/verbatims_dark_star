@@ -163,23 +163,33 @@ const FriendScreen = ({ route }) => {
       }
     }
 
-   /* 
-    const removeFriend = async () => {
-      
+    const removeFriend = (friendId) => {
+      const condition = (element) => friendId == element.friendId
+      const deleteIndex = friends.findIndex(condition)
+      if (deleteIndex !== null) {
+        const deleteId = friends[deleteIndex].id;
+        let cloned = [...friends];
+        cloned.splice(deleteIndex, 1);
+        setFriends(cloned);
+        remove(ref(db, 'Users/' + userId + "/friends/" + deleteId)).then(() => {
+          console.log("FRIEND DELETED!");
+        }).catch((error) => {
+          console.error(error);
+        })
+      }
     }
-    */
     
-
     const renderFriendItem = ({ item }) => {
-
-
+      let showFriendButton = userId == profileId
       return (
           <TouchableOpacity onPress={() => handleProfilePress(item.friendId)} style={styles.friendItemContainer}>
             <Image source={{uri: item.profilePic}} style={styles.friendAvatar} />
             <Text style={styles.friendName}>{item.friendName}</Text>
-            <TouchableOpacity style={styles.removeButton}>
+            {showFriendButton &&
+            <TouchableOpacity style={styles.removeButton} onPress={() => removeFriend(item.friendId)}>
               <Text style={styles.declineButtonText}>Remove Friend</Text>
             </TouchableOpacity>
+            }
           </TouchableOpacity>
       );
     };
@@ -209,7 +219,7 @@ const FriendScreen = ({ route }) => {
             contentContainerStyle={styles.listContainer}
           />
           { userId == profileId && (
-            <View>
+            <View style={styles.container2}>
             <Text style={styles.title}>Friend Requests</Text>
             <FlatList
               data={friendRequests}
@@ -227,8 +237,11 @@ const styles = StyleSheet.create({
     container: {
       flex: 1,
       paddingHorizontal: 20,
-      paddingTop: 20,
+      paddingTop: 40,
       backgroundColor: '#fff',
+    },
+    container2: {
+      flex: 1,
     },
     title: {
       fontSize: 20,

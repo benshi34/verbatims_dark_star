@@ -63,8 +63,18 @@ const HomeScreen = ({ route }) => {
             
             for (const id in verbatimsArray) {
               const selectedVerbatim = await fetchVerbatimAsync(verbatimsArray[id]);
+                  const likes = selectedVerbatim.likes
+                  const comments = selectedVerbatim.comments
+                  let numLikes = 0
+                  let numComments = 0
+                  if (likes !== undefined && likes !== null) {
+                    numLikes = likes.length
+                  }
+                  if (comments !== undefined && comments !== null) {
+                    numComments = Object.keys(comments).length
+                  }
               const url = await downloadUrl(selectedVerbatim.verbaiter);
-              tempVerbatims.push({ ...selectedVerbatim, id: verbatimsArray[id], profilePic: url });
+              tempVerbatims.push({ ...selectedVerbatim, id: verbatimsArray[id], profilePic: url, numLikes: numLikes, numComments: numComments });
             }
           }
           setVerbatims(tempVerbatims);
@@ -392,14 +402,6 @@ const HomeScreen = ({ route }) => {
     } else {
       groupName = item.groupName;
     }
-    let numLikes = 0;
-    if (item.likes !== undefined) {
-      numLikes = item.likes.length;
-    }
-    let numComments = 0;
-    if (item.comments !== undefined) {
-      numComments = Object.keys(item.comments).length;
-    }
     return (
       <View style={styles.postContainer}>
         <View style={styles.userContainer}>
@@ -428,11 +430,11 @@ const HomeScreen = ({ route }) => {
           <SvgLikeButton
             onPress={() => toggleLike(item.id)}
             isLiked={isLiked}
-            numLikes={numLikes}
+            numLikes={item.numLikes}
           />
           <SvgCommentButton 
             onPress={() => openModal(item.id)} 
-            numComments={numComments}
+            numComments={item.numComments}
           />
           </View>
         </View>

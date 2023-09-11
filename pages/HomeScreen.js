@@ -99,7 +99,6 @@ const HomeScreen = ({ route }) => {
       console.error('Error fetching verbatims: ', error);
     }
   }
-
   
   useEffect(()=>{
     onValue(ref(db, "Groups/"), (snapshot) => {
@@ -191,9 +190,9 @@ const HomeScreen = ({ route }) => {
         user = snapshot.val();
         if (user) {
           const likedPosts = user.likedverbatims || [];
-          const index = likedPosts.indexOf(postId);
+          const index = likedPosts.indexOf(String(postId));
           if (index === -1) {
-            likedPosts.push(postId);
+            likedPosts.push(String(postId));
           } else {
             likedPosts.splice(index, 1);
           }
@@ -395,7 +394,7 @@ const HomeScreen = ({ route }) => {
   };
 
   const renderDiscussionPost = ({ item }) => {
-    let isLiked = likedPosts.includes(item.id);
+    let isLiked = likedPosts.includes(String(item.id));
     let groupName = null;
     if (item.groupName === null) {
       groupName = "No Group";

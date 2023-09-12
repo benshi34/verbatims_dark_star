@@ -107,6 +107,7 @@ export default function App() {
         <Stack.Screen name="Chat" component={ChatScreen} />
         <Stack.Screen
           options={{
+            headerShown: false,
             contentStyle: { backgroundColor: "white" },
           }}
           name="Create New Group"

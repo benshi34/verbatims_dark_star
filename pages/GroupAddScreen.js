@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Button,
   TextInput,
+  BackHandler,
 } from "react-native";
 import { getDatabase, ref, get, onValue, push, child, set, update } from "firebase/database";
 import {
@@ -19,6 +20,7 @@ import {
 import { app } from "../Firebase.js";
 import { useNavigation } from "@react-navigation/native";
 import uuid from 'react-native-uuid';
+import { Ionicons } from '@expo/vector-icons'; // Assuming you're using Expo's vector icons
 
 const storage = getStorage();
 
@@ -47,25 +49,46 @@ const GroupAddScreen = ({ route }) => {
     return (url !== undefined ? url : defaultUrl);
   }  
 
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction,
+    );
+    return () => backHandler.remove();
+  },[showSearch])
+  
+  const backAction = () => {
+    goBack();
+    return true;
+  };
+  
+  const goBack = () => {
+    if(showSearch){
+      setShowSearch(false);
+    } else {
+      navigation.navigate('Groups');
+    }
+  };
 
   const createGroup = () => {
-    
-    const newGroupKey = push(child(ref(db), "Groups")).key;
+    if (groupName && groupName.trim() !== '') {
+      const newGroupKey = push(child(ref(db), "Groups")).key;
 
-    updatedData = {}
+      updatedData = {}
 
-    set(ref(db, "Groups/" + newGroupKey), {
-      id: newGroupKey,
-      name: groupName,
-      users: usersIds,
-      verbatims: "",
-    });
-    
-    /*const updates = {};
-    updates["Groups/" + group["id"] + "/verbatims/" + newGroupVerbatimKey] = newVerbatimKey;
-    update(ref(db), updates);*/
+      set(ref(db, "Groups/" + newGroupKey), {
+        id: newGroupKey,
+        name: groupName,
+        users: usersIds,
+        verbatims: "",
+      });
+      
+      /*const updates = {};
+      updates["Groups/" + group["id"] + "/verbatims/" + newGroupVerbatimKey] = newVerbatimKey;
+      update(ref(db), updates);*/
 
-    navigation.goBack();
+      navigation.goBack();
+    }
   };
 
   const getUsernameFromID = (userIdValue) => {
@@ -213,7 +236,7 @@ const GroupAddScreen = ({ route }) => {
         <Image source={{uri: item.profilePic}} style={styles.profilePic} />
         <Text style={styles.usernameText}>{item.username}</Text>
       </TouchableOpacity>
-      );
+    );
   };
   
 
@@ -246,33 +269,41 @@ const GroupAddScreen = ({ route }) => {
   };
 
   const togglePopup = () => {
-    setShowSearch(!showSearch);
+    setShowSearch(true);
   }
   if(showSearch){
     return(
-      <View style={styles.container}>
-        <TextInput
-          style={styles.input}
-          placeholder="Search..."
-          onChangeText={handleSearch}
-          value={searchText}
-          placeholderTextColor="#888"
-        />
-        {searchText !== '' ? (
-          <FlatList
-            data={searchResults}
-            renderItem={renderResults}
-            keyExtractor={(item) => item}
-            ListEmptyComponent={<Text style={styles.emptyText}>No results found</Text>}
+      <View>
+        <TouchableOpacity onPress={goBack} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="white" />
+        </TouchableOpacity>
+        <View style={styles.container}>
+          <Text style={styles.title}>Search User</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Search..."
+            onChangeText={handleSearch}
+            value={searchText}
+            placeholderTextColor="#888"
           />
-        ) : null}
+          {searchText !== '' ? (
+            <FlatList
+              data={searchResults}
+              renderItem={renderResults}
+              keyExtractor={(item) => item}
+              ListEmptyComponent={<Text style={styles.emptyText}>No results found</Text>}
+            />
+          ) : null}
+        </View>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      
+      <TouchableOpacity onPress={goBack} style={styles.backButton}>
+        <Ionicons name="arrow-back" size={24} color="white" />
+      </TouchableOpacity>
       <View style={styles.centerContainer}>
         <Text style={styles.title}>Create New Group</Text>
         <TextInput
@@ -316,16 +347,27 @@ const GroupAddScreen = ({ route }) => {
 };
 
 const styles = StyleSheet.create({
+  
   container: {
-    paddingTop: 30,
-    // justifyContent: 'center',
-    // alignItems: "center",
-    backgroundColor: "white",
+    padding: 32,
+    justifyContent: 'center',
+    backgroundColor: 'white',
+  },
+  backButton: {
+    marginTop: 30,
+    position: 'absolute',
+    top: 20, // Adjust the value to position the button as needed
+    left: 20, // Adjust the value to position the button as needed
+    padding: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 100, // To create a circular button
+    zIndex: 1,
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 20,
+    marginBottom: 40,
+    textAlign: 'center',
   },
   image: {
     width: 20,

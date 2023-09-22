@@ -73,17 +73,18 @@ const GroupAddScreen = ({ route }) => {
     }
   };
 
-  console.log(Object.values(usersIds))
   const createGroup = () => {
     if (groupName && groupName.trim() !== '') {
       const newGroupKey = push(child(ref(db), "Groups")).key;
 
       updatedData = {}
-
+      let tempGroupKey = push(child(ref(db), 'Groups/' + newGroupKey + "/users")).key;
+      let updatedUsersIds = usersIds
+      updatedUsersIds[tempGroupKey] = id
       set(ref(db, "Groups/" + newGroupKey), {
         id: newGroupKey,
         name: groupName,
-        users: usersIds,
+        users: updatedUsersIds,
       });
       const updates = {};
       const newPostKey = push(child(ref(db), 'Users/' + id + "/groups")).key;

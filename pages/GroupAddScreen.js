@@ -72,6 +72,7 @@ const GroupAddScreen = ({ route }) => {
     }
   };
 
+  console.log(Object.values(usersIds))
   const createGroup = () => {
     if (groupName && groupName.trim() !== '') {
       const newGroupKey = push(child(ref(db), "Groups")).key;
@@ -82,9 +83,19 @@ const GroupAddScreen = ({ route }) => {
         id: newGroupKey,
         name: groupName,
         users: usersIds,
-        verbatims: "",
       });
+      const updates = {};
+      const newPostKey = push(child(ref(db), 'Users/' + id + "/groups")).key;
+      updates["/"+newPostKey] = newGroupKey;
+      update(ref(db, 'Users/' + id + "/groups"), updates);
       
+      const values = Object.values(usersIds)
+      for (let tempId in values) {
+        let temp = push(child(ref(db), 'Users/' + values[tempId] + "/groups")).key;
+        updates["/"+temp] = newGroupKey
+        update(ref(db, 'Users/' + values[tempId] + "/groups"), updates);
+      }
+
       /*const updates = {};
       updates["Groups/" + group["id"] + "/verbatims/" + newGroupVerbatimKey] = newVerbatimKey;
       update(ref(db), updates);*/

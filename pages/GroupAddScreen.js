@@ -10,6 +10,7 @@ import {
   Button,
   TextInput,
   BackHandler,
+  Alert,
 } from "react-native";
 import { getDatabase, ref, get, onValue, push, child, set, update } from "firebase/database";
 import {
@@ -35,6 +36,7 @@ const GroupAddScreen = ({ route }) => {
   const [dataArray, setDataArray] = useState([]);
   const [showSearch,setShowSearch] = useState(false);
   const [pfpUsers,setPfpUsers] = useState({});
+  const [isAlertVisible, setAlertVisible] = useState(false);
 
   const db = getDatabase(app);
   const navigation = useNavigation();
@@ -86,9 +88,14 @@ const GroupAddScreen = ({ route }) => {
       /*const updates = {};
       updates["Groups/" + group["id"] + "/verbatims/" + newGroupVerbatimKey] = newVerbatimKey;
       update(ref(db), updates);*/
-
       navigation.goBack();
+    } else {
+      setAlertVisible(true);
     }
+  };
+
+  const hideAlert = () => {
+    setAlertVisible(false);
   };
 
   const getUsernameFromID = (userIdValue) => {
@@ -304,6 +311,19 @@ const GroupAddScreen = ({ route }) => {
       <TouchableOpacity onPress={goBack} style={styles.backButton}>
         <Ionicons name="arrow-back" size={24} color="white" />
       </TouchableOpacity>
+      {isAlertVisible && (
+        Alert.alert(
+          'Alert',
+          'The group name must not be empty',
+          [
+            {
+              text: 'Exit',
+              onPress: hideAlert,
+            },
+          ],
+          { cancelable: false }
+        )
+      )}
       <View style={styles.centerContainer}>
         <Text style={styles.title}>Create New Group</Text>
         <TextInput

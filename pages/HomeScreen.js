@@ -101,14 +101,7 @@ const HomeScreen = ({ route }) => {
   }
   
   useEffect(()=>{
-    onValue(ref(db, "Groups/"), (snapshot) => {
-      fetchVerbatims();
-    })
-    
-    onValue(ref(db, "Verbatims/"), (snapshot) => {
-      fetchVerbatims();
-    })
-
+    fetchVerbatims();
   },[])
   
 
@@ -465,50 +458,40 @@ const HomeScreen = ({ route }) => {
                       style={styles.modalContainer}
                     >
                     </Pressable>
-                      <KeyboardAvoidingView 
-                        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                        style={styles.modalContent}
-                      >
-                        <View style={styles.commentsHeading}>
-                          <Text style={styles.commentsHeadingText}>Comments</Text>
-                        </View>
-                        <FlatList
-                          data={currComments}
-                          renderItem={renderComment}
-                          keyExtractor={(item, index) => index}
-                          contentContainerStyle={styles.commentsContainer}
-                          style={styles.commentsBody}
+                    <View style={styles.modalContent}>
+                      <View style={styles.commentsHeading}>
+                        <Text style={styles.commentsHeadingText}>Comments</Text>
+                      </View>
+                      <FlatList
+                        data={currComments}
+                        renderItem={renderComment}
+                        keyExtractor={(item, index) => index}
+                        contentContainerStyle={styles.commentsContainer}
+                        style={styles.commentsBody}
+                      />
+                      <KeyboardAvoidingView
+                          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                          style={styles.commentInputRect}
+                        >
+                        <View style={styles.textboxRec}>
+                         <TextInput
+                          style={styles.commentInput}
+                          placeholder="Add a comment..."
+                          placeholderTextColor="#616060"
+                          onChangeText={(text) => setCommentText(text)}
+                          value={commentText}
+                          onSubmitEditing={() => addComment(selectedPost.id)}
                         />
-                        <View
-                            style={styles.commentInputRect}
-                          >
-                          <View style={styles.textboxRec}>
-                            <TextInput
-                              style={styles.commentInput}
-                              placeholder="Add a comment..."
-                              placeholderTextColor="#616060"
-                              onChangeText={(text) => setCommentText(text)}
-                              value={commentText}
-                              onSubmitEditing={() => addComment(selectedPost.id)}
-                            />
-                          </View>
                         </View>
-                      </KeyboardAvoidingView>
-                  </Modal>
+                    </KeyboardAvoidingView>
+                  </View>
+                </Modal>
               
               )}
       </TouchableWithoutFeedback>
     </View>
   );
 };
-
-/*
-<KeyboardAvoidingView
-    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    style={styles.commentInputRect}
-  >
-</KeyboardAvoidingView>
-*/
 
 const styles = StyleSheet.create({
   container: {
@@ -742,52 +725,3 @@ const styles = StyleSheet.create({
 });
 
 export default HomeScreen
-
-/*
-const renderDiscussionPost = ({ item }) => {
-    let isLiked = likedPosts.includes(String(item.id));
-    let groupName = null;
-    if (item.groupName === null) {
-      groupName = "No Group";
-    } else {
-      groupName = item.groupName;
-    }
-    return (
-      <View style={styles.postContainer}>
-        <View style={styles.userContainer}>
-          <Image source={{ uri: item.profilePic }} style={styles.profilePic} />
-          <View style={styles.userInfo}>
-            <Text style={styles.username}>{item.verbaiterName} Said:</Text>
-            <Text style={styles.timestamp}>{item.timestamp}</Text>
-          </View>
-        </View>
-
-        <View style={styles.postTextContainer}>
-          <Text style={styles.postText}>"{item.post}"</Text>
-        </View>
-        <View style={styles.submittedByContainer}>
-          <Text style={styles.submittedByText}>
-            Submitted by: {item.verbastardName} | {groupName}
-          </Text>
-        </View>
-        <View style={styles.favoriteButton}>
-          <SvgFavoritedButton
-            onPress={() => toggleFavorite(item.id)}
-            isFavorite={item.isFavorite}
-          />
-        </View>
-        <View style={styles.actionsContainer}>
-          <SvgLikeButton
-            onPress={() => toggleLike(item.id)}
-            isLiked={isLiked}
-            numLikes={item.numLikes}
-          />
-          <SvgCommentButton 
-            onPress={() => openModal(item.id)} 
-            numComments={item.numComments}
-          />
-          </View>
-        </View>
-      );
-    };
-    */

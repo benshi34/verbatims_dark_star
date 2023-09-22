@@ -37,6 +37,7 @@ const GroupAddScreen = ({ route }) => {
   const [showSearch,setShowSearch] = useState(false);
   const [pfpUsers,setPfpUsers] = useState({});
   const [isAlertVisible, setAlertVisible] = useState(false);
+  const [isDuplicatePerson, setDuplicatePerson] = useState(false);
 
   const db = getDatabase(app);
   const navigation = useNavigation();
@@ -96,6 +97,10 @@ const GroupAddScreen = ({ route }) => {
 
   const hideAlert = () => {
     setAlertVisible(false);
+  };
+
+  const hideDuplicateAlert = () => {
+    setDuplicatePerson(false);
   };
 
   const getUsernameFromID = (userIdValue) => {
@@ -254,12 +259,22 @@ const GroupAddScreen = ({ route }) => {
     updatedUsersId = usersIds;
 
     updatedUsersId[uuid.v1()]=item.userId;
-    //console.log(updatedUsersId);
-    setUsersIds(updatedUsersId);
     const newElement = {};
     newElement["id"]=item.userId;
     newElement["username"]=item.username;
-    setUsers(users=>[...users,newElement])
+    //console.log(updatedUsersId);
+    let isDuplicate = false;
+    for(const i in users){
+      if(users[i].id===newElement.id&&users[i].username===newElement.username){
+        isDuplicate=true;
+      }
+    }
+    if(!isDuplicate){
+      setUsersIds(updatedUsersId);
+      setUsers(users=>[...users,newElement])
+    } else {
+      setDuplicatePerson(true);
+    }
     //item.userId
     //navigation.navigate('UserProfile', {userId: id, profileId: user });
   }
@@ -324,6 +339,20 @@ const GroupAddScreen = ({ route }) => {
           { cancelable: false }
         )
       )}
+
+      {isDuplicatePerson && (
+        Alert.alert(
+          'Alert',
+          'Duplicate people cannot be added to a group',
+          [
+            {
+              text: 'Exit',
+              onPress: hideDuplicateAlert,
+            },
+          ],
+          { cancelable: false }
+        )
+      )}
       <View style={styles.centerContainer}>
         <Text style={styles.title}>Create New Group</Text>
         <TextInput
@@ -335,13 +364,9 @@ const GroupAddScreen = ({ route }) => {
       </View>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {users.map((user, index) => {
-          const isPressed = pressedIndices.includes(index);
-          const buttonStyle = isPressed
-            ? styles.listText
-            : styles.purpleButtonText;
+          const buttonStyle = styles.purpleButtonText;
           return (
-            <TouchableOpacity
-              onPress={() => userSelected(index, user)}
+            <View
               style={styles.chooseButtonContainer}
               key={index}
             >
@@ -350,7 +375,7 @@ const GroupAddScreen = ({ route }) => {
                 style={styles.image}
               />
               <Text style={buttonStyle}>{user["username"]}</Text>
-            </TouchableOpacity>
+            </View>
           );
         })}
       </ScrollView>

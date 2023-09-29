@@ -11,6 +11,7 @@ import {
   TextInput,
   BackHandler,
   Alert,
+  Keyboard,
 } from "react-native";
 import { getDatabase, ref, get, onValue, push, child, set, update } from "firebase/database";
 import {
@@ -21,6 +22,7 @@ import {
 import { app } from "../Firebase.js";
 import { useNavigation } from "@react-navigation/native";
 import uuid from 'react-native-uuid';
+import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons'; // Assuming you're using Expo's vector icons
 
 const storage = getStorage();
@@ -306,14 +308,19 @@ const GroupAddScreen = ({ route }) => {
   const togglePopup = () => {
     setShowSearch(true);
   }
+
   if(showSearch){
     return(
-      <View>
+      <View style={styles.container}>
         <TouchableOpacity onPress={goBack} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
-        <View style={styles.container}>
+        
+        <View style={styles.headerView}>
           <Text style={styles.title}>Search User</Text>
+        </View>
+
+        <View style={styles.centerContainer}>
           <TextInput
             style={styles.input}
             placeholder="Search..."
@@ -321,6 +328,7 @@ const GroupAddScreen = ({ route }) => {
             value={searchText}
             placeholderTextColor="#888"
           />
+        </View>
           {searchText !== '' ? (
             <FlatList
               data={searchResults}
@@ -329,15 +337,21 @@ const GroupAddScreen = ({ route }) => {
               ListEmptyComponent={<Text style={styles.emptyText}>No results found</Text>}
             />
           ) : null}
-        </View>
+        
       </View>
     );
   }
+
+  const dismissKeyboard = () => {
+    Keyboard.dismiss(); // Dismiss the keyboard
+  };
+
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={goBack} style={styles.backButton}>
         <Ionicons name="arrow-back" size={24} color="white" />
       </TouchableOpacity>
+      
       {isAlertVisible && (
         Alert.alert(
           'Alert',
@@ -365,8 +379,11 @@ const GroupAddScreen = ({ route }) => {
           { cancelable: false }
         )
       )}
-      <View style={styles.centerContainer}>
+
+      <View style={styles.headerView}>
         <Text style={styles.title}>Create New Group</Text>
+      </View>
+      <View style={styles.centerContainer}>
         <TextInput
           placeholder="Group Name"
           value={groupName}
@@ -406,10 +423,19 @@ const GroupAddScreen = ({ route }) => {
 const styles = StyleSheet.create({
   
   container: {
-    flex: 0,
-    padding: 32,
-    justifyContent: 'center',
+    flex: 1,
+    //padding: 32,
+    //justifyContent: 'center',
     backgroundColor: 'white',
+  },
+  headerView: {
+    paddingTop: 70,
+    paddingBottom: 20,
+    width: "100%",
+    height: 130,
+    backgroundColor: "white",
+    elevation: 5,
+    alignItems: "center",
   },
   backButton: {
     marginTop: 30,
@@ -422,10 +448,9 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   title: {
-    fontSize: 24,
+    fontSize: 39,
     fontWeight: "bold",
-    marginBottom: 40,
-    textAlign: 'center',
+    color: "black",
   },
   image: {
     width: 20,
@@ -433,13 +458,16 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   input: {
-    width: "80%",
     height: 40,
-    borderRadius: 8,
-    borderColor: "#CCCCCC",
+    borderColor: '#ccc',
     borderWidth: 1,
-    paddingHorizontal: 10,
-    marginBottom: 20,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    marginBottom: 16,
+    fontSize: 16,
+    color: '#333',
+    backgroundColor: '#fff',
+    width: '90%',
   },
   centerContainer: {
     justifyContent: "center",
@@ -475,17 +503,6 @@ const styles = StyleSheet.create({
     paddingLeft: 40,
     marginBottom: 20,
   },
-  input: {
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    marginBottom: 16,
-    fontSize: 16,
-    color: '#333',
-    backgroundColor: '#fff',
-  },
   item: {
     flexDirection: "row",
     paddingVertical: 12,
@@ -507,6 +524,11 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     marginRight: 8,
+  },
+  searchContainer: {
+    flex: 1,
+    //padding: 1,
+    //backgroundColor: '#f9f9f9',
   },
 });
 

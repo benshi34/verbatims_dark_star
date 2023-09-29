@@ -101,14 +101,7 @@ const HomeScreen = ({ route }) => {
   }
   
   useEffect(()=>{
-    onValue(ref(db, "Groups/"), (snapshot) => {
-      fetchVerbatims();
-    })
-    
-    onValue(ref(db, "Verbatims/"), (snapshot) => {
-      fetchVerbatims();
-    })
-
+    fetchVerbatims();
   },[])
   
 
@@ -447,12 +440,18 @@ const HomeScreen = ({ route }) => {
             <View style={styles.headerView}>
               <Text style={styles.header}>Verbatims</Text>
             </View>
-              <FlatList
-                data={verbatims}
-                renderItem={renderDiscussionPost}
-                keyExtractor={(item) => item.id}
-                contentContainerStyle={styles.listContainer}
-              />
+            <View>
+              {verbatims.length === 0 ? (
+                <Text>No items to display.</Text>
+              ) : (
+                <FlatList
+                  data={verbatims}
+                  renderItem={renderDiscussionPost}
+                  keyExtractor={(item) => item.id}
+                  contentContainerStyle={styles.listContainer}
+                />
+              )}
+            </View>
               {selectedPost && (
                 
                   <Modal 
@@ -502,7 +501,7 @@ const HomeScreen = ({ route }) => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 0,
+    flex: 1,
     backgroundColor: "#fff",
   },
   headerView: {

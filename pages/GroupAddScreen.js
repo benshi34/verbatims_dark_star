@@ -10,6 +10,7 @@ import {
   Button,
   TextInput,
   BackHandler,
+  Alert,
 } from "react-native";
 import { getDatabase, ref, get, onValue, push, child, set, update } from "firebase/database";
 import {
@@ -35,6 +36,8 @@ const GroupAddScreen = ({ route }) => {
   const [dataArray, setDataArray] = useState([]);
   const [showSearch,setShowSearch] = useState(false);
   const [pfpUsers,setPfpUsers] = useState({});
+  const [isAlertVisible, setAlertVisible] = useState(false);
+  const [isDuplicatePerson, setDuplicatePerson] = useState(false);
 
   const db = getDatabase(app);
   const navigation = useNavigation();
@@ -75,20 +78,41 @@ const GroupAddScreen = ({ route }) => {
       const newGroupKey = push(child(ref(db), "Groups")).key;
 
       updatedData = {}
-
+      let tempGroupKey = push(child(ref(db), 'Groups/' + newGroupKey + "/users")).key;
+      let updatedUsersIds = usersIds
+      updatedUsersIds[tempGroupKey] = id
       set(ref(db, "Groups/" + newGroupKey), {
         id: newGroupKey,
         name: groupName,
-        users: usersIds,
-        verbatims: "",
+        users: updatedUsersIds,
       });
+      const updates = {};
+      const newPostKey = push(child(ref(db), 'Users/' + id + "/groups")).key;
+      updates["/"+newPostKey] = newGroupKey;
+      update(ref(db, 'Users/' + id + "/groups"), updates);
       
+      const values = Object.values(usersIds)
+      for (let tempId in values) {
+        let temp = push(child(ref(db), 'Users/' + values[tempId] + "/groups")).key;
+        updates["/"+temp] = newGroupKey
+        update(ref(db, 'Users/' + values[tempId] + "/groups"), updates);
+      }
+
       /*const updates = {};
       updates["Groups/" + group["id"] + "/verbatims/" + newGroupVerbatimKey] = newVerbatimKey;
       update(ref(db), updates);*/
-
       navigation.goBack();
+    } else {
+      setAlertVisible(true);
     }
+  };
+
+  const hideAlert = () => {
+    setAlertVisible(false);
+  };
+
+  const hideDuplicateAlert = () => {
+    setDuplicatePerson(false);
   };
 
   const getUsernameFromID = (userIdValue) => {
@@ -227,10 +251,10 @@ const GroupAddScreen = ({ route }) => {
   }, []);
 
   const renderResults = ({ item }) => {
+    console.log(item)
     if (!item) {
       return null;
     }
-    //item.userId
     return (
       <TouchableOpacity onPress={() => handleProfilePress(item)} style={styles.item}>
         <Image source={{uri: item.profilePic}} style={styles.profilePic} />
@@ -247,12 +271,22 @@ const GroupAddScreen = ({ route }) => {
     updatedUsersId = usersIds;
 
     updatedUsersId[uuid.v1()]=item.userId;
-    //console.log(updatedUsersId);
-    setUsersIds(updatedUsersId);
     const newElement = {};
     newElement["id"]=item.userId;
     newElement["username"]=item.username;
-    setUsers(users=>[...users,newElement])
+    //console.log(updatedUsersId);
+    let isDuplicate = false;
+    for(const i in users){
+      if(users[i].id===newElement.id&&users[i].username===newElement.username){
+        isDuplicate=true;
+      }
+    }
+    if(!isDuplicate){
+      setUsersIds(updatedUsersId);
+      setUsers(users=>[...users,newElement])
+    } else {
+      setDuplicatePerson(true);
+    }
     //item.userId
     //navigation.navigate('UserProfile', {userId: id, profileId: user });
   }
@@ -266,6 +300,7 @@ const GroupAddScreen = ({ route }) => {
     }) : [];
     setSearchText(text);
     setSearchResults(filteredResults);
+    console.log(filteredResults)
   };
 
   const togglePopup = () => {
@@ -290,7 +325,7 @@ const GroupAddScreen = ({ route }) => {
             <FlatList
               data={searchResults}
               renderItem={renderResults}
-              keyExtractor={(item) => item}
+              keyExtractor={(item) => item.userId}
               ListEmptyComponent={<Text style={styles.emptyText}>No results found</Text>}
             />
           ) : null}
@@ -298,12 +333,38 @@ const GroupAddScreen = ({ route }) => {
       </View>
     );
   }
-
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={goBack} style={styles.backButton}>
         <Ionicons name="arrow-back" size={24} color="white" />
       </TouchableOpacity>
+      {isAlertVisible && (
+        Alert.alert(
+          'Alert',
+          'The group name must not be empty',
+          [
+            {
+              text: 'Exit',
+              onPress: hideAlert,
+            },
+          ],
+          { cancelable: false }
+        )
+      )}
+
+      {isDuplicatePerson && (
+        Alert.alert(
+          'Alert',
+          'Duplicate people cannot be added to a group',
+          [
+            {
+              text: 'Exit',
+              onPress: hideDuplicateAlert,
+            },
+          ],
+          { cancelable: false }
+        )
+      )}
       <View style={styles.centerContainer}>
         <Text style={styles.title}>Create New Group</Text>
         <TextInput
@@ -315,13 +376,9 @@ const GroupAddScreen = ({ route }) => {
       </View>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {users.map((user, index) => {
-          const isPressed = pressedIndices.includes(index);
-          const buttonStyle = isPressed
-            ? styles.listText
-            : styles.purpleButtonText;
+          const buttonStyle = styles.purpleButtonText;
           return (
-            <TouchableOpacity
-              onPress={() => userSelected(index, user)}
+            <View
               style={styles.chooseButtonContainer}
               key={index}
             >
@@ -330,7 +387,7 @@ const GroupAddScreen = ({ route }) => {
                 style={styles.image}
               />
               <Text style={buttonStyle}>{user["username"]}</Text>
-            </TouchableOpacity>
+            </View>
           );
         })}
       </ScrollView>
@@ -349,6 +406,7 @@ const GroupAddScreen = ({ route }) => {
 const styles = StyleSheet.create({
   
   container: {
+    flex: 0,
     padding: 32,
     justifyContent: 'center',
     backgroundColor: 'white',

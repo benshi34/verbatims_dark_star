@@ -41,6 +41,7 @@ const AddScreen = ({ route }) => {
   const [groupsModalVisible, setGroupsModalVisible] = useState(false);
   const [isPopupVisible, setPopupVisible] = useState(false);
   const [isAlertPopupVisible, setAlertPopupVisible] = useState(false);
+  const [isAlertSubmissionPopupVisible, setAlertSubmissionPopupVisible] = useState(false);
   const [isGroupPopupVisible, setGroupPopupVisible] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [pressedIndexes, setPressedIndexes] = useState([]);
@@ -319,6 +320,7 @@ const AddScreen = ({ route }) => {
         console.error(error);
       });
     selectedUser = sampledUsers[selectedIndex];
+    toggleAlertSubmission();
   };
 
   const dismissKeyboard = () => {
@@ -332,6 +334,10 @@ const AddScreen = ({ route }) => {
   const toggleVerbaiterModal = () => {
     setGroupsModalVisible(!verbaiterModalVisible);
   };
+
+  const toggleAlertSubmission = () => {
+    setAlertSubmissionPopupVisible(!isAlertSubmissionPopupVisible)
+  }
 
   const handleGroupSelection = (itemValue) => {
     const selectedGroup = groups.find((group) => group.id === itemValue);
@@ -509,6 +515,21 @@ const AddScreen = ({ route }) => {
                 <TouchableOpacity
                   style={styles.alertOtherButton}
                   onPress={toggleAlert}
+                >
+                  <Text style={styles.alertOtherButtonText}>Close</Text>
+                </TouchableOpacity>
+              </View>
+            </Popup>
+
+            <Popup visible={isAlertSubmissionPopupVisible} onClose={toggleAlertSubmission}>
+              <View style={styles.alertRectangle}>
+                <Text style={styles.alertText}>Submitted!</Text>
+                <Text style={styles.alertDescriptionText}>
+                  Go to the homepage to see the reactions.
+                </Text>
+                <TouchableOpacity
+                  style={styles.alertOtherButton}
+                  onPress={toggleAlertSubmission}
                 >
                   <Text style={styles.alertOtherButtonText}>Close</Text>
                 </TouchableOpacity>

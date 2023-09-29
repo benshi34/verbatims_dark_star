@@ -32,6 +32,8 @@ const ProfileScreen = ({ route }) => {
   const [showAllVerbatims, setShowAllVerbatims] = useState(false);
   const [showAllVerbastards, setShowAllVerbastards] = useState(false);
   const [downloadedUrl,setDownloadedUrl] = useState(false);
+  const [isInFriendRequests,setIsInFriendRequests] = useState(false);
+  const [isInFriends,setIsInFriends] = useState(false);
   const { userId, profileId } = route.params;
   //const htref = 'https://firebasestorage.googleapis.com/v0/b/verbatims-4622f.appspot.com/o/1.jpg?alt=media&token=11ea9825-a4e2-4a7b-97c1-c4ad1b1eaae2';  
 
@@ -275,74 +277,7 @@ const ProfileScreen = ({ route }) => {
     };
 
 
-
-
-    const titleFriendButton = async () => {
-      //console.log("1");
-      
-      const dbrefFriends = ref(db, 'Users/' + profileId + "/friendrequests");
-      onValue(dbrefFriends, (snapshot) => {
-        if (snapshot.exists()) {
-          data=snapshot.val();
-          //console.log("2");
-          let verbatimsArray = Object.keys(data).map((key) => {
-            return { id: key, value:data[key] };
-          });
-          console.log(verbatimsArray);
-          let isFriend = false;
-          let idFound = -1;
-          verbatimsArray.forEach((friend) => {
-            if (friend.value === userId) {
-              isFriend=true;
-              idFound=friend.id;
-            }
-          });
-          if (isFriend) {
-            setFriendButtonTitle("Friend Request Sent");
-          }
-        }
-      }).catch((error) => {
-        //console.log("6");
-        console.error(error);
-      });
-
-      const dbref = ref(db, 'Users/' + profileId + "/friends");
-      onValue(dbref, (snapshot) => {
-        if (snapshot.exists()) {
-          data=snapshot.val();
-          //console.log("2");
-          let verbatimsArray = Object.keys(data).map((key) => {
-            return { id: key, value:data[key] };
-          });
-  
-          let isFriend = false;
-          let idFound = -1;
-          verbatimsArray.forEach((friend) => {
-            if (friend.value === userId) {
-              isFriend=true;
-              idFound=friend.id;
-            }
-          });
-  
-          //const isFriend = verbatimsArray.some((friend) => friend.id === userId);
-          
-  
-          if (isFriend) {
-            setFriendButtonTitle("Remove Friend");
-          } else {
-            setFriendButtonTitle("Add Friend");
-          }
-        
-        } else {
-          setFriendButtonTitle("Add Friend");
-        }
-      }).catch((error) => {
-        setFriendButtonTitle("??");
-        //console.log("6");
-        console.error(error);
-      });
-
-    }
+    
 
     
 
@@ -387,15 +322,18 @@ const ProfileScreen = ({ route }) => {
           }
         });
         if (isFriend) {
-          setFriendButtonTitle("Friend Request Sent");
+          setIsInFriendRequests(true);
+        } else {
+          setIsInFriendRequests(false);
         }
+      } else {
+        setIsInFriendRequests(false);
       }
     });
 
     onValue(ref(db, 'Users/' + profileId + "/friends"), (snapshot) => {
       if (snapshot.exists()) {
         const data=snapshot.val();
-        //console.log("2");
         let verbatimsArray = Object.keys(data).map((key) => {
           return { id: key, value:data[key] };
         });
@@ -409,20 +347,27 @@ const ProfileScreen = ({ route }) => {
           }
         });
 
-        //const isFriend = verbatimsArray.some((friend) => friend.id === userId);
-        
-
         if (isFriend) {
-          setFriendButtonTitle("Remove Friend");
+          setIsInFriends(true);
         } else {
-          setFriendButtonTitle("Add Friend");
+          setIsInFriends(false);
         }
-      
       } else {
-        setFriendButtonTitle("Add Friend");
+        setIsInFriends(false);
       }
     });
   }, []);
+
+
+  useEffect(() => {
+    if(isInFriends){
+      setFriendButtonTitle("Remove Friend");
+    } else if(isInFriendRequests){
+      setFriendButtonTitle("Friend Request Sent");
+    } else {
+      setFriendButtonTitle("Add Friend");
+    }
+  }, [isInFriendRequests,isInFriends]);
 
   const toggleFavorite = (postId) => {
     setVerbatims((prevPosts) =>

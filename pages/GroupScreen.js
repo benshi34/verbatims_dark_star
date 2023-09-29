@@ -32,32 +32,30 @@ const GroupScreen = ({ route }) => {
                 const groupArray = Object.keys(data).map((key) => {
                   return { id: key, ...data[key] };
                 });
-                if(groupArray.length!==0){
-                  const promises = groupArray.filter(item => {
-                    let foundUser = false;
-                    for (const keyUser in item.users) {
-                      if (item.users[keyUser] === curUserId) {
-                        foundUser = true;
-                        break;
-                      }
+                const promises = groupArray.filter(item => {
+                  let foundUser = false;
+                  for (const keyUser in item.users) {
+                    if (item.users[keyUser] === curUserId) {
+                      foundUser = true;
+                      break;
                     }
-                    return foundUser; // Change this condition as needed
-                  })
-                  .map(async item => {
-                    const defaultStorageRef = refStorage(storage, '1.jpg');
-                    const defaultUrl = await getDownloadURL(defaultStorageRef);
-                    const storageRef = refStorage(storage, String(item.id) + '.jpg');
-                    const url = await getDownloadURL(storageRef).catch((error) => {
-                      console.log(error);
-                    });
-                    return { ...item, profilePic: url === undefined ? defaultUrl : url};
-                  })
-                  Promise.all(promises).then(groupArray => {
-                    setGroups(groupArray);
-                    setFilteredGroups(groupArray);
-                  })
-                  console.log(groupArray);
-                }
+                  }
+                  return foundUser; // Change this condition as needed
+                })
+                .map(async item => {
+                  const defaultStorageRef = refStorage(storage, '1.jpg');
+                  const defaultUrl = await getDownloadURL(defaultStorageRef);
+                  const storageRef = refStorage(storage, String(item.id) + '.jpg');
+                  const url = await getDownloadURL(storageRef).catch((error) => {
+                    console.log(error);
+                  });
+                  return { ...item, profilePic: url === undefined ? defaultUrl : url};
+                })
+                Promise.all(promises).then(groupArray => {
+                  setGroups(groupArray);
+                  setFilteredGroups(groupArray);
+                })
+                console.log(groupArray);
               }
             }
           })

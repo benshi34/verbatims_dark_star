@@ -92,7 +92,7 @@ const ProfileScreen = ({ route }) => {
   const addFriendButton = async () => {
     //console.log("1");
     let removed = false;
-    const dbref = ref(db, 'Users/' + userId + "/friends");
+    const dbref = ref(db, 'Users/' + profileId + "/friends");
     await get(dbref).then((snapshot) => {
       if (snapshot.exists()) {
         data=snapshot.val();
@@ -104,19 +104,31 @@ const ProfileScreen = ({ route }) => {
         let isFriend = false;
         let idFound = -1;
         verbatimsArray.forEach((friend) => {
-          if (friend.value === profileId) {
+          if (friend.value === userId) {
             isFriend=true;
             idFound=friend.id;
           }
         });
-
         if (isFriend) {
-          remove(ref(db, 'Users/' + userId + "/friends/"+idFound));
           removed=true;
-        } else {
+          console.log(isFriend);
+          get(ref(db, 'Users/' + userId + "/friends")).then((snapshot2) => {
+            const data2=snapshot2.val();
+            //console.log("2");
+            let verbatimsArray2 = Object.keys(data2).map((key) => {
+              return { id: key, value:data2[key] };
+            });
+    
+            let idFound2 = -1;
+            verbatimsArray2.forEach((friend2) => {
+              if (friend2.value === profileId) {
+                idFound2=friend2.id;
+              }
+            });
+            remove(ref(db, 'Users/' + userId + "/friends/"+idFound2));
+            remove(ref(db, 'Users/' + profileId + "/friends/"+idFound));
+          });
         }
-      
-      } else {
       }
     }).catch((error) => {
       //console.log("6");
@@ -267,7 +279,34 @@ const ProfileScreen = ({ route }) => {
 
     const titleFriendButton = async () => {
       //console.log("1");
-      const dbref = ref(db, 'Users/' + userId + "/friends");
+      
+      const dbrefFriends = ref(db, 'Users/' + profileId + "/friendrequests");
+      onValue(dbrefFriends, (snapshot) => {
+        if (snapshot.exists()) {
+          data=snapshot.val();
+          //console.log("2");
+          let verbatimsArray = Object.keys(data).map((key) => {
+            return { id: key, value:data[key] };
+          });
+          console.log(verbatimsArray);
+          let isFriend = false;
+          let idFound = -1;
+          verbatimsArray.forEach((friend) => {
+            if (friend.value === userId) {
+              isFriend=true;
+              idFound=friend.id;
+            }
+          });
+          if (isFriend) {
+            setFriendButtonTitle("Friend Request Sent");
+          }
+        }
+      }).catch((error) => {
+        //console.log("6");
+        console.error(error);
+      });
+
+      const dbref = ref(db, 'Users/' + profileId + "/friends");
       onValue(dbref, (snapshot) => {
         if (snapshot.exists()) {
           data=snapshot.val();
@@ -279,7 +318,7 @@ const ProfileScreen = ({ route }) => {
           let isFriend = false;
           let idFound = -1;
           verbatimsArray.forEach((friend) => {
-            if (friend.value === profileId) {
+            if (friend.value === userId) {
               isFriend=true;
               idFound=friend.id;
             }
@@ -298,9 +337,11 @@ const ProfileScreen = ({ route }) => {
           setFriendButtonTitle("Add Friend");
         }
       }).catch((error) => {
+        setFriendButtonTitle("??");
         //console.log("6");
         console.error(error);
       });
+
     }
 
     
@@ -329,7 +370,58 @@ const ProfileScreen = ({ route }) => {
     });
     //getFriends(friendName);
     fetchVerbatims();
-    titleFriendButton();
+    //titleFriendButton();
+    onValue(ref(db, 'Users/' + profileId + "/friendrequests"), (snapshot) => {
+      if (snapshot.exists()) {
+        const data=snapshot.val();
+        //console.log("2");
+        let verbatimsArray = Object.keys(data).map((key) => {
+          return { id: key, value:data[key] };
+        });
+        let isFriend = false;
+        let idFound = -1;
+        verbatimsArray.forEach((friend) => {
+          if (friend.value === userId) {
+            isFriend=true;
+            idFound=friend.id;
+          }
+        });
+        if (isFriend) {
+          setFriendButtonTitle("Friend Request Sent");
+        }
+      }
+    });
+
+    onValue(ref(db, 'Users/' + profileId + "/friends"), (snapshot) => {
+      if (snapshot.exists()) {
+        const data=snapshot.val();
+        //console.log("2");
+        let verbatimsArray = Object.keys(data).map((key) => {
+          return { id: key, value:data[key] };
+        });
+
+        let isFriend = false;
+        let idFound = -1;
+        verbatimsArray.forEach((friend) => {
+          if (friend.value === userId) {
+            isFriend=true;
+            idFound=friend.id;
+          }
+        });
+
+        //const isFriend = verbatimsArray.some((friend) => friend.id === userId);
+        
+
+        if (isFriend) {
+          setFriendButtonTitle("Remove Friend");
+        } else {
+          setFriendButtonTitle("Add Friend");
+        }
+      
+      } else {
+        setFriendButtonTitle("Add Friend");
+      }
+    });
   }, []);
 
   const toggleFavorite = (postId) => {

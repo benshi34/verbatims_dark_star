@@ -251,10 +251,10 @@ const GroupAddScreen = ({ route }) => {
   }, []);
 
   const renderResults = ({ item }) => {
+    console.log(item)
     if (!item) {
       return null;
     }
-    //item.userId
     return (
       <TouchableOpacity onPress={() => handleProfilePress(item)} style={styles.item}>
         <Image source={{uri: item.profilePic}} style={styles.profilePic} />
@@ -300,6 +300,7 @@ const GroupAddScreen = ({ route }) => {
     }) : [];
     setSearchText(text);
     setSearchResults(filteredResults);
+    console.log(filteredResults)
   };
 
   const togglePopup = () => {
@@ -324,7 +325,7 @@ const GroupAddScreen = ({ route }) => {
             <FlatList
               data={searchResults}
               renderItem={renderResults}
-              keyExtractor={(item) => item}
+              keyExtractor={(item) => item.userId}
               ListEmptyComponent={<Text style={styles.emptyText}>No results found</Text>}
             />
           ) : null}
@@ -332,7 +333,6 @@ const GroupAddScreen = ({ route }) => {
       </View>
     );
   }
-
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={goBack} style={styles.backButton}>
@@ -406,7 +406,7 @@ const GroupAddScreen = ({ route }) => {
 const styles = StyleSheet.create({
   
   container: {
-    flex: 1,
+    flex: 0,
     padding: 32,
     justifyContent: 'center',
     backgroundColor: 'white',

@@ -440,12 +440,18 @@ const HomeScreen = ({ route }) => {
             <View style={styles.headerView}>
               <Text style={styles.header}>Verbatims</Text>
             </View>
-              <FlatList
-                data={verbatims}
-                renderItem={renderDiscussionPost}
-                keyExtractor={(item) => item.id}
-                contentContainerStyle={styles.listContainer}
-              />
+            <View>
+              {verbatims.length === 0 ? (
+                <Text>No items to display.</Text>
+              ) : (
+                <FlatList
+                  data={verbatims}
+                  renderItem={renderDiscussionPost}
+                  keyExtractor={(item) => item.id}
+                  contentContainerStyle={styles.listContainer}
+                />
+              )}
+            </View>
               {selectedPost && (
                 
                   <Modal 

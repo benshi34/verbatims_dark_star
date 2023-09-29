@@ -501,7 +501,7 @@ const HomeScreen = ({ route }) => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 0,
+    flex: 1,
     backgroundColor: "#fff",
   },
   headerView: {
